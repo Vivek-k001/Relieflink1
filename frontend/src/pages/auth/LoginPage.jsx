@@ -282,29 +282,50 @@ export default function LoginPage() {
         </div>
 
         <div style={{ padding: '2rem' }}>
-          {/* Back button */}
-          <button 
-            onClick={() => setSelectedRole(null)} 
-            style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '0.5rem', 
-              color: '#1E293B', 
-              fontSize: '0.875rem', 
-              fontWeight: 600, 
-              background: '#F1F5F9', 
-              border: '1.5px solid #CBD5E1', 
-              borderRadius: 10, 
-              padding: '0.45rem 1rem', 
-              cursor: 'pointer', 
-              marginBottom: '1.5rem',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.borderColor = '#94A3B8'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.borderColor = '#CBD5E1'; }}>
-            <ArrowLeft size={16} /> Change role
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+            <button 
+              onClick={() => navigate('/')} 
+              style={{ 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '0.5rem', 
+                color: '#1E293B', 
+                fontSize: '0.875rem', 
+                fontWeight: 600, 
+                background: '#F1F5F9', 
+                border: '1.5px solid #CBD5E1', 
+                borderRadius: 10, 
+                padding: '0.45rem 1rem', 
+                cursor: 'pointer', 
+                boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.borderColor = '#94A3B8'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.borderColor = '#CBD5E1'; }}>
+              <ArrowLeft size={16} /> Home
+            </button>
+            <button 
+              onClick={() => setSelectedRole(null)} 
+              style={{ 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '0.5rem', 
+                color: '#1E293B', 
+                fontSize: '0.875rem', 
+                fontWeight: 600, 
+                background: '#F1F5F9', 
+                border: '1.5px solid #CBD5E1', 
+                borderRadius: 10, 
+                padding: '0.45rem 1rem', 
+                cursor: 'pointer', 
+                boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.borderColor = '#94A3B8'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.borderColor = '#CBD5E1'; }}>
+              <ArrowLeft size={16} /> Change role
+            </button>
+          </div>
 
           {selectedRole === 'affected' ? (
             <>
