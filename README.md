@@ -10,7 +10,7 @@ ReliefLink helps coordinate emergency response by allowing users to send SOS req
 
 ### Tech Stack
 
-- **Frontend:** React.js (Vite), Tailwind CSS, Zustand, Leaflet.js
+- **Frontend:** React.js (Vite), Vanilla CSS (Custom Utility System), Zustand, Leaflet.js
 - **Backend:** Node.js, Express.js, Socket.io
 - **Database:** MongoDB (Mongoose)
 - **Authentication:** JWT & Phone OTP Verification
@@ -86,46 +86,7 @@ ReliefLink helps coordinate emergency response by allowing users to send SOS req
 
 ---
 
-## 🚀 Getting Started
 
-### Requirements
-
-- Node.js
-- MongoDB (Local or Atlas)
-- OpenWeatherMap API Key
-
-### Clone Repository
-
-```bash
-git clone https://github.com/Vivek-k001/Relieflink.git
-cd Relieflink
-```
-
-### Backend
-
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-Create a `.env` file containing:
-
-```env
-MONGO_URI=
-JWT_SECRET=
-PORT=
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
----
 
 ## ✨ Current Features
 

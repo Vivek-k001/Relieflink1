@@ -60,7 +60,7 @@ const verifyOTP = async (req, res) => {
     user.otp = undefined;
     user.otpExpires = undefined;
     user.isVerified = true;
-    if (name && !user.name) user.name = name;
+    if (name) user.name = name;
     await user.save();
 
     const token = generateToken(user._id);

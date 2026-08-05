@@ -122,6 +122,7 @@ export default function LoginPage() {
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const [phone, setPhone] = useState('');
+  const [name, setName] = useState('');
   
   // OTP state
   const [otp, setOtp] = useState('');
@@ -180,7 +181,7 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      const res = await authAPI.verifyOTP(fullPhone, otpCode);
+      const res = await authAPI.verifyOTP(fullPhone, otpCode, name);
       setAuth(res.data.user, res.data.token);
       toast.success('Welcome to ReliefLink!');
       navigate('/dashboard');
@@ -331,6 +332,27 @@ export default function LoginPage() {
             <>
               {!otpSent ? (
                 <>
+                  <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                    <label className="form-label" style={{ fontWeight: 600, color: '#1E293B', marginBottom: '0.5rem', display: 'block', fontSize: '0.9375rem' }}>👤 Full Name</label>
+                    <div style={{ position: 'relative' }}>
+                      <input 
+                        type="text"
+                        className="form-control" 
+                        placeholder="Enter your name" 
+                        value={name} 
+                        onChange={e => setName(e.target.value)} 
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem 1rem',
+                          borderRadius: 10,
+                          border: '1.5px solid #CBD5E1',
+                          fontSize: '1rem',
+                          transition: 'all 0.2s',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                    </div>
+                  </div>
                   <div className="form-group" style={{ marginBottom: '1.25rem' }}>
                     <label className="form-label">📱 Phone Number</label>
                     <div style={{ display: 'flex', gap: '0.5rem', position: 'relative' }}>
