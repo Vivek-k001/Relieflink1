@@ -19,7 +19,33 @@ export default function RegisterPage() {
   const toggleSkill = (s) => set('skills', form.skills.includes(s) ? form.skills.filter(x => x !== s) : [...form.skills, s]);
 
   const handleRegister = async () => {
-    if (!form.name || !form.email || !form.password) { toast.error('Please fill all required fields'); return; }
+    if (!form.name || form.name.trim().length < 2 || !/^[A-Za-z\s]+$/.test(form.name)) { 
+      toast.error('Please enter a valid full name (letters and spaces only)'); 
+      return; 
+    }
+    if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { 
+      toast.error('Enter a valid email address'); 
+      return; 
+    }
+    if (!form.password || form.password.length < 8) { 
+      toast.error('Password must be at least 8 characters'); 
+      return; 
+    }
+    if (form.phone && (form.phone.replace(/\D/g, '').length < 7 || form.phone.replace(/\D/g, '').length > 15)) {
+      toast.error('If provided, phone number must be valid (7-15 digits)');
+      return;
+    }
+    if (role === 'ngo') {
+      if (!form.organizationName || form.organizationName.trim().length < 2) {
+        toast.error('Please enter a valid Organization Name');
+        return;
+      }
+      if (!form.registrationNumber || form.registrationNumber.trim().length < 2) {
+        toast.error('Please enter a valid Registration Number');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const res = await authAPI.register({ ...form, role });

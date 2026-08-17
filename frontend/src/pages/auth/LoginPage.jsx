@@ -155,8 +155,9 @@ export default function LoginPage() {
 
   const handleSendOTP = async () => {
     const fullPhone = getFullPhoneNumber();
-    if (phone.replace(/\D/g, '').length < 7) { 
-      toast.error('Enter a valid phone number'); 
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length < 7 || cleanPhone.length > 15) { 
+      toast.error('Enter a valid phone number (7-15 digits)'); 
       return; 
     }
     setLoading(true);
@@ -175,13 +176,20 @@ export default function LoginPage() {
   const handleVerifyOTP = async (otpToVerify) => {
     const otpCode = otpToVerify || otp;
     const fullPhone = getFullPhoneNumber();
-    if (otpCode.length !== 6) { 
-      toast.error('Enter 6-digit OTP'); 
+    
+    if (otpCode.length !== 6 || !/^\d{6}$/.test(otpCode)) { 
+      toast.error('Enter a valid 6-digit OTP'); 
       return; 
     }
+    
+    if (!name || name.trim().length < 2 || !/^[A-Za-z\s]+$/.test(name)) {
+      toast.error('Please enter a valid full name (letters and spaces only)');
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await authAPI.verifyOTP(fullPhone, otpCode, name);
+      const res = await authAPI.verifyOTP(fullPhone, otpCode, name.trim());
       setAuth(res.data.user, res.data.token);
       toast.success('Welcome to ReliefLink!');
       navigate('/dashboard');
@@ -193,8 +201,12 @@ export default function LoginPage() {
   };
 
   const handleEmailLogin = async () => {
-    if (!email || !password) { 
-      toast.error('Enter email and password'); 
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { 
+      toast.error('Enter a valid email address'); 
+      return; 
+    }
+    if (!password || password.length < 8) {
+      toast.error('Password must be at least 8 characters'); 
       return; 
     }
     setLoading(true);

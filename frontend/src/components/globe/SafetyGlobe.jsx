@@ -50,12 +50,12 @@ export default function SafetyGlobe({
         htmlElements.push({
           lat: droppedPin.lat,
           lng: droppedPin.lng,
-          altitude: 0.04,
+          altitude: 0,
           name: 'Your Location Pin',
           html: `
-            <div style="transform: translate(-50%, -100%); text-align: center; pointer-events: none">
+            <div style="transform: translate(-50%, -100%); text-align: center; pointer-events: none; padding-bottom: 2px;">
               <div style="font-size: 38px; line-height: 1; filter: drop-shadow(0 6px 14px rgba(220,38,38,0.8)); animation: pinBounce 1.2s infinite ease-in-out">📍</div>
-              <div style="background: linear-gradient(135deg, #DC2626, #991B1B); color: white; padding: 3px 10px; border-radius: 12px; font-weight: 800; font-size: 11px; white-space: nowrap; border: 1.5px solid rgba(255,255,255,0.8); box-shadow: 0 4px 14px rgba(220,38,38,0.6)">
+              <div style="background: linear-gradient(135deg, #DC2626, #991B1B); color: white; padding: 3px 10px; border-radius: 12px; font-weight: 800; font-size: 11px; white-space: nowrap; border: 1.5px solid rgba(255,255,255,0.8); box-shadow: 0 4px 14px rgba(220,38,38,0.6); margin-top: -5px;">
                 YOUR DROPPED PIN
               </div>
             </div>
