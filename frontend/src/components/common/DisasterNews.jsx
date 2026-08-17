@@ -9,35 +9,42 @@ const DISASTER_KEYWORDS = [
   'warning','drought','hurricane','tornado','avalanche','volcanic','casualties'
 ];
 
+const DISASTER_REGEX = new RegExp('\\b(' + DISASTER_KEYWORDS.join('|') + ')\\b', 'i');
+
 function isDisaster(text = '') {
-  const t = text.toLowerCase();
-  return DISASTER_KEYWORDS.some(k => t.includes(k));
+  return DISASTER_REGEX.test(text);
+}
+
+function hasWord(text, words) {
+  const regex = new RegExp('\\b(' + words.join('|') + ')\\b', 'i');
+  return regex.test(text);
 }
 
 function categorize(title = '', desc = '') {
-  const t = (title + ' ' + desc).toLowerCase();
-  if (t.includes('flood') || t.includes('rain') || t.includes('waterlog')) return { cat: 'Flood', icon: '🌊', color: '#0284C7' };
-  if (t.includes('cyclone') || t.includes('storm') || t.includes('hurricane')) return { cat: 'Cyclone', icon: '🌀', color: '#7C3AED' };
-  if (t.includes('earthquake') || t.includes('tremor') || t.includes('seismic')) return { cat: 'Earthquake', icon: 'B45309' };
-  if (t.includes('rescue') || t.includes('ndrf') || t.includes('evacuat')) return { cat: 'Rescue', icon: '🚁', color: '#F97316' };
-  if (t.includes('relief') || t.includes('camp') || t.includes('aid')) return { cat: 'Relief', icon: '🏕️', color: '#059669' };
-  if (t.includes('heat') || t.includes('temperature')) return { cat: 'Heatwave', icon: '☀️', color: '#D97706' };
-  if (t.includes('fire') || t.includes('blaze')) return { cat: 'Fire', icon: '🔥', color: '#DC2626' };
-  if (t.includes('landslide') || t.includes('avalanche')) return { cat: 'Landslide', icon: '⛰️', color: '#92400E' };
-  if (t.includes('alert') || t.includes('warning')) return { cat: 'Alert', icon: '🚨', color: '#EF4444' };
+  const t = title + ' ' + desc;
+  if (hasWord(t, ['flood', 'waterlog'])) return { cat: 'Flood', icon: '🌊', color: '#0284C7' };
+  if (hasWord(t, ['rain', 'monsoon'])) return { cat: 'Rain', icon: '🌧️', color: '#3B82F6' };
+  if (hasWord(t, ['cyclone', 'storm', 'hurricane', 'typhoon'])) return { cat: 'Cyclone', icon: '🌀', color: '#7C3AED' };
+  if (hasWord(t, ['earthquake', 'tremor', 'seismic'])) return { cat: 'Earthquake', icon: 'B45309' };
+  if (hasWord(t, ['rescue', 'ndrf', 'evacuation', 'evacuate'])) return { cat: 'Rescue', icon: '🚁', color: '#F97316' };
+  if (hasWord(t, ['relief', 'camp', 'aid'])) return { cat: 'Relief', icon: '🏕️', color: '#059669' };
+  if (hasWord(t, ['heat', 'heatwave', 'temperature'])) return { cat: 'Heatwave', icon: '☀️', color: '#D97706' };
+  if (hasWord(t, ['fire', 'blaze', 'wildfire'])) return { cat: 'Fire', icon: '🔥', color: '#DC2626' };
+  if (hasWord(t, ['landslide', 'avalanche'])) return { cat: 'Landslide', icon: '⛰️', color: '#92400E' };
+  if (hasWord(t, ['alert', 'warning'])) return { cat: 'Alert', icon: '🚨', color: '#EF4444' };
   return { cat: 'General', icon: '📰', color: '#64748B' };
 }
 
 const FALLBACK_LOCAL = [
-  { title: 'IMD issues Red Alert for heavy rainfall in Kerala and Karnataka coast', source: 'IMD India', publishedAt: new Date().toISOString(), ...categorize('IMD Red Alert rainfall Kerala'), url: '#' },
-  { title: 'NDRF teams deployed across flood-hit districts in Assam', source: 'NDRF', publishedAt: new Date().toISOString(), ...categorize('NDRF deployed rescue Assam'), url: '#' },
-  { title: 'Cyclone warning issued for Bay of Bengal; coastal evacuation underway', source: 'Ministry of Earth Sciences', publishedAt: new Date().toISOString(), ...categorize('cyclone warning evacuation coast'), url: '#' },
-  { title: 'Maharashtra government opens 120 new relief camps for flood victims', source: 'Maharashtra Govt', publishedAt: new Date().toISOString(), ...categorize('relief camp flood Maharashtra'), url: '#' },
-  { title: 'Heatwave warning extended across Rajasthan and Uttar Pradesh', source: 'IMD India', publishedAt: new Date().toISOString(), ...categorize('heatwave warning temperature'), url: '#' },
-  { title: 'Landslide in Uttarakhand: 3 villages cut off; rescue operation live', source: 'SDRF Uttarakhand', publishedAt: new Date().toISOString(), ...categorize('landslide rescue Uttarakhand'), url: '#' },
-  { title: 'Kerala Emergency Operation Center issues flood watch for Idukki and Wayanad', source: 'SEOC Kerala', publishedAt: new Date().toISOString(), ...categorize('flood alert Kerala'), url: '#' },
-  { title: 'Odisha Disaster Response Force prepares coastal shelters ahead of storm', source: 'ODRAF Odisha', publishedAt: new Date().toISOString(), ...categorize('cyclone storm shelter Odisha'), url: '#' },
-  { title: 'Indian Army deploys amphibious vehicles for rescue operations in flood zone', source: 'Indian Army', publishedAt: new Date().toISOString(), ...categorize('rescue operation flood Army'), url: '#' },
+  { title: 'Wayanad landslides: Death toll rises as massive rescue operations enter day 6', source: 'The Hindu', publishedAt: '2024-08-04T08:30:00Z', ...categorize('Wayanad landslides rescue operations'), url: '#' },
+  { title: 'Indian Army completes construction of 190-ft Bailey bridge in landslide-hit Wayanad', source: 'NDTV', publishedAt: '2024-08-02T14:15:00Z', ...categorize('Army bridge rescue Wayanad'), url: '#' },
+  { title: 'Kerala floods: Heavy rain triggers massive landslides, hundreds feared trapped', source: 'Manorama Online', publishedAt: '2024-07-30T06:45:00Z', ...categorize('Kerala floods rain landslide trapped'), url: '#' },
+  { title: 'Rescue teams deploy advanced radar to locate survivors under Wayanad debris', source: 'Hindustan Times', publishedAt: '2024-08-03T11:20:00Z', ...categorize('Rescue radar survivors Wayanad'), url: '#' },
+  { title: 'IMD issues red alert for 3 Kerala districts; educational institutions closed', source: 'Mathrubhumi', publishedAt: '2024-07-29T18:00:00Z', ...categorize('IMD red alert Kerala'), url: '#' },
+  { title: 'Relief camps set up across Malappuram and Wayanad as Chaliyar river overflows', source: 'Indian Express', publishedAt: '2024-07-31T09:10:00Z', ...categorize('Relief camps Malappuram flood'), url: '#' },
+  { title: 'Helicopters airlift stranded families from isolated villages in Northern Kerala', source: 'Times of India', publishedAt: '2024-08-01T16:45:00Z', ...categorize('Helicopter rescue isolated Kerala'), url: '#' },
+  { title: 'Maharashtra government opens 120 new relief camps for flood victims', source: 'Maharashtra Govt', publishedAt: new Date(Date.now() - 86400000).toISOString(), ...categorize('relief camp flood Maharashtra'), url: '#' },
+  { title: 'NDRF teams deployed across flood-hit districts in Assam', source: 'NDRF', publishedAt: new Date(Date.now() - 172800000).toISOString(), ...categorize('NDRF deployed rescue Assam'), url: '#' },
 ];
 
 const FALLBACK_INTL = [
@@ -49,7 +56,7 @@ const FALLBACK_INTL = [
   { title: 'Global Disaster Relief Fund allocated $50M for emergency flood response', source: 'UN ReliefWeb', publishedAt: new Date().toISOString(), ...categorize('relief emergency flood response'), url: '#' },
 ];
 
-const CATS = ['All', 'Flood', 'Cyclone', 'Earthquake', 'Rescue', 'Relief', 'Alert', 'Fire'];
+const CATS = ['All', 'Flood', 'Rain', 'Cyclone', 'Earthquake', 'Landslide', 'Rescue', 'Relief', 'Alert', 'Fire'];
 
 async function fetchDirect(url) {
   try {
@@ -98,7 +105,12 @@ export default function DisasterNews({ compact = false }) {
       const allLocal = [...generalIN, ...healthIN];
       const seenL = new Set();
       const mappedLocal = allLocal
-        .filter(a => { if (!a.title || seenL.has(a.title)) return false; seenL.add(a.title); return true; })
+        .filter(a => { 
+          if (!a.title || seenL.has(a.title)) return false; 
+          if (!isDisaster(a.title + ' ' + (a.description || ''))) return false;
+          seenL.add(a.title); 
+          return true; 
+        })
         .map(a => ({ ...a, ...categorize(a.title, a.description), source: a.source?.name || 'India News' }))
         .sort((a, b) => {
           const aD = isDisaster(a.title + a.description);
@@ -115,7 +127,12 @@ export default function DisasterNews({ compact = false }) {
       ];
       const seenI = new Set();
       const mappedIntl = allIntl
-        .filter(a => { if (!a.title || seenI.has(a.title)) return false; seenI.add(a.title); return true; })
+        .filter(a => { 
+          if (!a.title || seenI.has(a.title)) return false; 
+          if (!isDisaster(a.title + ' ' + (a.description || ''))) return false;
+          seenI.add(a.title); 
+          return true; 
+        })
         .map(a => ({ ...a, ...categorize(a.title, a.description) }))
         .sort((a, b) => {
           const aD = isDisaster(a.title + a.description);
