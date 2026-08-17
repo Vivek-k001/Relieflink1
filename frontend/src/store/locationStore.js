@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { weatherAPI } from '../api';
+import toast from 'react-hot-toast';
 
 // Server-proxied Mobile Tower / IP-based geolocation fallback (No CORS issues)
 export async function getIPLocation() {
@@ -30,7 +31,7 @@ export const useLocationStore = create((set) => ({
   error: null,
   loading: false,
 
-  getLocation: () => {
+  getLocation: (isManual = false) => {
     set({ loading: true, error: null });
 
     if (!navigator.geolocation) {
@@ -48,8 +49,11 @@ export const useLocationStore = create((set) => ({
         source: 'gps',
         loading: false,
       }),
-      async () => {
+      async (err) => {
         // User denied or GPS error — fallback seamlessly to server-proxied IP location
+        if (err.code === err.PERMISSION_DENIED && isManual) {
+          toast.error("Location access is blocked. Please allow location in your browser site settings and click the GPS button again.", { id: 'gps-denied', duration: 5000 });
+        }
         const { lat, lng, address, city, source } = await getIPLocation();
         set({ lat, lng, address, city, source, loading: false, error: null });
       },

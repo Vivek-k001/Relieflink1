@@ -40,7 +40,7 @@ export default function ReliefRequestPage() {
   const handleSubmit = async () => {
     const items = Object.entries(selected).map(([k, v]) => ({ name: v.name, category: v.category, quantity: v.quantity }));
     if (items.length === 0) { toast.error('Please select at least one item'); return; }
-    if (!lat || !lng) { toast.error('Location required. Enable GPS.'); getLocation(); return; }
+    if (!lat || !lng) { toast.error('Location required. Enable GPS.'); getLocation(true); return; }
     setSubmitting(true);
     try {
       await reliefAPI.create({ items, notes, address, numberOfPeople: people, priority, location: { coordinates: [lng, lat] } });

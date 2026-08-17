@@ -5,7 +5,7 @@ import { useNotificationStore } from '../../store/notificationStore';
 import {
   LayoutDashboard, AlertTriangle, Package, MapPin, Bell,
   LogOut, Menu, X, Users, Settings, ClipboardList,
-  Truck, BarChart3, Heart, ShieldAlert, Radio, Award, Phone
+  Truck, BarChart3, Heart, ShieldAlert, Radio, Award, Phone, LifeBuoy
 } from 'lucide-react';
 
 const navConfig = {
@@ -68,7 +68,7 @@ export default function Sidebar() {
       <div className="sidebar-logo">
         <div className="flex items-center gap-2">
           <div style={{ width: 32, height: 32, background: 'rgba(255,255,255,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            🆘
+            <LifeBuoy size={18} color="white" />
           </div>
           <div>
             <div className="sidebar-logo-text">ReliefLink</div>
