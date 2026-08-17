@@ -1,13 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-// Disaster zones — real coordinates for Indian subcontinent + world
-const DISASTER_ARCS = [
-  { startLat: 11.2, startLng: 75.7, endLat: 23.5, endLng: 87.3, color: '#EF4444', label: 'Kerala ↔ West Bengal Flood Zone' },
-  { startLat: 19.0, startLng: 72.8, endLat: 28.6, endLng: 77.2, color: '#F97316', label: 'Mumbai ↔ Delhi Relief Corridor' },
-  { startLat: 13.0, startLng: 80.2, endLat: 17.4, endLng: 78.5, color: '#FBBF24', label: 'Chennai ↔ Hyderabad Aid Route' },
-  { startLat: 26.9, startLng: 75.8, endLat: 22.6, endLng: 88.3, color: '#34D399', label: 'Jaipur ↔ Kolkata Rescue Route' },
-];
-
 const DISASTER_POINTS = [
   { lat: 11.2588, lng: 75.7804, size: 0.6, color: '#EF4444', label: 'Wayanad, Kerala Flood' },
   { lat: 22.5726, lng: 88.3639, size: 0.5, color: '#EF4444', label: 'Kolkata Cyclone Zone' },
@@ -15,7 +7,15 @@ const DISASTER_POINTS = [
   { lat: 15.3173, lng: 75.7139, size: 0.4, color: '#FBBF24', label: 'Karnataka Relief Camp' },
   { lat: 28.7041, lng: 77.1025, size: 0.35, color: '#3B82F6', label: 'Delhi Command Center' },
   { lat: 19.0760, lng: 72.8777, size: 0.45, color: '#3B82F6', label: 'Mumbai Relief Hub' },
-  { lat: 26.8467, lng: 80.9462, size: 0.4, color: '#F97316', label: 'Lucknow Relief Center' },
+  { lat: 26.8467, lng: 80.9462, size: 0.4, color: '#34D399', label: 'Lucknow Relief Center' },
+];
+
+// Disaster zones — real coordinates exactly matching DISASTER_POINTS
+const DISASTER_ARCS = [
+  { startLat: 11.2588, startLng: 75.7804, endLat: 22.5726, endLng: 88.3639, color: '#EF4444', label: 'Kerala ↔ Kolkata Aid Route' },
+  { startLat: 19.0760, startLng: 72.8777, endLat: 28.7041, endLng: 77.1025, color: '#3B82F6', label: 'Mumbai ↔ Delhi Relief Corridor' },
+  { startLat: 20.9374, startLng: 85.0900, endLat: 26.8467, endLng: 80.9462, color: '#F97316', label: 'Odisha ↔ Lucknow Route' },
+  { startLat: 15.3173, startLng: 75.7139, endLat: 19.0760, endLng: 72.8777, color: '#FBBF24', label: 'Karnataka ↔ Mumbai Route' },
 ];
 
 export default function EarthGlobe({ userLat, userLng, height = 360 }) {
@@ -35,7 +35,7 @@ export default function EarthGlobe({ userLat, userLng, height = 360 }) {
 
       const points = [...DISASTER_POINTS];
       if (userLat && userLng) {
-        points.push({ lat: userLat, lng: userLng, size: 0.7, color: '#22C55E', label: '📍 Your Location' });
+        points.push({ lat: userLat, lng: userLng, size: 0.7, color: '#22C55E', label: `<div style="display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Your Location</div>` });
       }
 
       const initialWidth = containerRef.current.offsetWidth || 380;
@@ -118,7 +118,8 @@ export default function EarthGlobe({ userLat, userLng, height = 360 }) {
   const handleZoomIn = () => {
     if (!globeRef.current) return;
     const pov = globeRef.current.pointOfView();
-    const newAlt = Math.max(0.1, pov.altitude * 0.5);
+    // Increase minimum altitude to prevent blurriness when zoomed in too much
+    const newAlt = Math.max(0.6, pov.altitude * 0.5);
     updateSpeedForAltitude(newAlt);
     globeRef.current.pointOfView({ ...pov, altitude: newAlt }, 400);
   };

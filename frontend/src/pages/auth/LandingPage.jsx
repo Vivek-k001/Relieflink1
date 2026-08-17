@@ -7,10 +7,11 @@ import { alertAPI } from '../../api';
 import { 
   AlertTriangle, Package, MapPin, Users, Heart, Radio, Shield, 
   Phone, ArrowRight, ArrowDown, CheckCircle, Navigation, Search, 
-  HelpCircle, ChevronRight, BookOpen, Compass, X
+  HelpCircle, ChevronLeft, ChevronRight, BookOpen, Compass, X, LifeBuoy
 } from 'lucide-react';
 
 const EarthGlobe = React.lazy(() => import('../../components/globe/EarthGlobe'));
+const InteractiveMap = React.lazy(() => import('../../components/globe/InteractiveMap'));
 
 const HELP_DIRECTORIES = [
   { service: 'National Emergency Number', number: '112', type: '24/7 All Emergency', icon: '🚨', color: '#DC2626' },
@@ -119,7 +120,9 @@ function QuickSOSModal({ onClose }) {
         <button onClick={onClose} style={{ position: 'absolute', right: '1.25rem', top: '1.25rem', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 32, height: 32, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <X size={18} />
         </button>
-        <div style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '0.5rem', animation: 'float 2s ease-in-out infinite' }}>🆘</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem', animation: 'float 2s ease-in-out infinite' }}>
+          <LifeBuoy size={48} color="#EF4444" />
+        </div>
         <h2 style={{ color: '#EF4444', fontFamily: 'Outfit,sans-serif', textAlign: 'center', fontSize: '1.5rem', marginBottom: '0.5rem' }}>Emergency SOS Dispatch</h2>
         <p style={{ color: '#94A3B8', textAlign: 'center', fontSize: '0.875rem', marginBottom: '1.5rem' }}>If you are in immediate life-threatening danger, dial 112 immediately or request GPS rescue assistance below.</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
@@ -143,6 +146,7 @@ export default function LandingPage() {
   const [helplineSearch, setHelplineSearch] = useState('');
   const [activeGuide, setActiveGuide] = useState(SURVIVAL_GUIDES[0]);
   const [geoToast, setGeoToast] = useState(null);
+  const [mapView, setMapView] = useState(0); // 0 = Globe, 1 = Satellite Map
 
   useEffect(() => {
     getLocation();
@@ -184,7 +188,7 @@ export default function LandingPage() {
       color: '#3B82F6',
       borderColor: 'rgba(59,130,246,0.6)'
     });
-    getLocation();
+    getLocation(true);
   };
 
   const filteredHelplines = HELP_DIRECTORIES.filter(h => 
@@ -240,8 +244,8 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1240, margin: '0 auto', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ width: 42, height: 42, background: 'linear-gradient(135deg, #DC2626, #2563EB)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', boxShadow: '0 4px 14px rgba(220,38,38,0.3)' }}>
-              🆘
+            <div style={{ width: 42, height: 42, background: 'linear-gradient(135deg, #DC2626, #2563EB)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(220,38,38,0.3)' }}>
+              <LifeBuoy size={24} color="white" />
             </div>
             <div>
               <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '1.35rem', background: 'linear-gradient(135deg, #FFFFFF 0%, #93C5FD 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -282,8 +286,8 @@ export default function LandingPage() {
                 </button>
               </div>
             )}
-            <button className="btn btn-sos" onClick={() => setSosModalOpen(true)} style={{ padding: '0.5rem 1.1rem', fontSize: '0.85rem' }}>
-              🆘 Quick SOS
+            <button className="btn btn-sos" onClick={() => setSosModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', fontSize: '0.85rem' }}>
+              <LifeBuoy size={16} /> Quick SOS
             </button>
             <button onClick={() => navigate('/safety')} style={{ background: 'rgba(34,197,94,0.15)', border: '1.5px solid rgba(34,197,94,0.4)', borderRadius: 10, color: '#4ADE80', padding: '0.55rem 1.1rem', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
               <span>🟢</span> Global Safety Map
@@ -333,7 +337,7 @@ export default function LandingPage() {
                   onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
                   onMouseLeave={e => e.currentTarget.style.transform = ''}
                 >
-                  <span style={{ fontSize: '1.25rem' }}>🆘</span> Send Emergency SOS
+                  <LifeBuoy size={20} /> Send Emergency SOS
                 </button>
 
                 <button 
@@ -356,7 +360,7 @@ export default function LandingPage() {
               {/* Quick Role Badges */}
               <div style={{ display: 'flex', gap: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#94A3B8' }}>
-                  <span style={{ fontSize: '1.1rem' }}>🆘</span> <strong>Affected Person:</strong> OTP SOS Access
+                  <LifeBuoy size={18} color="#EF4444" /> <strong>Affected Person:</strong> OTP SOS Access
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#94A3B8' }}>
                   <span style={{ fontSize: '1.1rem' }}>🦺</span> <strong>Volunteer:</strong> Task Dashboard
@@ -377,13 +381,34 @@ export default function LandingPage() {
                 boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
                 position: 'relative'
               }}>
+                {/* Map Toggle Controls */}
+                <div style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', zIndex: 1000, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <div style={{ background: 'rgba(15,23,42,0.8)', padding: '0.3rem 0.6rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 700, color: '#94A3B8', backdropFilter: 'blur(4px)' }}>
+                    {mapView === 0 ? '3D Globe' : 'Satellite Map'}
+                  </div>
+                  <button 
+                    onClick={() => setMapView(0)}
+                    style={{ background: mapView === 0 ? 'rgba(37,99,235,0.5)' : 'rgba(15,23,42,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '0.4rem', color: 'white', cursor: 'pointer', display: 'flex', backdropFilter: 'blur(4px)' }}>
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button 
+                    onClick={() => setMapView(1)}
+                    style={{ background: mapView === 1 ? 'rgba(37,99,235,0.5)' : 'rgba(15,23,42,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '0.4rem', color: 'white', cursor: 'pointer', display: 'flex', backdropFilter: 'blur(4px)' }}>
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+
                 <Suspense fallback={
                   <div style={{ height: 360, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.5)', flexDirection: 'column', gap: '0.75rem' }}>
                     <div style={{ fontSize: '3rem', animation: 'float 2s ease-in-out infinite' }}>🌍</div>
-                    <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Loading 3D Earth...</span>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Loading Map...</span>
                   </div>
                 }>
-                  <EarthGlobe userLat={lat} userLng={lng} height={360} />
+                  {mapView === 0 ? (
+                    <EarthGlobe userLat={lat} userLng={lng} height={360} />
+                  ) : (
+                    <InteractiveMap lat={lat} lng={lng} height={360} />
+                  )}
                 </Suspense>
               </div>
             </div>
@@ -532,7 +557,7 @@ export default function LandingPage() {
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '2.5rem 1.5rem', background: '#020617', textAlign: 'center', color: '#64748B', fontSize: '0.875rem' }}>
         <div style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'white', fontWeight: 700 }}>
-            <span>🆘 ReliefLink</span> — <span>Disaster Relief Network</span>
+            <LifeBuoy size={18} color="#EF4444" /> <span>ReliefLink</span> — <span>Disaster Relief Network</span>
           </div>
           <div>Emergency Helpline: <strong>112</strong> | National Control Room: <strong>1078</strong></div>
         </div>
