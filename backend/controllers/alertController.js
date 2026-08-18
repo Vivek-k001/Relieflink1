@@ -1,6 +1,7 @@
 const DisasterAlert = require('../models/DisasterAlert');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const axios = require('axios');
 
 // @desc  Create disaster alert (admin/ngo)
 // @route POST /api/alerts
@@ -134,4 +135,79 @@ const deactivateAlert = async (req, res) => {
   }
 };
 
-module.exports = { createAlert, getAlerts, getAlertById, deactivateAlert };
+// @desc  Proxy IMD Website
+// @route GET /api/alerts/imd-proxy
+const getImdProxy = async (req, res) => {
+  try {
+    const { id } = req.query;
+    const response = await axios.get(`https://mausam.imd.gov.in/imd_latest/contents/districtwisewarnings_mc.php?id=${id || 4}`);
+    let html = response.data;
+    
+    // Fetch the shapefile server-side to bypass browser CORS policies for AJAX
+    const shapefileRes = await axios.get('https://mausam.imd.gov.in/imd_latest/contents/district_shapefiles/mc_thiruvananthapuram.json');
+    const shapefileJson = JSON.stringify(shapefileRes.data);
+
+    // Replace the failing AJAX call with our fetched data inline asynchronously!
+    // Using setTimeout ensures AmCharts.parseGeoJSON is defined before it runs.
+    html = html.replace(
+      'jQuery.getJSON("district_shapefiles/mc_thiruvananthapuram.json", function(data) {', 
+      `setTimeout(function() { var data = ${shapefileJson};`
+    );
+
+    // Expose the map object globally so we can control it
+    html = html.replace('var map = AmCharts.makeChart("chartdiv"', 'window.map = AmCharts.makeChart("chartdiv"');
+
+    // Zoom out the map by intercepting the amCharts zoomLevel config
+    html = html.replace('"zoomLevel": 0.7', '"zoomLevel": 0.35');
+
+    // Inject <base> and CSS to crop the page down to just the map container
+    const injectedCSS = `
+      <base href="https://mausam.imd.gov.in/imd_latest/contents/">
+      <style>
+        /* Hide Headers, Footers, and Sidebars */
+        header, #header, #second_logo, footer, #footer, #content, .other, #current {
+          display: none !important;
+        }
+        /* Reset margins and let the map take full space */
+        body, html { margin: 0; padding: 0; background: white; overflow: hidden; width: 100%; height: 100%; }
+        #pageheight, #pagewrap { width: 100% !important; height: 100% !important; margin: 0 !important; border: none !important; box-shadow: none !important; background: white; }
+        #columns { width: 100% !important; margin: 0 !important; float: none !important; display: block !important; }
+        #middle { width: 100% !important; margin: 0 !important; padding: 0 !important; float: none !important; display: block !important; position: relative; }
+        .middle_content { border: none !important; padding: 10px !important; width: 100% !important; display: block !important; margin: 0 auto; box-sizing: border-box; }
+        
+        /* Center Title */
+        h3 { text-align: center !important; font-family: sans-serif; margin-top: 10px; margin-bottom: 5px; }
+        hr { display: none; }
+        
+        /* Adjust map height to fit perfectly in our 420px iframe */
+        #chartdiv { height: 350px !important; margin-top: -30px; width: 100% !important; }
+        /* Clean up amcharts watermark */
+        a[title="JavaScript charts"] { display: none !important; }
+        
+        /* Hide default AmCharts zoom buttons since we inject custom ones */
+        .ammap-zoom-control { display: none !important; }
+      </style>
+    `;
+    html = html.replace('<head>', '<head>' + injectedCSS);
+
+    // Inject Custom Modern Zoom Buttons
+    const injectedHTML = `
+      <div style="position: absolute; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px;">
+        <button onclick="window.map.zoomIn()" style="width: 40px; height: 40px; border-radius: 8px; border: none; background: #1E293B; color: white; font-size: 24px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">+</button>
+        <button onclick="window.map.zoomOut()" style="width: 40px; height: 40px; border-radius: 8px; border: none; background: #1E293B; color: white; font-size: 24px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;">-</button>
+      </div>
+    `;
+    html = html.replace('</body>', injectedHTML + '</body>');
+    
+    // Fix protocol-less URLs
+    html = html.replace(/"\/\/www\.amcharts\.com/g, '"https://www.amcharts.com');
+    html = html.replace(/"\/\/cdnjs\.cloudflare\.com/g, '"https://cdnjs.cloudflare.com');
+
+    res.send(html);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Failed to proxy IMD website');
+  }
+};
+
+module.exports = { createAlert, getAlerts, getAlertById, deactivateAlert, getImdProxy };

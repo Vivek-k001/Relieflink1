@@ -230,11 +230,11 @@ export default function LandingPage() {
 
       {/* ── Dynamic Top Warning Banner ── */}
       {activeAlerts.length > 0 && (
-        <div style={{ background: 'linear-gradient(90deg, #DC2626, #B91C1C)', padding: '0.65rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontSize: '0.875rem', fontWeight: 600, color: 'white', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-          <span style={{ fontSize: '1rem', animation: 'pulse 1.5s infinite' }}>🚨</span>
-          <span><strong>ACTIVE DISASTER WARNING:</strong> {activeAlerts[0].title} — {activeAlerts[0].affectedAreas?.join(', ') || 'High Alert Area'}</span>
+        <div style={{ background: activeAlerts[0].severity === 'info' ? 'linear-gradient(90deg, #2563EB, #1D4ED8)' : 'linear-gradient(90deg, #DC2626, #B91C1C)', padding: '0.65rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontSize: '0.875rem', fontWeight: 600, color: 'white', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
+          <span style={{ fontSize: '1rem', animation: 'pulse 1.5s infinite' }}>{activeAlerts[0].severity === 'info' ? '📰' : '🚨'}</span>
+          <span><strong>{activeAlerts[0].severity === 'info' ? 'LATEST NEWS:' : 'ACTIVE DISASTER WARNING:'}</strong> {activeAlerts[0].title} — {activeAlerts[0].affectedAreas?.join(', ') || (activeAlerts[0].severity === 'info' ? 'Update' : 'High Alert Area')}</span>
           <button onClick={() => navigate('/alerts')} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 6, color: 'white', padding: '0.25rem 0.65rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
-            View Alert →
+            {activeAlerts[0].severity === 'info' ? 'Read More →' : 'View Alert →'}
           </button>
         </div>
       )}
@@ -416,9 +416,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Weather & Real-Time Disaster News Section ── */}
       <section style={{ padding: '2.5rem 1.5rem', background: 'rgba(15,23,42,0.4)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ maxWidth: 1240, margin: '0 auto', display: 'grid', gridTemplateColumns: '420px 1fr', gap: '2rem', alignItems: 'start' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '2rem', alignItems: 'start' }}>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#60A5FA', textTransform: 'uppercase', letterSpacing: 1, marginBottom: '0.5rem' }}>Live GPS Environmental Radar</div>
             <h3 style={{ fontSize: '1.25rem', fontFamily: 'Outfit,sans-serif', color: 'white', marginBottom: '1rem' }}>Local Weather & Hazard Radar</h3>
@@ -426,8 +425,19 @@ export default function LandingPage() {
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#60A5FA', textTransform: 'uppercase', letterSpacing: 1, marginBottom: '0.5rem' }}>Live Breaking News Engine</div>
-            <h3 style={{ fontSize: '1.25rem', fontFamily: 'Outfit,sans-serif', color: 'white', marginBottom: '1rem' }}>UN ReliefWeb & Google News Alert Feed</h3>
-            <DisasterNews limit={4} />
+            <h3 style={{ fontSize: '1.25rem', fontFamily: 'Outfit,sans-serif', color: 'white', marginBottom: '1rem' }}>UN ReliefWeb & Google News</h3>
+            <DisasterNews limit={3} />
+          </div>
+          <div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#F87171', textTransform: 'uppercase', letterSpacing: 1, marginBottom: '0.5rem' }}>Official Government Bulletins</div>
+            <h3 style={{ fontSize: '1.25rem', fontFamily: 'Outfit,sans-serif', color: 'white', marginBottom: '1rem' }}>IMD District Warnings (Kerala)</h3>
+            <div style={{ background: '#FFFFFF', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', height: 420, boxShadow: '0 10px 30px rgba(0,0,0,0.3)', position: 'relative' }}>
+              <iframe 
+                src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/alerts/imd-proxy?id=4&v=3`} 
+                style={{ width: '100%', height: '100%', border: 'none', background: '#FFFFFF' }}
+                title="IMD District Warnings"
+              />
+            </div>
           </div>
         </div>
       </section>
