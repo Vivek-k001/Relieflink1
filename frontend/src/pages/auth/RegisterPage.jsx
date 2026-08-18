@@ -18,6 +18,14 @@ export default function RegisterPage() {
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
   const toggleSkill = (s) => set('skills', form.skills.includes(s) ? form.skills.filter(x => x !== s) : [...form.skills, s]);
 
+  const handleKeyDown = (e, nextId) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (nextId === 'submit') handleRegister();
+      else document.getElementById(nextId)?.focus();
+    }
+  };
+
   const handleRegister = async () => {
     if (!form.name || form.name.trim().length < 2 || !/^[A-Za-z\s]+$/.test(form.name)) { 
       toast.error('Please enter a valid full name (letters and spaces only)'); 
@@ -27,8 +35,8 @@ export default function RegisterPage() {
       toast.error('Enter a valid email address'); 
       return; 
     }
-    if (!form.password || form.password.length < 8) { 
-      toast.error('Password must be at least 8 characters'); 
+    if (!form.password || form.password.length < 6) { 
+      toast.error('Password must be at least 6 characters'); 
       return; 
     }
     if (form.phone && (form.phone.replace(/\D/g, '').length < 7 || form.phone.replace(/\D/g, '').length > 15)) {
@@ -128,33 +136,33 @@ export default function RegisterPage() {
 
           <div className="form-group">
             <label className="form-label"><User size={14} style={{ display: 'inline', marginRight: 4 }} /> Full Name *</label>
-            <input className="form-control" placeholder="Enter your full name" value={form.name} onChange={e => set('name', e.target.value)} />
+            <input id="reg-name" className="form-control" placeholder="Enter your full name" value={form.name} onChange={e => set('name', e.target.value)} onKeyDown={e => handleKeyDown(e, 'reg-email')} />
           </div>
 
           <div className="form-group">
             <label className="form-label"><Mail size={14} style={{ display: 'inline', marginRight: 4 }} /> Email Address *</label>
-            <input type="email" className="form-control" placeholder="your@email.com" value={form.email} onChange={e => set('email', e.target.value)} />
+            <input id="reg-email" type="email" className="form-control" placeholder="your@email.com" value={form.email} onChange={e => set('email', e.target.value)} onKeyDown={e => handleKeyDown(e, 'reg-password')} />
           </div>
 
           <div className="form-group">
             <label className="form-label"><Lock size={14} style={{ display: 'inline', marginRight: 4 }} /> Password *</label>
-            <input type="password" className="form-control" placeholder="Min 8 characters" value={form.password} onChange={e => set('password', e.target.value)} />
+            <input id="reg-password" type="password" className="form-control" placeholder="Min 8 characters" value={form.password} onChange={e => set('password', e.target.value)} onKeyDown={e => handleKeyDown(e, 'reg-phone')} />
           </div>
 
           <div className="form-group">
             <label className="form-label"><Phone size={14} style={{ display: 'inline', marginRight: 4 }} /> Phone Number</label>
-            <input className="form-control" placeholder="+91 XXXXXXXXXX" value={form.phone} onChange={e => set('phone', e.target.value)} />
+            <input id="reg-phone" className="form-control" placeholder="+91 XXXXXXXXXX" value={form.phone} onChange={e => set('phone', e.target.value)} onKeyDown={e => handleKeyDown(e, role === 'ngo' ? 'reg-org' : 'submit')} />
           </div>
 
           {role === 'ngo' && (
             <>
               <div className="form-group">
                 <label className="form-label"><Building size={14} style={{ display: 'inline', marginRight: 4 }} /> Organization Name</label>
-                <input className="form-control" placeholder="Organization name" value={form.organizationName} onChange={e => set('organizationName', e.target.value)} />
+                <input id="reg-org" className="form-control" placeholder="Organization name" value={form.organizationName} onChange={e => set('organizationName', e.target.value)} onKeyDown={e => handleKeyDown(e, 'reg-regnum')} />
               </div>
               <div className="form-group">
                 <label className="form-label">Registration Number</label>
-                <input className="form-control" placeholder="NGO registration number" value={form.registrationNumber} onChange={e => set('registrationNumber', e.target.value)} />
+                <input id="reg-regnum" className="form-control" placeholder="NGO registration number" value={form.registrationNumber} onChange={e => set('registrationNumber', e.target.value)} onKeyDown={e => handleKeyDown(e, 'submit')} />
               </div>
             </>
           )}

@@ -137,6 +137,15 @@ export default function LoginPage() {
 
   const dropdownRef = useRef(null);
 
+  const handleKeyDown = (e, nextId) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (nextId === 'submit-otp') handleSendOTP();
+      else if (nextId === 'submit-login') handleEmailLogin();
+      else document.getElementById(nextId)?.focus();
+    }
+  };
+
   // Close country dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -205,8 +214,8 @@ export default function LoginPage() {
       toast.error('Enter a valid email address'); 
       return; 
     }
-    if (!password || password.length < 8) {
-      toast.error('Password must be at least 8 characters'); 
+    if (!password || password.length < 6) {
+      toast.error('Password must be at least 6 characters'); 
       return; 
     }
     setLoading(true);
@@ -348,11 +357,13 @@ export default function LoginPage() {
                     <label className="form-label" style={{ fontWeight: 600, color: '#1E293B', marginBottom: '0.5rem', display: 'block', fontSize: '0.9375rem' }}>👤 Full Name</label>
                     <div style={{ position: 'relative' }}>
                       <input 
+                        id="login-name"
                         type="text"
                         className="form-control" 
                         placeholder="Enter your name" 
                         value={name} 
                         onChange={e => setName(e.target.value)} 
+                        onKeyDown={e => handleKeyDown(e, 'login-phone')}
                         style={{
                           width: '100%',
                           padding: '0.75rem 1rem',
@@ -476,6 +487,7 @@ export default function LoginPage() {
                       <div style={{ position: 'relative', flex: 1 }}>
                         <Phone size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
                         <input 
+                          id="login-phone"
                           type="tel"
                           className="form-control" 
                           style={{ paddingLeft: '2.5rem' }} 
@@ -483,7 +495,7 @@ export default function LoginPage() {
                           value={phone} 
                           onChange={e => setPhone(e.target.value)} 
                           onFocus={e => e.target.select()}
-                          onKeyDown={e => e.key === 'Enter' && handleSendOTP()} 
+                          onKeyDown={e => handleKeyDown(e, 'submit-otp')} 
                         />
                       </div>
                     </div>
@@ -525,14 +537,14 @@ export default function LoginPage() {
                 <label className="form-label">Email Address</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
-                  <input type="email" className="form-control" style={{ paddingLeft: '2.5rem' }} placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} onFocus={e => e.target.select()} />
+                  <input id="login-email" type="email" className="form-control" style={{ paddingLeft: '2.5rem' }} placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} onFocus={e => e.target.select()} onKeyDown={e => handleKeyDown(e, 'login-password')} />
                 </div>
               </div>
               <div className="form-group">
                 <label className="form-label">Password</label>
                 <div style={{ position: 'relative' }}>
                   <Lock size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
-                  <input type={showPwd ? 'text' : 'password'} className="form-control" style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }} placeholder="Enter password" value={password} onChange={e => setPassword(e.target.value)} onFocus={e => e.target.select()} onKeyDown={e => e.key === 'Enter' && handleEmailLogin()} />
+                  <input id="login-password" type={showPwd ? 'text' : 'password'} className="form-control" style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }} placeholder="Enter password" value={password} onChange={e => setPassword(e.target.value)} onFocus={e => e.target.select()} onKeyDown={e => handleKeyDown(e, 'submit-login')} />
                   <button onClick={() => setShowPwd(!showPwd)} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}>
                     {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
