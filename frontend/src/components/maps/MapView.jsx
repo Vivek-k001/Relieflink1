@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, LayersControl, LayerGroup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -26,9 +26,23 @@ const userIcon = L.divIcon({
   className: '', iconSize: [28, 28], iconAnchor: [14, 14],
 });
 
+const pinIcon = L.divIcon({
+  html: '<div style="background:#DB2777;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;border:3px solid white;box-shadow:0 4px 12px rgba(219,39,119,0.4)">📌</div>',
+  className: '', iconSize: [28, 28], iconAnchor: [14, 14],
+});
+
 function SetView({ lat, lng }) {
   const map = useMap();
   useEffect(() => { if (lat && lng) map.setView([lat, lng], 13); }, [lat, lng]);
+  return null;
+}
+
+function MapEvents({ onMapClick }) {
+  useMapEvents({
+    click: (e) => {
+      if (onMapClick) onMapClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
   return null;
 }
 
@@ -40,6 +54,8 @@ export default function MapView({
   userLng, 
   onCampClick, 
   onSosClick,
+  onMapClick,
+  droppedPin,
   showRadius = false,
   radiusKm = 10,
 }) {
@@ -54,10 +70,52 @@ export default function MapView({
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <LayersControl position="topright">
+          <LayersControl.BaseLayer checked name="Normal Map View">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          </LayersControl.BaseLayer>
+
+          <LayersControl.BaseLayer name="Esri Street Map">
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+              attribution='Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+              maxZoom={19}
+            />
+          </LayersControl.BaseLayer>
+
+          <LayersControl.BaseLayer name="Humanitarian Disaster Map">
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr/" target="_blank">OpenStreetMap France</a>'
+              maxZoom={19}
+            />
+          </LayersControl.BaseLayer>
+
+          <LayersControl.BaseLayer name="Satellite View">
+            <LayerGroup>
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+                maxZoom={19}
+              />
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+              />
+            </LayerGroup>
+          </LayersControl.BaseLayer>
+        </LayersControl>
+
+        {onMapClick && <MapEvents onMapClick={onMapClick} />}
+
+        {droppedPin && droppedPin.lat && droppedPin.lng && (
+          <Marker position={[droppedPin.lat, droppedPin.lng]} icon={pinIcon}>
+             <Popup><strong>📌 Selected Location</strong></Popup>
+          </Marker>
+        )}
 
         {userLat && userLng && (
           <>

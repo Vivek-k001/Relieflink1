@@ -4,11 +4,13 @@ import Sidebar from '../../components/common/Sidebar';
 import SafetyGlobe from '../../components/globe/SafetyGlobe';
 import { useLocationStore } from '../../store/locationStore';
 import { safetyAPI } from '../../api';
+import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
-import { ArrowLeft, CheckCircle, Navigation, Plus, Phone, RefreshCw, X, Clock, MessageSquare, ShieldCheck, MapPin } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Navigation, Plus, Phone, RefreshCw, X, Clock, MessageSquare, ShieldCheck, MapPin, Trash2 } from 'lucide-react';
 
 export default function GlobalSafetyPage() {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const { lat, lng, getLocation } = useLocationStore();
   const [broadcasts, setBroadcasts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -126,6 +128,21 @@ export default function GlobalSafetyPage() {
     }
   };
 
+  const handleDeleteBroadcast = async () => {
+    if (!window.confirm('Are you sure you want to delete this user\'s safety broadcast?')) return;
+    setPosting(true);
+    try {
+      await safetyAPI.delete(selectedPerson._id);
+      toast.success('Broadcast deleted');
+      setSelectedPerson(null);
+      await fetchBroadcasts();
+    } catch {
+      toast.error('Failed to delete broadcast');
+    } finally {
+      setPosting(false);
+    }
+  };
+
   return (
     <div className="page-layout">
       <Sidebar />
@@ -147,11 +164,13 @@ export default function GlobalSafetyPage() {
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.5rem 0.9rem', borderRadius: 10, background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem' }}>
               <ArrowLeft size={16} /> Back
             </button>
-            <button 
-              onClick={() => setShowPostModal(true)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#22C55E', color: 'white', padding: '0.55rem 1.1rem', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(34,197,94,0.4)' }}>
-              <Plus size={16} /> Mark Myself Safe / Add Update
-            </button>
+            {user?.role === 'affected' && (
+              <button 
+                onClick={() => setShowPostModal(true)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#22C55E', color: 'white', padding: '0.55rem 1.1rem', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(34,197,94,0.4)' }}>
+                <Plus size={16} /> Mark Myself Safe / Add Update
+              </button>
+            )}
             <button onClick={fetchBroadcasts} style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', borderRadius: 10, padding: '0.55rem', cursor: 'pointer' }} title="Refresh Map">
               <RefreshCw size={16} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
             </button>
@@ -206,26 +225,36 @@ export default function GlobalSafetyPage() {
                     <span>Coordinates: <strong>{selectedPerson.location?.coordinates?.[1]?.toFixed(4)}°, {selectedPerson.location?.coordinates?.[0]?.toFixed(4)}°</strong></span>
                   </div>
 
-                  {/* Add New Line to Timeline */}
-                  <div style={{ marginBottom: '1.5rem', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, padding: '0.875rem' }}>
-                    <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#4ADE80', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <Plus size={14} /> Add New Status Line to Timeline:
+                  {/* Action Controls */}
+                  {user?.role === 'affected' && (
+                    <div style={{ marginBottom: '1.5rem', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 12, padding: '0.875rem' }}>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#4ADE80', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <Plus size={14} /> Add New Status Line to Timeline:
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <input 
+                          type="text" 
+                          placeholder='e.g. "I currently in a tree..."' 
+                          value={drawerNewLine} 
+                          onChange={e => setDrawerNewLine(e.target.value)} 
+                          onFocus={e => e.target.select()}
+                          onKeyDown={e => e.key === 'Enter' && handleAddLineToDrawer()}
+                          style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(15,23,42,0.9)', color: 'white', fontSize: '0.8125rem', outline: 'none' }}
+                        />
+                        <button onClick={handleAddLineToDrawer} disabled={posting} style={{ background: '#22C55E', color: 'white', border: 'none', borderRadius: 8, padding: '0.5rem 0.85rem', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
+                          Post
+                        </button>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <input 
-                        type="text" 
-                        placeholder='e.g. "I currently in a tree..."' 
-                        value={drawerNewLine} 
-                        onChange={e => setDrawerNewLine(e.target.value)} 
-                        onFocus={e => e.target.select()}
-                        onKeyDown={e => e.key === 'Enter' && handleAddLineToDrawer()}
-                        style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(15,23,42,0.9)', color: 'white', fontSize: '0.8125rem', outline: 'none' }}
-                      />
-                      <button onClick={handleAddLineToDrawer} disabled={posting} style={{ background: '#22C55E', color: 'white', border: 'none', borderRadius: 8, padding: '0.5rem 0.85rem', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
-                        Post
+                  )}
+
+                  {(user?.role === 'ngo' || user?.role === 'volunteer' || user?.role === 'admin') && (
+                    <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'flex-start' }}>
+                      <button onClick={handleDeleteBroadcast} disabled={posting} style={{ background: 'rgba(220,38,38,0.2)', border: '1px solid rgba(220,38,38,0.5)', color: '#FCA5A5', borderRadius: 8, padding: '0.5rem 0.85rem', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.375rem', transition: 'all 0.2s' }}>
+                        <Trash2 size={14} /> Delete Broadcast
                       </button>
                     </div>
-                  </div>
+                  )}
 
                   {/* Status Timeline (Newest First!) */}
                   <div>

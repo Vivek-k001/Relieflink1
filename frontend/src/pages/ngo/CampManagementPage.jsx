@@ -6,6 +6,7 @@ import { useLocationStore } from '../../store/locationStore';
 import MapView from '../../components/maps/MapView';
 import toast from 'react-hot-toast';
 import { Plus, Edit2, Trash2, Users, MapPin, ArrowLeft } from 'lucide-react';
+import { INDIA_STATES_AND_DISTRICTS } from '../../utils/indiaStates';
 
 const FACILITIES = ['medical', 'food', 'water', 'shelter', 'sanitation', 'power', 'communication'];
 
@@ -16,6 +17,7 @@ export default function CampManagementPage() {
   const [loading, setLoading] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [droppedPin, setDroppedPin] = useState(null);
   const [form, setForm] = useState({ name: '', description: '', address: '', district: '', state: '', capacity: 100, contactPhone: '', contactEmail: '', facilities: [], disasterTypes: [], location: { coordinates: [0, 0] } });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const toggleFac = (f) => setForm(p => ({ ...p, facilities: p.facilities.includes(f) ? p.facilities.filter(x => x !== f) : [...p.facilities, f] }));
@@ -34,6 +36,7 @@ export default function CampManagementPage() {
       await campAPI.create(form);
       toast.success('Relief camp created!');
       setShowCreate(false);
+      setDroppedPin(null);
       fetchCamps();
     } catch (e) { toast.error(e.response?.data?.message || 'Failed'); }
   };
@@ -44,9 +47,13 @@ export default function CampManagementPage() {
   };
 
   const handleOccupancy = async (camp) => {
-    const val = parseInt(prompt(`Update occupancy for ${camp.name} (max: ${camp.capacity}):`, camp.currentOccupancy) || camp.currentOccupancy);
+    const input = prompt(`Update occupancy for ${camp.name} (max: ${camp.capacity}):`, camp.currentOccupancy);
+    if (input === null) return; // Cancelled
+    const val = parseInt(input);
     if (isNaN(val)) return;
-    try { await campAPI.updateOccupancy(camp._id, val); toast.success('Occupancy updated'); fetchCamps(); } catch { toast.error('Failed'); }
+    if (val < 0) { toast.error('Occupancy cannot be negative'); return; }
+    if (val > camp.capacity) { toast.error(`Occupancy cannot exceed the total capacity (${camp.capacity})`); return; }
+    try { await campAPI.updateOccupancy(camp._id, val); toast.success('Occupancy updated'); fetchCamps(); } catch (e) { toast.error(e.response?.data?.message || 'Failed'); }
   };
 
   return (
@@ -67,7 +74,22 @@ export default function CampManagementPage() {
 
         <div style={{ padding: '1.5rem 2rem' }}>
           <div style={{ marginBottom: '1.5rem' }}>
-            <MapView height="300px" camps={camps} userLat={lat} userLng={lng} onCampClick={setSelected} />
+            <MapView 
+              height="300px" 
+              camps={camps} 
+              userLat={lat} 
+              userLng={lng} 
+              onCampClick={setSelected}
+              droppedPin={droppedPin}
+              onMapClick={(clickedLat, clickedLng) => {
+                setDroppedPin({ lat: clickedLat, lng: clickedLng });
+                setForm(p => ({ ...p, location: { coordinates: [clickedLng, clickedLat] } }));
+                setShowCreate(true);
+              }}
+            />
+            <p style={{ textAlign: 'center', fontSize: '0.875rem', color: '#64748B', marginTop: '0.5rem' }}>
+              💡 Tip: Click anywhere on the map to drop a pin and create a camp at that location.
+            </p>
           </div>
 
           {loading ? [...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 12, marginBottom: '0.875rem' }} />) :
@@ -107,15 +129,31 @@ export default function CampManagementPage() {
 
         {/* Create Modal */}
         {showCreate && (
-          <div className="modal-overlay" onClick={() => setShowCreate(false)} style={{ zIndex: 9999 }}>
+          <div className="modal-overlay" onClick={() => { setShowCreate(false); setDroppedPin(null); }} style={{ zIndex: 9999 }}>
             <div className="modal" style={{ maxWidth: 600, position: 'relative', zIndex: 10000 }} onClick={e => e.stopPropagation()}>
-              <div className="modal-header"><h4>🏕️ Create New Camp</h4><button onClick={() => setShowCreate(false)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer' }}>×</button></div>
+              <div className="modal-header"><h4>🏕️ Create New Camp</h4><button onClick={() => { setShowCreate(false); setDroppedPin(null); }} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer' }}>×</button></div>
               <div className="modal-body" style={{ maxHeight: '65vh', overflowY: 'auto' }}>
                 <div className="form-group"><label className="form-label">Camp Name *</label><input className="form-control" value={form.name} onChange={e => set('name', e.target.value)} /></div>
                 <div className="form-group"><label className="form-label">Address *</label><input className="form-control" value={form.address} onChange={e => set('address', e.target.value)} /></div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group"><label className="form-label">District</label><input className="form-control" value={form.district} onChange={e => set('district', e.target.value)} /></div>
-                  <div className="form-group"><label className="form-label">State</label><input className="form-control" value={form.state} onChange={e => set('state', e.target.value)} /></div>
+                  <div className="form-group">
+                    <label className="form-label">State</label>
+                    <select className="form-control form-select" value={form.state} onChange={e => { set('state', e.target.value); set('district', ''); }}>
+                      <option value="">Select State</option>
+                      {Object.keys(INDIA_STATES_AND_DISTRICTS).map(state => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">District</label>
+                    <select className="form-control form-select" value={form.district} onChange={e => set('district', e.target.value)} disabled={!form.state}>
+                      <option value="">Select District</option>
+                      {form.state && INDIA_STATES_AND_DISTRICTS[form.state]?.map(district => (
+                        <option key={district} value={district}>{district}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="form-group"><label className="form-label">Capacity</label><input type="number" className="form-control" value={form.capacity} onChange={e => set('capacity', parseInt(e.target.value) || 100)} /></div>
                   <div className="form-group"><label className="form-label">Contact Phone</label><input className="form-control" value={form.contactPhone} onChange={e => set('contactPhone', e.target.value)} /></div>
                 </div>
@@ -130,13 +168,18 @@ export default function CampManagementPage() {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Location (auto-detected)</label>
+                  <label className="form-label">Location</label>
                   <div style={{ fontSize: '0.875rem', color: '#64748B', background: '#F8FAFC', borderRadius: 8, padding: '0.5rem 0.875rem', border: '1px solid #E2E8F0' }}>
-                    📍 {lat ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : 'Location not available'}
+                    📍 {form.location.coordinates[1] ? `${form.location.coordinates[1].toFixed(5)}, ${form.location.coordinates[0].toFixed(5)}` : 'Location not available'}
                   </div>
+                  {droppedPin && (
+                    <div style={{ fontSize: '0.75rem', color: '#DB2777', marginTop: '0.25rem', fontWeight: 600 }}>
+                      📌 Using dropped pin location
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="modal-footer"><button className="btn btn-ghost" onClick={() => setShowCreate(false)}>Cancel</button><button className="btn btn-primary" onClick={handleCreate}>🏕️ Create Camp</button></div>
+              <div className="modal-footer"><button className="btn btn-ghost" onClick={() => { setShowCreate(false); setDroppedPin(null); }}>Cancel</button><button className="btn btn-primary" onClick={handleCreate}>🏕️ Create Camp</button></div>
             </div>
           </div>
         )}

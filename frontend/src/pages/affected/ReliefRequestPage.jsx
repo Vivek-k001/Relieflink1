@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
 import { useLocationStore } from '../../store/locationStore';
+import { useAuthStore } from '../../store/authStore';
 import { reliefAPI } from '../../api';
 import toast from 'react-hot-toast';
 import { ArrowLeft } from 'lucide-react';
@@ -20,6 +21,7 @@ const CATEGORIES = [
 export default function ReliefRequestPage() {
   const navigate = useNavigate();
   const { lat, lng, getLocation } = useLocationStore();
+  const { user } = useAuthStore();
   const [selected, setSelected] = useState({});
   const [notes, setNotes] = useState('');
   const [address, setAddress] = useState('');
@@ -114,6 +116,16 @@ export default function ReliefRequestPage() {
 
             <div className="card">
               <div className="card-body">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">👤 Your Name</label>
+                    <input className="form-control" value={user?.name || ''} readOnly style={{ background: '#F8FAFC', color: '#64748B', cursor: 'not-allowed' }} title="Automatically fetched from your profile" />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">📞 Phone Number</label>
+                    <input className="form-control" value={user?.phone || ''} readOnly style={{ background: '#F8FAFC', color: '#64748B', cursor: 'not-allowed' }} title="Automatically fetched from your profile" />
+                  </div>
+                </div>
                 <div className="form-group">
                   <label className="form-label">📍 Delivery Address</label>
                   <input className="form-control" placeholder="Where should relief be delivered?" value={address} onChange={e => setAddress(e.target.value)} />

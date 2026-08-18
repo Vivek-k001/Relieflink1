@@ -89,3 +89,13 @@ exports.postSafetyStatus = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.deleteSafetyStatus = async (req, res) => {
+  try {
+    const deleted = await SafetyStatus.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ success: false, message: 'Status not found' });
+    res.json({ success: true, message: 'Safety status deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

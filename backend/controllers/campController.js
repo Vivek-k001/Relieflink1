@@ -93,8 +93,14 @@ const updateOccupancy = async (req, res) => {
     const { currentOccupancy } = req.body;
     const camp = await ReliefCamp.findById(req.params.id);
     if (!camp) return res.status(404).json({ success: false, message: 'Camp not found' });
+    if (currentOccupancy > camp.capacity) {
+      return res.status(400).json({ success: false, message: `Occupancy cannot exceed the total capacity (${camp.capacity})` });
+    }
+    if (currentOccupancy < 0) {
+      return res.status(400).json({ success: false, message: 'Occupancy cannot be negative' });
+    }
     camp.currentOccupancy = currentOccupancy;
-    if (currentOccupancy >= camp.capacity) {
+    if (currentOccupancy === camp.capacity) {
       camp.status = 'full';
       camp.acceptingRefugees = false;
     } else {

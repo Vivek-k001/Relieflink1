@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
 import { useLocationStore } from '../../store/locationStore';
+import { useAuthStore } from '../../store/authStore';
 import { sosAPI } from '../../api';
 import toast from 'react-hot-toast';
 import { MapPin, Users, AlertTriangle, Phone, Navigation, ArrowLeft } from 'lucide-react';
@@ -26,6 +27,7 @@ const PRIORITIES = [
 export default function SOSPage() {
   const { lat, lng, loading: locationLoading, getLocation } = useLocationStore();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [form, setForm] = useState({ disasterType: 'flood', description: '', priority: 'high', numberOfPeople: 1, medicalEmergency: false, address: '' });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -106,6 +108,17 @@ export default function SOSPage() {
 
           <div className="card">
             <div className="card-body">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">👤 Requester Name</label>
+                  <input className="form-control" value={user?.name || ''} readOnly style={{ background: '#F8FAFC', color: '#64748B', cursor: 'not-allowed' }} title="Automatically fetched from your profile" />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">📞 Contact Number</label>
+                  <input className="form-control" value={user?.phone || ''} readOnly style={{ background: '#F8FAFC', color: '#64748B', cursor: 'not-allowed' }} title="Automatically fetched from your profile" />
+                </div>
+              </div>
+
               <div className="form-group">
                 <label className="form-label">Type of Disaster *</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.625rem' }}>

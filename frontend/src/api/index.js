@@ -140,5 +140,6 @@ export const newsAPI = {
 export const safetyAPI = {
   getAll: () => api.get('/safety'),
   post: (data) => api.post('/safety', data),
+  delete: (id) => api.delete(`/safety/${id}`),
 };
 
