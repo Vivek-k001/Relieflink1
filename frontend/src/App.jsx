@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { io } from 'socket.io-client';
 import { useAuthStore } from './store/authStore';
@@ -19,6 +19,7 @@ import CampFinderPage from './pages/affected/CampFinderPage';
 import MyRequestsPage from './pages/affected/MyRequestsPage';
 import AlertsPage from './pages/affected/AlertsPage';
 import GlobalSafetyPage from './pages/affected/GlobalSafetyPage';
+import PublicDonatePage from './pages/PublicDonatePage';
 
 // Volunteer Pages
 import VolunteerDashboard from './pages/volunteer/Dashboard';
@@ -47,7 +48,8 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 // Protected Route
 function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, user } = useAuthStore();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  const location = useLocation();
+  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
     return <Navigate to={getRoleHome(user?.role)} replace />;
   }
@@ -146,6 +148,7 @@ function App() {
         } />
         <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/safety" element={<GlobalSafetyPage />} />
+        <Route path="/donate" element={<PublicDonatePage />} />
 
         {/* Volunteer */}
         <Route path="/volunteer" element={
