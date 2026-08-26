@@ -39,8 +39,8 @@ export default function RegisterPage() {
       toast.error('Password must be at least 6 characters'); 
       return; 
     }
-    if (form.phone && (form.phone.replace(/\D/g, '').length < 7 || form.phone.replace(/\D/g, '').length > 15)) {
-      toast.error('If provided, phone number must be valid (7-15 digits)');
+    if (form.phone && (form.phone.replace(/\D/g, '').length !== 10)) {
+      toast.error('If provided, phone number must be exactly 10 digits');
       return;
     }
     if (role === 'ngo') {
@@ -136,7 +136,7 @@ export default function RegisterPage() {
 
           <div className="form-group">
             <label className="form-label"><User size={14} style={{ display: 'inline', marginRight: 4 }} /> Full Name *</label>
-            <input id="reg-name" className="form-control" placeholder="Enter your full name" value={form.name} onChange={e => set('name', e.target.value)} onKeyDown={e => handleKeyDown(e, 'reg-email')} />
+            <input id="reg-name" autoFocus className="form-control" placeholder="Enter your full name" value={form.name} onChange={e => set('name', e.target.value)} onKeyDown={e => handleKeyDown(e, 'reg-email')} />
           </div>
 
           <div className="form-group">
@@ -151,7 +151,7 @@ export default function RegisterPage() {
 
           <div className="form-group">
             <label className="form-label"><Phone size={14} style={{ display: 'inline', marginRight: 4 }} /> Phone Number</label>
-            <input id="reg-phone" className="form-control" placeholder="+91 XXXXXXXXXX" value={form.phone} onChange={e => set('phone', e.target.value)} onKeyDown={e => handleKeyDown(e, role === 'ngo' ? 'reg-org' : 'submit')} />
+            <input id="reg-phone" type="tel" maxLength={10} className="form-control" placeholder="9876543210" value={form.phone} onChange={e => set('phone', e.target.value.replace(/\D/g, '').slice(0, 10))} onKeyDown={e => handleKeyDown(e, role === 'ngo' ? 'reg-org' : 'submit')} />
           </div>
 
           {role === 'ngo' && (
