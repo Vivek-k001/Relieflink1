@@ -5,6 +5,7 @@ const donationSchema = new mongoose.Schema(
     donorName: { type: String, required: true },
     donorPhone: { type: String },
     donorEmail: { type: String },
+    donorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     ngoId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     campId: { type: mongoose.Schema.Types.ObjectId, ref: 'ReliefCamp' },
     type: { type: String, enum: ['monetary', 'goods', 'both'], required: true },

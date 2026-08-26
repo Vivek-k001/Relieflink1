@@ -100,7 +100,7 @@ server.listen(PORT, () => {
   ╔══════════════════════════════════════════╗
   ║   🆘 ReliefLink Backend Server           ║
   ║   Running on port: ${PORT}                  ║
-  ║   Environment: ${process.env.NODE_ENV || 'development'}            ║
+  ║   Environment: ${process.env.NODE_ENV || 'development'}               ║
   ╚══════════════════════════════════════════╝
   `);
 });

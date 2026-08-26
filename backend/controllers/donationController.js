@@ -46,4 +46,34 @@ const receiveDonation = async (req, res) => {
   }
 };
 
-module.exports = { addDonation, getDonations, receiveDonation };
+// @desc  User makes a donation
+// @route POST /api/donations/make
+const makeDonation = async (req, res) => {
+  try {
+    const { ngoId, campId, type, amount, items, notes, donorName, donorPhone, donorEmail } = req.body;
+    
+    // Validate required fields
+    if (!ngoId) {
+      return res.status(400).json({ success: false, message: 'NGO ID is required' });
+    }
+
+    const donation = await Donation.create({
+      donorName: donorName || (req.user ? req.user.name : 'Anonymous User'),
+      donorPhone: donorPhone || (req.user ? req.user.phone : undefined),
+      donorEmail: donorEmail || (req.user ? req.user.email : undefined),
+      donorId: req.user ? req.user._id : undefined,
+      ngoId,
+      campId,
+      type,
+      amount,
+      items,
+      notes,
+      receiptNumber: `RL-${Date.now()}`,
+    });
+    res.status(201).json({ success: true, donation });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { addDonation, getDonations, receiveDonation, makeDonation };

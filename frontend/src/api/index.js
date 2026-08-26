@@ -125,7 +125,8 @@ export const weatherAPI = {
 // ---- Donations ----
 export const donationAPI = {
   getAll: () => api.get('/donations'),
-  create: (data) => api.post('/donations', data),
+  create: (data) => api.post('/donations', data), // Used by NGO
+  make: (data) => api.post('/donations/make', data), // Used by User
   receive: (id) => api.put(`/donations/${id}/receive`),
 };
 

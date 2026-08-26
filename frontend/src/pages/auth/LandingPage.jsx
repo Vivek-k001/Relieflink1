@@ -355,12 +355,27 @@ export default function LandingPage() {
                 >
                   Join as Volunteer / NGO →
                 </button>
+                
+                <button 
+                  onClick={() => navigate('/donate')}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.75rem',
+                    background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white',
+                    padding: '0.9rem 1.8rem', borderRadius: 14,
+                    fontSize: '1rem', fontWeight: 800, cursor: 'pointer',
+                    border: 'none', boxShadow: '0 8px 30px rgba(16,185,129,0.3)', transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = ''}
+                >
+                  <Heart size={20} /> Donate Now
+                </button>
               </div>
 
               {/* Quick Role Badges */}
               <div style={{ display: 'flex', gap: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#94A3B8' }}>
-                  <LifeBuoy size={18} color="#EF4444" /> <strong>Affected Person:</strong> OTP SOS Access
+                  <LifeBuoy size={18} color="#EF4444" /> <strong>User:</strong> OTP SOS Access
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#94A3B8' }}>
                   <span style={{ fontSize: '1.1rem' }}>🦺</span> <strong>Volunteer:</strong> Task Dashboard
