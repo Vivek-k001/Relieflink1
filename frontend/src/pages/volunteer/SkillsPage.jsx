@@ -48,7 +48,7 @@ const SKILL_CATEGORIES = [
 const LANGUAGES = ['English', 'Hindi', 'Malayalam', 'Tamil', 'Telugu', 'Kannada', 'Bengali', 'Marathi', 'Gujarati', 'Punjabi'];
 
 export default function VolunteerSkillsPage() {
-  const { user, setAuth } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const navigate = useNavigate();
   const [selectedSkills, setSelectedSkills] = useState(() => {
     return new Set(user?.skills || []);
@@ -88,7 +88,7 @@ export default function VolunteerSkillsPage() {
         experience,
       });
       // Update local user state if returned
-      if (res.data?.user) setAuth(res.data.user, localStorage.getItem('token'));
+      if (res.data?.user) updateUser(res.data.user);
       toast.success('✅ Skills saved successfully!');
       navigate('/volunteer');
     } catch (e) {

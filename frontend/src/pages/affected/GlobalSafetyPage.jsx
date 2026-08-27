@@ -272,7 +272,7 @@ export default function GlobalSafetyPage() {
                           <div style={{ fontSize: '0.7rem', color: idx === 0 ? '#4ADE80' : '#64748B', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                             <Clock size={10} />
                             {idx === 0 ? '🟢 Latest Update · ' : ''}
-                            {u.timestamp ? new Date(u.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'recently'}
+                            {u.timestamp ? new Date(u.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'recently'}
                           </div>
                         </div>
                       ))}

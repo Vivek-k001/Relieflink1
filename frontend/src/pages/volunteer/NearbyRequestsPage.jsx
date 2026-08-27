@@ -3,18 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
 import MapView from '../../components/maps/MapView';
 import { useLocationStore } from '../../store/locationStore';
-import { taskAPI, sosAPI } from '../../api';
+import { taskAPI, sosAPI, campAPI, inventoryAPI } from '../../api';
 import toast from 'react-hot-toast';
-import { MapPin, Users, AlertTriangle, Package, ArrowLeft } from 'lucide-react';
+import { MapPin, Users, AlertTriangle, Package, ArrowLeft, Tent } from 'lucide-react';
 
 export default function NearbyRequestsPage() {
   const navigate = useNavigate();
   const { lat, lng, getLocation } = useLocationStore();
   const [nearbyData, setNearbyData] = useState({ sos: [], relief: [] });
+  const [camps, setCamps] = useState([]);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState('sos');
   const [accepting, setAccepting] = useState(null);
   const [radius, setRadius] = useState(30);
+
+  const [selectedCampForInventory, setSelectedCampForInventory] = useState(null);
+  const [campInventory, setCampInventory] = useState([]);
+  const [fetchingInventory, setFetchingInventory] = useState(false);
+
+  // Relief Details Modal state
+  const [selectedReliefDetails, setSelectedReliefDetails] = useState(null);
 
   useEffect(() => { getLocation(); }, []);
   useEffect(() => { if (lat && lng) fetchNearby(); }, [lat, lng, radius]);
@@ -22,9 +30,26 @@ export default function NearbyRequestsPage() {
   const fetchNearby = async () => {
     setLoading(true);
     try {
-      const res = await taskAPI.getNearby({ lat, lng, radius });
-      setNearbyData(res.data.nearbyTasks || { sos: [], relief: [] });
+      const [resTasks, resCamps] = await Promise.all([
+        taskAPI.getNearby({ lat, lng, radius }),
+        campAPI.getAll({ lat, lng, radius })
+      ]);
+      setNearbyData(resTasks.data.nearbyTasks || { sos: [], relief: [] });
+      setCamps(resCamps.data.camps || []);
     } catch {} finally { setLoading(false); }
+  };
+
+  const handleViewInventory = async (camp) => {
+    setSelectedCampForInventory(camp);
+    setFetchingInventory(true);
+    try {
+      const res = await inventoryAPI.getForCamp(camp._id);
+      setCampInventory(res.data.items || []);
+    } catch {
+      toast.error('Failed to load inventory');
+    } finally {
+      setFetchingInventory(false);
+    }
   };
 
   const handleAcceptSOS = async (sos) => {
@@ -64,14 +89,28 @@ export default function NearbyRequestsPage() {
               </select>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              {[{ k: 'sos', l: `🆘 SOS (${allSos.length})` }, { k: 'relief', l: `📦 Relief (${allRelief.length})` }].map(t => (
+              {[
+                { k: 'sos', l: `🆘 SOS (${allSos.length})` }, 
+                { k: 'relief', l: `📦 Relief (${allRelief.length})` },
+                { k: 'camps', l: `🏕️ Camps (${camps.length})` }
+              ].map(t => (
                 <button key={t.k} onClick={() => setTab(t.k)} style={{ padding: '0.5rem 1rem', borderRadius: 8, border: tab === t.k ? '2px solid #2563EB' : '2px solid #E2E8F0', background: tab === t.k ? '#EFF6FF' : 'white', color: tab === t.k ? '#2563EB' : '#64748B', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer' }}>{t.l}</button>
               ))}
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1.5rem' }}>
-            <MapView height="560px" sosRequests={tab === 'sos' ? allSos : []} userLat={lat} userLng={lng} showRadius radiusKm={parseInt(radius)} onSosClick={tab === 'sos' ? handleAcceptSOS : undefined} />
+            <MapView 
+              height="560px" 
+              sosRequests={tab === 'sos' ? allSos : []} 
+              camps={camps} 
+              userLat={lat} 
+              userLng={lng} 
+              showRadius 
+              radiusKm={parseInt(radius)} 
+              onSosClick={tab === 'sos' ? handleAcceptSOS : undefined} 
+              onCampClick={handleViewInventory} 
+            />
 
             <div style={{ overflowY: 'auto', maxHeight: 560, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {loading ? (
@@ -97,6 +136,24 @@ export default function NearbyRequestsPage() {
                     </div>
                   </div>
                 ))
+              ) : tab === 'camps' ? (
+                camps.length === 0 ? (
+                  <div className="empty-state"><Tent size={40} color="#BFDBFE" /><h3>No camps nearby</h3><p>No NGO relief camps found in this radius</p></div>
+                ) : camps.map(c => (
+                  <div key={c._id} className="card">
+                    <div className="card-body" style={{ padding: '1rem' }}>
+                      <div style={{ fontWeight: 700, color: '#1D4ED8', marginBottom: '0.5rem', fontSize: '0.9rem' }}>🏕️ {c.name}</div>
+                      <div style={{ fontSize: '0.8125rem', color: '#64748B', marginBottom: '0.5rem' }}>📍 {c.address}</div>
+                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.75rem' }}>
+                        <span style={{ background: '#DBEAFE', color: '#1E40AF', padding: '2px 6px', borderRadius: 12 }}>👥 {c.currentOccupancy}/{c.capacity}</span>
+                        <span style={{ background: c.status === 'active' ? '#DCFCE7' : '#FEE2E2', color: c.status === 'active' ? '#14532D' : '#991B1B', padding: '2px 6px', borderRadius: 12 }}>{c.status}</span>
+                      </div>
+                      <button onClick={() => handleViewInventory(c)} style={{ width: '100%', padding: '0.5rem', background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem' }}>
+                        📦 View Inventory
+                      </button>
+                    </div>
+                  </div>
+                ))
               ) : (
                 allRelief.length === 0 ? (
                   <div className="empty-state"><Package size={40} color="#BFDBFE" /><h3>No relief requests</h3><p>No approved deliveries nearby</p></div>
@@ -107,7 +164,10 @@ export default function NearbyRequestsPage() {
                       <div style={{ fontSize: '0.8125rem', color: '#64748B', marginBottom: '0.5rem' }}>
                         {r.items?.slice(0, 3).map(it => it.name).join(', ')}{r.items?.length > 3 ? '...' : ''}
                       </div>
-                      <div style={{ fontSize: '0.8125rem', color: '#64748B' }}>👤 {r.userName} | 👥 {r.numberOfPeople} people</div>
+                      <div style={{ fontSize: '0.8125rem', color: '#64748B', marginBottom: '0.75rem' }}>👤 {r.userName} | 👥 {r.numberOfPeople} people</div>
+                      <button onClick={() => setSelectedReliefDetails(r)} style={{ width: '100%', padding: '0.5rem', background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE', borderRadius: 8, fontWeight: 700, cursor: 'pointer', fontSize: '0.875rem' }}>
+                        👁️ View Full Details
+                      </button>
                     </div>
                   </div>
                 ))
@@ -115,6 +175,74 @@ export default function NearbyRequestsPage() {
             </div>
           </div>
         </div>
+
+        {/* Inventory Modal */}
+        {selectedCampForInventory && (
+          <div className="modal-overlay" onClick={() => setSelectedCampForInventory(null)} style={{ zIndex: 9999 }}>
+            <div className="modal" style={{ maxWidth: 500, zIndex: 10000 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h4>📦 {selectedCampForInventory.name} Inventory</h4>
+                <button onClick={() => setSelectedCampForInventory(null)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748B' }}>×</button>
+              </div>
+              <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                {fetchingInventory ? (
+                  <div style={{ textAlign: 'center', padding: '2rem', color: '#64748B' }}>Loading inventory...</div>
+                ) : campInventory.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '2rem', color: '#64748B' }}>This camp currently has no supplies in stock.</div>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #E2E8F0', textAlign: 'left' }}>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>Item</th>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>Category</th>
+                        <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Stock</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {campInventory.map(item => (
+                        <tr key={item._id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '0.75rem 0.5rem', fontWeight: 600 }}>{item.itemName}</td>
+                          <td style={{ padding: '0.75rem 0.5rem', color: '#64748B', textTransform: 'capitalize' }}>{item.category}</td>
+                          <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 700, color: item.quantity > item.minStockLevel ? '#10B981' : '#DC2626' }}>
+                            {item.quantity} <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{item.unit}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Relief Details Modal */}
+        {selectedReliefDetails && (
+          <div className="modal-overlay" onClick={() => setSelectedReliefDetails(null)} style={{ zIndex: 9999 }}>
+            <div className="modal" style={{ maxWidth: 500, zIndex: 10000 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h4>📦 Relief Request Details</h4>
+                <button onClick={() => setSelectedReliefDetails(null)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748B' }}>×</button>
+              </div>
+              <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                <div style={{ marginBottom: '1rem', padding: '1rem', background: '#F8FAFC', borderRadius: 8, fontSize: '0.875rem' }}>
+                  <div style={{ marginBottom: '0.5rem' }}><strong>Requested By:</strong> {selectedReliefDetails.userName}</div>
+                  <div style={{ marginBottom: '0.5rem' }}><strong>People to feed/help:</strong> {selectedReliefDetails.numberOfPeople}</div>
+                  {selectedReliefDetails.notes && <div><strong>Notes:</strong> {selectedReliefDetails.notes}</div>}
+                </div>
+                
+                <h5 style={{ margin: '0 0 0.5rem', color: '#1E293B' }}>Requested Items:</h5>
+                <ul style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.875rem', color: '#334155' }}>
+                  {selectedReliefDetails.items?.map((item, idx) => (
+                    <li key={idx} style={{ marginBottom: '0.25rem' }}>
+                      <strong>{item.name}</strong> — {item.quantity} {item.unit}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

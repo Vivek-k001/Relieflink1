@@ -11,6 +11,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+const campIcon = L.divIcon({
+  html: '<div style="background:#2563EB;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:16px;border:3px solid white;box-shadow:0 4px 12px rgba(37,99,235,0.4)">🏕️</div>',
+  className: '', iconSize: [32, 32], iconAnchor: [16, 16],
+});
+
 function MapUpdater({ center }) {
   const map = useMap();
   useEffect(() => {
@@ -19,7 +24,7 @@ function MapUpdater({ center }) {
   return null;
 }
 
-export default function InteractiveMap({ lat, lng, height = 360 }) {
+export default function InteractiveMap({ lat, lng, height = 360, camps = [] }) {
   const position = [lat || 11.0, lng || 76.0]; // Default if missing
 
   return (
@@ -81,6 +86,29 @@ export default function InteractiveMap({ lat, lng, height = 360 }) {
             </Popup>
           </Marker>
         )}
+
+        {camps.map((camp) => {
+          const [clng, clat] = camp.location?.coordinates || [0, 0];
+          if (!clat || !clng) return null;
+          return (
+            <Marker key={camp._id} position={[clat, clng]} icon={campIcon}>
+              <Popup>
+                <div style={{ fontFamily: 'Inter,sans-serif', minWidth: 150 }}>
+                  <strong style={{ color: '#1D4ED8', fontSize: '0.9rem' }}>🏕️ {camp.name}</strong>
+                  <p style={{ margin: '4px 0', fontSize: '0.8rem', color: '#64748B' }}>{camp.address}</p>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                    <span style={{ fontSize: '0.75rem', background: '#DBEAFE', color: '#1E40AF', padding: '2px 6px', borderRadius: 12 }}>
+                      👥 {camp.currentOccupancy}/{camp.capacity}
+                    </span>
+                    <span style={{ fontSize: '0.75rem', background: camp.status === 'active' ? '#DCFCE7' : '#FEE2E2', color: camp.status === 'active' ? '#14532D' : '#991B1B', padding: '2px 6px', borderRadius: 12 }}>
+                      {camp.status}
+                    </span>
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
       </MapContainer>
     </div>
   );

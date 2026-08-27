@@ -85,10 +85,12 @@ const verifyOTP = async (req, res) => {
 // @route POST /api/auth/register
 const register = async (req, res) => {
   try {
-    const { name, email, password, role, phone, skills, vehicleType, organizationName, registrationNumber } = req.body;
+    const { name, email, password, role, phone, skills, vehicleType, organizationName } = req.body;
 
-    if (!name || !email || !password || !role) {
-      return res.status(400).json({ success: false, message: 'Name, email, password, and role are required' });
+    const finalName = role === 'ngo' ? organizationName : name;
+
+    if (!finalName || !email || !password || !role) {
+      return res.status(400).json({ success: false, message: 'Name/Organization, email, password, and role are required' });
     }
     if (!['volunteer', 'ngo', 'admin'].includes(role)) {
       return res.status(400).json({ success: false, message: 'Invalid role for registration' });
@@ -98,11 +100,10 @@ const register = async (req, res) => {
     if (existingUser) return res.status(400).json({ success: false, message: 'Email already registered' });
 
     const user = await User.create({
-      name, email, password, role, phone,
+      name: finalName, email, password, role, phone,
       skills: role === 'volunteer' ? skills : undefined,
       vehicleType: role === 'volunteer' ? vehicleType : undefined,
       organizationName: role === 'ngo' ? organizationName : undefined,
-      registrationNumber: role === 'ngo' ? registrationNumber : undefined,
       isVerified: true,
     });
 

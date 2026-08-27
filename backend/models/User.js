@@ -34,7 +34,6 @@ const userSchema = new mongoose.Schema(
 
     // NGO specific
     organizationName: { type: String },
-    registrationNumber: { type: String },
     website: { type: String },
 
     // OTP
