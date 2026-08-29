@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Heart, Package, ChevronRight, Loader2, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Heart, Package, ChevronRight, Loader2, ArrowLeft, ShieldCheck, CheckCircle } from 'lucide-react';
 import { campAPI, donationAPI } from '../api';
 import MockPaymentGateway from '../components/MockPaymentGateway';
 
@@ -41,6 +41,7 @@ export default function PublicDonatePage() {
   const [items, setItems] = useState([{ name: '', quantity: '', unit: 'pieces' }]);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [finalCamp, setFinalCamp] = useState(null);
   
   // Quote rotation state
   const [quoteIndex, setQuoteIndex] = useState(0);
@@ -56,7 +57,7 @@ export default function PublicDonatePage() {
     campAPI.getAll()
       .then(res => {
         setCamps(res.data.camps || []);
-        if (res.data.camps?.length > 0) setSelectedCamp(res.data.camps[0]._id);
+        if (res.data.camps?.length > 0) setSelectedCamp('general');
       })
       .catch(err => toast.error('Failed to load Relief Camps'))
       .finally(() => setLoading(false));
@@ -98,10 +99,25 @@ export default function PublicDonatePage() {
   const submitDonation = async () => {
     setIsSubmitting(true);
     try {
-      const camp = camps.find(c => c._id === selectedCamp);
+      const isGeneral = selectedCamp === 'general';
+      let actualCamp;
+      
+      if (isGeneral && camps.length > 0) {
+        // Find camp with highest need (highest occupancy/capacity ratio)
+        actualCamp = [...camps].sort((a, b) => {
+          const ratioA = (a.currentOccupancy || 0) / (a.capacity || 1);
+          const ratioB = (b.currentOccupancy || 0) / (b.capacity || 1);
+          return ratioB - ratioA; 
+        })[0];
+      } else {
+        actualCamp = camps.find(c => c._id === selectedCamp);
+      }
+      
+      setFinalCamp(actualCamp);
+
       const payload = {
-        ngoId: camp?.managedBy?._id,
-        campId: selectedCamp,
+        ngoId: actualCamp?.managedBy?._id || actualCamp?.managedBy,
+        campId: actualCamp?._id,
         type,
         notes,
         donorName,
@@ -285,7 +301,7 @@ export default function PublicDonatePage() {
                   onFocus={e => e.target.style.borderColor = '#2563EB'}
                   onBlur={e => e.target.style.borderColor = '#E2E8F0'}
                 >
-                  <option value="" disabled>Select a Camp</option>
+                  <option value="general">Allocate where most needed (Recommended)</option>
                   {camps.map(camp => (
                     <option key={camp._id} value={camp._id}>{camp.name} ({camp.district}) - Managed by {camp.managedBy?.name || 'NGO'}</option>
                   ))}
@@ -379,22 +395,47 @@ export default function PublicDonatePage() {
 
         {/* STEP 4: Success */}
         {step === 4 && (
-          <div className="fade-in" style={{ textAlign: 'center', padding: '4rem 2rem', background: '#FFFFFF', borderRadius: 20, border: '1px solid #E2E8F0', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05)' }}>
-            <div style={{ width: 88, height: 88, background: '#ECFDF5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '4px solid #D1FAE5' }}>
-              <Heart size={44} color="#10B981" fill="#10B981" />
+          <div className="success-container" style={{ textAlign: 'center', padding: '4rem 2rem', background: '#FFFFFF', borderRadius: 20, border: '1px solid #E2E8F0', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05)' }}>
+            <div className="success-icon-wrap" style={{ width: 96, height: 96, background: '#ECFDF5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '4px solid #A7F3D0' }}>
+              <CheckCircle className="success-icon" size={48} color="#10B981" />
             </div>
-            <h3 style={{ fontSize: '2.25rem', marginBottom: '1rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#0F172A' }}>Thank You!</h3>
-            <p style={{ color: '#475569', fontSize: '1.1rem', marginBottom: '2.5rem', maxWidth: 450, margin: '0 auto 2.5rem', lineHeight: 1.6 }}>
-              Your generous {type === 'monetary' ? 'contribution' : 'donation of goods'} has been recorded. Your kindness directly empowers relief efforts on the ground.
+            
+            <h3 className="success-title" style={{ fontSize: '2.5rem', marginBottom: '0.25rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#0F172A', letterSpacing: '-0.5px' }}>
+              {type === 'monetary' ? 'Payment Successful!' : 'Donation Received!'}
+            </h3>
+            
+            {type === 'monetary' && (
+              <div className="success-amount" style={{ fontSize: '1.75rem', fontWeight: 800, color: '#10B981', marginBottom: '1.25rem' }}>
+                ₹{amount}
+              </div>
+            )}
+
+            <p className="success-text" style={{ color: '#475569', fontSize: '1.1rem', marginBottom: '1.25rem', maxWidth: 500, margin: '0 auto 1.25rem', lineHeight: 1.6 }}>
+              Thank you from the bottom of our hearts. Your kindness brings immediate hope and relief to those who need it most.
             </p>
-            <button 
-              onClick={() => navigate('/dashboard')}
-              style={{ padding: '1.1rem 2.5rem', background: '#2563EB', border: 'none', borderRadius: 12, color: 'white', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 6px -1px rgba(37,99,235,0.2)' }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseLeave={e => e.currentTarget.style.transform = ''}
-            >
-              Return to Dashboard
-            </button>
+            
+            <div className="success-badge" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '1.25rem 1.75rem', borderRadius: 16, display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginBottom: '2.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02)' }}>
+              <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Destination of your gift</span>
+              <span style={{ fontWeight: 800, color: '#0F172A', fontSize: '1.2rem' }}>
+                {finalCamp?.name} {finalCamp?.district ? `(${finalCamp.district})` : ''}
+              </span>
+              {selectedCamp === 'general' && (
+                <span style={{ fontSize: '0.9rem', color: '#10B981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <span style={{ fontSize: '1.2rem' }}>★</span> Automatically selected for highest need
+                </span>
+              )}
+            </div>
+            
+            <div className="success-btn">
+              <button 
+                onClick={() => navigate('/')}
+                style={{ padding: '1.2rem 3rem', background: '#2563EB', border: 'none', borderRadius: 14, color: 'white', fontWeight: 700, fontSize: '1.05rem', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 10px 15px -3px rgba(37,99,235,0.3)' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(37,99,235,0.4)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(37,99,235,0.3)'; }}
+              >
+                Return Home
+              </button>
+            </div>
           </div>
         )}
 
@@ -405,6 +446,21 @@ export default function PublicDonatePage() {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .spin { animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Success Animations */
+        .success-container { animation: scaleUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards; }
+        .success-icon-wrap { animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s forwards; transform: scale(0); opacity: 0; }
+        .success-icon { animation: beat 1s infinite alternate 0.8s; }
+        .success-title { animation: slideUpFade 0.5s ease 0.4s forwards; opacity: 0; transform: translateY(20px); }
+        .success-amount { animation: slideUpFade 0.5s ease 0.5s forwards; opacity: 0; transform: translateY(20px); }
+        .success-text { animation: slideUpFade 0.5s ease 0.6s forwards; opacity: 0; transform: translateY(20px); }
+        .success-badge { animation: slideUpFade 0.5s ease 0.7s forwards; opacity: 0; transform: translateY(20px); }
+        .success-btn { animation: slideUpFade 0.5s ease 0.8s forwards; opacity: 0; transform: translateY(20px); }
+
+        @keyframes scaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+        @keyframes beat { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
+        @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
