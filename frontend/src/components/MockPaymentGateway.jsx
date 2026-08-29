@@ -16,11 +16,8 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
-      setIsSuccess(true);
-      setTimeout(() => {
-        onSuccess();
-      }, 2000);
-    }, 2500);
+      onSuccess();
+    }, 2000);
   };
 
   const formatCardNumber = (val) => {
@@ -38,18 +35,6 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
     }
   };
 
-  if (isSuccess) {
-    return (
-      <div style={{ textAlign: 'center', padding: '4rem 2rem', color: '#0F172A' }}>
-        <div style={{ display: 'inline-flex', background: '#ECFDF5', borderRadius: '50%', padding: '1rem', marginBottom: '1.5rem', animation: 'scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }}>
-          <CheckCircle size={64} color="#10B981" />
-        </div>
-        <h3 style={{ fontSize: '2rem', marginBottom: '0.75rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif' }}>Payment Successful!</h3>
-        <p style={{ color: '#475569', fontSize: '1.1rem' }}>Thank you for your generous donation of ₹{amount}.</p>
-      </div>
-    );
-  }
-
   return (
     <div style={{ background: '#FFFFFF', borderRadius: 20, padding: '2.5rem', border: '1px solid #E2E8F0', color: '#0F172A', maxWidth: 480, margin: '0 auto', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', position: 'relative' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -59,13 +44,13 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem' }}>
-        <button 
+        <button
           onClick={() => setMethod('card')}
           style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.875rem', borderRadius: 12, border: `2px solid ${method === 'card' ? '#2563EB' : '#E2E8F0'}`, background: method === 'card' ? '#EFF6FF' : '#F8FAFC', color: method === 'card' ? '#2563EB' : '#64748B', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 700, fontSize: '1rem' }}
         >
           <CreditCard size={20} /> Card
         </button>
-        <button 
+        <button
           onClick={() => setMethod('upi')}
           style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.875rem', borderRadius: 12, border: `2px solid ${method === 'upi' ? '#2563EB' : '#E2E8F0'}`, background: method === 'upi' ? '#EFF6FF' : '#F8FAFC', color: method === 'upi' ? '#2563EB' : '#64748B', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 700, fontSize: '1rem' }}
         >
@@ -75,14 +60,14 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
 
       {/* 3D Flipping Container */}
       <div style={{ perspective: '1200px', position: 'relative' }}>
-        <div style={{ 
-          display: 'grid', 
-          transition: 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)', 
-          transformStyle: 'preserve-3d', 
+        <div style={{
+          display: 'grid',
+          transition: 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)',
+          transformStyle: 'preserve-3d',
           transform: method === 'card' ? 'rotateY(0deg)' : 'rotateY(180deg)',
           position: 'relative'
         }}>
-          
+
           {/* ================= FRONT: CARD UI ================= */}
           <div style={{
             gridArea: '1 / 1 / 2 / 2', // Place in the exact same spot as the back
@@ -127,25 +112,25 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
             <form style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }} onSubmit={e => e.preventDefault()}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem', fontWeight: 700 }}>Card Number</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   maxLength={19}
-                  value={cardNumber} 
-                  onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} 
-                  placeholder="0000 0000 0000 0000" 
-                  style={{ width: '100%', background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 10, padding: '1rem', color: '#0F172A', outline: 'none', fontFamily: 'monospace', fontSize: '1.1rem', transition: 'border-color 0.2s', fontWeight: 600 }} 
+                  value={cardNumber}
+                  onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                  placeholder="0000 0000 0000 0000"
+                  style={{ width: '100%', background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 10, padding: '1rem', color: '#0F172A', outline: 'none', fontFamily: 'monospace', fontSize: '1.1rem', transition: 'border-color 0.2s', fontWeight: 600 }}
                   onFocus={e => e.target.style.borderColor = '#2563EB'}
                   onBlur={e => e.target.style.borderColor = '#E2E8F0'}
                 />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem', fontWeight: 700 }}>Cardholder Name</label>
-                <input 
-                  type="text" 
-                  value={cardName} 
-                  onChange={(e) => setCardName(e.target.value.toUpperCase())} 
-                  placeholder="JOHN DOE" 
-                  style={{ width: '100%', background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 10, padding: '1rem', color: '#0F172A', outline: 'none', fontSize: '1.05rem', transition: 'border-color 0.2s', fontWeight: 600 }} 
+                <input
+                  type="text"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                  placeholder="JOHN DOE"
+                  style={{ width: '100%', background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 10, padding: '1rem', color: '#0F172A', outline: 'none', fontSize: '1.05rem', transition: 'border-color 0.2s', fontWeight: 600 }}
                   onFocus={e => e.target.style.borderColor = '#2563EB'}
                   onBlur={e => e.target.style.borderColor = '#E2E8F0'}
                 />
@@ -153,30 +138,30 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem', fontWeight: 700 }}>Expiry (MM/YY)</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     maxLength={5}
-                    value={expiry} 
+                    value={expiry}
                     onChange={(e) => {
                       let val = e.target.value.replace(/[^0-9]/g, '');
                       if (val.length >= 3) val = val.substring(0, 2) + '/' + val.substring(2, 4);
                       setExpiry(val);
-                    }} 
-                    placeholder="MM/YY" 
-                    style={{ width: '100%', background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 10, padding: '1rem', color: '#0F172A', outline: 'none', fontFamily: 'monospace', fontSize: '1.1rem', transition: 'border-color 0.2s', fontWeight: 600 }} 
+                    }}
+                    placeholder="MM/YY"
+                    style={{ width: '100%', background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 10, padding: '1rem', color: '#0F172A', outline: 'none', fontFamily: 'monospace', fontSize: '1.1rem', transition: 'border-color 0.2s', fontWeight: 600 }}
                     onFocus={e => e.target.style.borderColor = '#2563EB'}
                     onBlur={e => e.target.style.borderColor = '#E2E8F0'}
                   />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem', fontWeight: 700 }}>CVV</label>
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     maxLength={4}
-                    value={cvv} 
-                    onChange={(e) => setCvv(e.target.value.replace(/[^0-9]/g, ''))} 
-                    placeholder="•••" 
-                    style={{ width: '100%', background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 10, padding: '1rem', color: '#0F172A', outline: 'none', fontFamily: 'monospace', fontSize: '1.1rem', letterSpacing: '0.2em', transition: 'border-color 0.2s', fontWeight: 600 }} 
+                    value={cvv}
+                    onChange={(e) => setCvv(e.target.value.replace(/[^0-9]/g, ''))}
+                    placeholder="•••"
+                    style={{ width: '100%', background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 10, padding: '1rem', color: '#0F172A', outline: 'none', fontFamily: 'monospace', fontSize: '1.1rem', letterSpacing: '0.2em', transition: 'border-color 0.2s', fontWeight: 600 }}
                     onFocus={e => e.target.style.borderColor = '#2563EB'}
                     onBlur={e => e.target.style.borderColor = '#E2E8F0'}
                   />
@@ -201,37 +186,37 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
             <div style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 20, padding: '2.5rem', display: 'inline-block', position: 'relative', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
               <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
                 <div style={{ fontSize: '1rem', fontWeight: 700, color: '#334155', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: 1 }}>Scan to Donate</div>
-                
+
                 <div style={{ background: 'white', padding: '1.25rem', borderRadius: 16, border: '1px solid #CBD5E1', marginBottom: '1.75rem', display: 'inline-block', position: 'relative' }}>
                   {/* Simulated QR Code using CSS grid */}
                   <div style={{ width: 180, height: 180, display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gridTemplateRows: 'repeat(12, 1fr)', gap: '2px', padding: '4px' }}>
                     {Array.from({ length: 144 }).map((_, i) => {
-                      const isCorner = 
-                        (i % 12 < 3 && Math.floor(i / 12) < 3) || 
-                        (i % 12 > 8 && Math.floor(i / 12) < 3) || 
+                      const isCorner =
+                        (i % 12 < 3 && Math.floor(i / 12) < 3) ||
+                        (i % 12 > 8 && Math.floor(i / 12) < 3) ||
                         (i % 12 < 3 && Math.floor(i / 12) > 8);
-                      const isInnerCorner = 
-                        (i % 12 === 1 && Math.floor(i / 12) === 1) || 
-                        (i % 12 === 10 && Math.floor(i / 12) === 1) || 
+                      const isInnerCorner =
+                        (i % 12 === 1 && Math.floor(i / 12) === 1) ||
+                        (i % 12 === 10 && Math.floor(i / 12) === 1) ||
                         (i % 12 === 1 && Math.floor(i / 12) === 10);
-                      
+
                       const bg = isInnerCorner ? 'white' : isCorner ? '#0F172A' : (Math.random() > 0.5 ? '#0F172A' : 'white');
                       return <div key={i} style={{ background: bg, borderRadius: 1 }} />
                     })}
-                    
+
                     {/* Fake UPI Logo in center */}
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', padding: '6px', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <div style={{ background: '#F1F5F9', color: '#0F172A', fontWeight: 800, fontSize: '0.85rem', padding: '4px 10px', borderRadius: 6, border: '1px solid #E2E8F0' }}>UPI</div>
                     </div>
                   </div>
-                  
+
                   {/* Scanner corners (Blue) */}
                   <div style={{ position: 'absolute', top: -10, left: -10, width: 30, height: 30, borderTop: '4px solid #2563EB', borderLeft: '4px solid #2563EB', borderRadius: '8px 0 0 0' }} />
                   <div style={{ position: 'absolute', top: -10, right: -10, width: 30, height: 30, borderTop: '4px solid #2563EB', borderRight: '4px solid #2563EB', borderRadius: '0 8px 0 0' }} />
                   <div style={{ position: 'absolute', bottom: -10, left: -10, width: 30, height: 30, borderBottom: '4px solid #2563EB', borderLeft: '4px solid #2563EB', borderRadius: '0 0 0 8px' }} />
                   <div style={{ position: 'absolute', bottom: -10, right: -10, width: 30, height: 30, borderBottom: '4px solid #2563EB', borderRight: '4px solid #2563EB', borderRadius: '0 0 8px 0' }} />
                 </div>
-                
+
                 <div style={{ background: '#F8FAFC', padding: '1rem', border: '1px solid #E2E8F0', borderRadius: 10, fontSize: '0.95rem' }}>
                   <div style={{ color: '#64748B', fontSize: '0.8rem', marginBottom: 4, fontWeight: 600 }}>UPI ID</div>
                   <div style={{ fontWeight: 700, letterSpacing: 0.5, color: '#0F172A' }}>relieflink@okaxis</div>
@@ -243,7 +228,7 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
         </div>
       </div>
 
-      <button 
+      <button
         onClick={handlePay}
         disabled={isProcessing || (method === 'card' && (!cardNumber || !cardName || !expiry || !cvv))}
         style={{
@@ -265,8 +250,8 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
           boxShadow: isProcessing ? 'none' : '0 10px 15px -3px rgba(16,185,129,0.3)',
           opacity: (method === 'card' && (!cardNumber || !cardName || !expiry || !cvv)) ? 0.5 : 1
         }}
-        onMouseEnter={e => {if(!isProcessing && !(method === 'card' && (!cardNumber || !cardName || !expiry || !cvv))) e.currentTarget.style.transform = 'translateY(-2px)'}}
-        onMouseLeave={e => {if(!isProcessing && !(method === 'card' && (!cardNumber || !cardName || !expiry || !cvv))) e.currentTarget.style.transform = ''}}
+        onMouseEnter={e => { if (!isProcessing && !(method === 'card' && (!cardNumber || !cardName || !expiry || !cvv))) e.currentTarget.style.transform = 'translateY(-2px)' }}
+        onMouseLeave={e => { if (!isProcessing && !(method === 'card' && (!cardNumber || !cardName || !expiry || !cvv))) e.currentTarget.style.transform = '' }}
       >
         {isProcessing ? (
           <>
