@@ -2,18 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
 import MapView from '../../components/maps/MapView';
-import { sosAPI } from '../../api';
+import { sosAPI, campAPI } from '../../api';
 import { RefreshCw, AlertTriangle, ArrowLeft } from 'lucide-react';
 
 export default function SOSManagementPage() {
   const navigate = useNavigate();
   const [sosList, setSosList] = useState([]);
+  const [campList, setCampList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('pending');
 
   const fetch = async () => {
     setLoading(true);
-    try { const r = await sosAPI.getAll({ status: statusFilter }); setSosList(r.data.sosList || []); } catch {} finally { setLoading(false); }
+    try { 
+      const [r, c] = await Promise.all([sosAPI.getAll({ status: statusFilter }), campAPI.getAll()]); 
+      setSosList(r.data.sosList || []); 
+      setCampList(c.data.camps || []); 
+    } catch {} finally { setLoading(false); }
   };
 
   useEffect(() => { fetch(); }, [statusFilter]);
@@ -43,7 +48,7 @@ export default function SOSManagementPage() {
 
           {statusFilter === 'pending' && sosList.length > 0 && (
             <div style={{ marginBottom: '1.5rem' }}>
-              <MapView height="320px" sosRequests={sosList} showRadius={false} />
+              <MapView height="320px" sosRequests={sosList} camps={campList} showRadius={false} />
             </div>
           )}
 

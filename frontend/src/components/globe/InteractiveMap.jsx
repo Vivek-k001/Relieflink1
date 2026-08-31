@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, LayerGroup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, LayerGroup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -16,6 +16,11 @@ const campIcon = L.divIcon({
   className: '', iconSize: [32, 32], iconAnchor: [16, 16],
 });
 
+const userIcon = L.divIcon({
+  html: '<div style="background:#10B981;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;border:3px solid white;box-shadow:0 4px 12px rgba(16,185,129,0.4)">🔵</div>',
+  className: '', iconSize: [28, 28], iconAnchor: [14, 14],
+});
+
 function MapUpdater({ center }) {
   const map = useMap();
   useEffect(() => {
@@ -24,7 +29,16 @@ function MapUpdater({ center }) {
   return null;
 }
 
-export default function InteractiveMap({ lat, lng, height = 360, camps = [] }) {
+function MapEvents({ onMapClick }) {
+  useMapEvents({
+    click: (e) => {
+      if (onMapClick) onMapClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
+export default function InteractiveMap({ lat, lng, height = 360, camps = [], onRefresh, onMapClick }) {
   const position = [lat || 11.0, lng || 76.0]; // Default if missing
 
   return (
@@ -36,6 +50,7 @@ export default function InteractiveMap({ lat, lng, height = 360, camps = [] }) {
         zoomControl={true}
       >
         <MapUpdater center={position} />
+        {onMapClick && <MapEvents onMapClick={onMapClick} />}
         
         <LayersControl position="topright">
           <LayersControl.BaseLayer checked name="Satellite View">
@@ -80,9 +95,9 @@ export default function InteractiveMap({ lat, lng, height = 360, camps = [] }) {
         </LayersControl>
         
         {lat && lng && (
-          <Marker position={position}>
+          <Marker position={position} icon={userIcon}>
             <Popup>
-              Your Detected Location
+              <strong>📍 Your Location</strong>
             </Popup>
           </Marker>
         )}
@@ -110,6 +125,37 @@ export default function InteractiveMap({ lat, lng, height = 360, camps = [] }) {
           );
         })}
       </MapContainer>
+
+      {onRefresh && (
+        <button
+          onClick={onRefresh}
+          style={{
+            position: 'absolute',
+            bottom: '1rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(15,23,42,0.85)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: 20,
+            padding: '0.5rem 1rem',
+            color: 'white',
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            transition: 'background 0.2s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(37,99,235,0.9)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(15,23,42,0.85)'}
+        >
+          <span>🔄</span> Refresh Location
+        </button>
+      )}
     </div>
   );
 }

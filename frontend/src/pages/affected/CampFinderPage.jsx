@@ -8,7 +8,7 @@ import { MapPin, Phone, Users, Search, ArrowLeft } from 'lucide-react';
 
 export default function CampFinderPage() {
   const navigate = useNavigate();
-  const { lat, lng, getLocation } = useLocationStore();
+  const { lat, lng, getLocation, setLocation } = useLocationStore();
   const [camps, setCamps] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -63,8 +63,10 @@ export default function CampFinderPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
             {/* Map */}
-            <div>
-              <MapView height="500px" camps={camps} userLat={lat} userLng={lng} showRadius radiusKm={parseInt(radius)} onCampClick={setSelected} />
+            <div style={{ position: 'relative' }}>
+
+              <MapView height="500px" camps={camps} userLat={lat} userLng={lng} showRadius radiusKm={parseInt(radius)} onCampClick={setSelected} 
+              />
             </div>
 
             {/* Camp List */}

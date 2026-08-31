@@ -37,15 +37,15 @@ export default function ReliefRequestPage() {
       return { ...prev, [key]: { name: itemName, category, quantity: 1 } };
     });
   };
-  const setQty = (key, qty) => setSelected(prev => ({ ...prev, [key]: { ...prev[key], quantity: Math.max(1, parseInt(qty) || 1) } }));
+  const setQty = (key, qty) => setSelected(prev => ({ ...prev, [key]: { ...prev[key], quantity: qty } }));
 
   const handleSubmit = async () => {
-    const items = Object.entries(selected).map(([k, v]) => ({ name: v.name, category: v.category, quantity: v.quantity }));
+    const items = Object.entries(selected).map(([k, v]) => ({ name: v.name, category: v.category, quantity: parseInt(v.quantity) || 1 }));
     if (items.length === 0) { toast.error('Please select at least one item'); return; }
     if (!lat || !lng) { toast.error('Location required. Enable GPS.'); getLocation(true); return; }
     setSubmitting(true);
     try {
-      await reliefAPI.create({ items, notes, address, numberOfPeople: people, priority, location: { coordinates: [lng, lat] } });
+      await reliefAPI.create({ items, notes, address, numberOfPeople: parseInt(people) || 1, priority, location: { coordinates: [lng, lat] } });
       setSubmitted(true);
       toast.success('Relief request submitted successfully!');
     } catch (e) { toast.error(e.response?.data?.message || 'Failed to submit'); }
@@ -133,7 +133,7 @@ export default function ReliefRequestPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
                     <label className="form-label">👥 Number of People</label>
-                    <input type="number" className="form-control" min={1} value={people} onChange={e => setPeople(parseInt(e.target.value) || 1)} />
+                    <input type="number" className="form-control" min={1} value={people} onChange={e => setPeople(e.target.value)} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Priority</label>

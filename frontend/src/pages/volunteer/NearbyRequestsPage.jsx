@@ -9,7 +9,7 @@ import { MapPin, Users, AlertTriangle, Package, ArrowLeft, Tent } from 'lucide-r
 
 export default function NearbyRequestsPage() {
   const navigate = useNavigate();
-  const { lat, lng, getLocation } = useLocationStore();
+  const { lat, lng, getLocation, setLocation } = useLocationStore();
   const [nearbyData, setNearbyData] = useState({ sos: [], relief: [] });
   const [camps, setCamps] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -100,17 +100,20 @@ export default function NearbyRequestsPage() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1.5rem' }}>
-            <MapView 
-              height="560px" 
-              sosRequests={tab === 'sos' ? allSos : []} 
-              camps={camps} 
-              userLat={lat} 
-              userLng={lng} 
-              showRadius 
-              radiusKm={parseInt(radius)} 
-              onSosClick={tab === 'sos' ? handleAcceptSOS : undefined} 
-              onCampClick={handleViewInventory} 
-            />
+            <div style={{ position: 'relative' }}>
+
+              <MapView 
+                height="560px" 
+                sosRequests={tab === 'sos' ? allSos : []} 
+                camps={camps} 
+                userLat={lat} 
+                userLng={lng} 
+                showRadius 
+                radiusKm={parseInt(radius)} 
+                onSosClick={tab === 'sos' ? handleAcceptSOS : undefined} 
+                onCampClick={handleViewInventory}
+              />
+            </div>
 
             <div style={{ overflowY: 'auto', maxHeight: 560, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {loading ? (

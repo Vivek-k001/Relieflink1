@@ -43,7 +43,8 @@ import AlertBroadcastPage from './pages/admin/AlertBroadcastPage';
 import SOSManagementPage from './pages/admin/SOSManagementPage';
 import SystemReportsPage from './pages/admin/SystemReportsPage';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+// Use an empty string so Socket.IO automatically uses the current browser origin (localtunnel) and proxies it through Vite.
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || '';
 
 // Protected Route
 function ProtectedRoute({ children, allowedRoles }) {

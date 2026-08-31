@@ -94,16 +94,7 @@ export default function CampManagementPage() {
               userLat={lat} 
               userLng={lng} 
               onCampClick={setSelected}
-              droppedPin={droppedPin}
-              onMapClick={(clickedLat, clickedLng) => {
-                setDroppedPin({ lat: clickedLat, lng: clickedLng });
-                setForm(p => ({ ...p, location: { coordinates: [clickedLng, clickedLat] } }));
-                setShowCreate(true);
-              }}
             />
-            <p style={{ textAlign: 'center', fontSize: '0.875rem', color: '#64748B', marginTop: '0.5rem' }}>
-              💡 Tip: Click anywhere on the map to drop a pin and create a camp at that location.
-            </p>
           </div>
 
           {loading ? [...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 12, marginBottom: '0.875rem' }} />) :
@@ -186,11 +177,7 @@ export default function CampManagementPage() {
                   <div style={{ fontSize: '0.875rem', color: '#64748B', background: '#F8FAFC', borderRadius: 8, padding: '0.5rem 0.875rem', border: '1px solid #E2E8F0' }}>
                     📍 {form.location.coordinates[1] ? `${form.location.coordinates[1].toFixed(5)}, ${form.location.coordinates[0].toFixed(5)}` : 'Location not available'}
                   </div>
-                  {droppedPin && (
-                    <div style={{ fontSize: '0.75rem', color: '#DB2777', marginTop: '0.25rem', fontWeight: 600 }}>
-                      📌 Using dropped pin location
-                    </div>
-                  )}
+
                 </div>
               </div>
               <div className="modal-footer"><button className="btn btn-ghost" onClick={() => { setShowCreate(false); setDroppedPin(null); }}>Cancel</button><button className="btn btn-primary" onClick={handleCreate}>🏕️ Create Camp</button></div>

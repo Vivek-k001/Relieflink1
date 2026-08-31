@@ -140,7 +140,7 @@ function QuickSOSModal({ onClose }) {
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { lat, lng, locationName, source, getLocation } = useLocationStore();
+  const { lat, lng, locationName, source, getLocation, setLocation } = useLocationStore();
   const [sosModalOpen, setSosModalOpen] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState([]);
   const [camps, setCamps] = useState([]);
@@ -427,7 +427,10 @@ export default function LandingPage() {
                   {mapView === 0 ? (
                     <EarthGlobe userLat={lat} userLng={lng} height={360} />
                   ) : (
-                    <InteractiveMap lat={lat} lng={lng} height={360} camps={camps} />
+                    <div style={{ position: 'relative' }}>
+
+                      <InteractiveMap lat={lat} lng={lng} height={360} camps={camps} onRefresh={handleTriggerGeo} />
+                    </div>
                   )}
                 </Suspense>
               </div>
@@ -453,7 +456,7 @@ export default function LandingPage() {
             <h3 style={{ fontSize: '1.25rem', fontFamily: 'Outfit,sans-serif', color: 'white', marginBottom: '1rem' }}>IMD District Warnings (Kerala)</h3>
             <div style={{ background: '#FFFFFF', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', height: 420, boxShadow: '0 10px 30px rgba(0,0,0,0.3)', position: 'relative' }}>
               <iframe
-                src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/alerts/imd-proxy?id=4&v=3`}
+                src={`${import.meta.env.VITE_API_URL || '/api'}/alerts/imd-proxy?id=4&v=3`}
                 style={{ width: '100%', height: '100%', border: 'none', background: '#FFFFFF' }}
                 title="IMD District Warnings"
               />
