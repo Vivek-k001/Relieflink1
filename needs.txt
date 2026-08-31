@@ -1,0 +1,111 @@
+=============================================================================
+                          RELIEFLINK MASTER PLAN 
+                  (Disaster Coordination Platform Upgrade)
+=============================================================================
+
+This document outlines the strategic upgrade of ReliefLink from a collection 
+of separate CRUD modules into a living, real-time Disaster Coordination Platform.
+
+=============================================================================
+1. END-TO-END RESPONSE FLOWCHART
+=============================================================================
+A real user submits an SOS, which triggers a unified database state machine:
+
+                 [ VICTIM ]
+                     │
+                     ▼
+             🚨 SOS CREATED (Status: Pending)
+                     │
+                     ▼
+             [ 👨💼 COORDINATOR ]
+                     │
+              VERIFY INCIDENT
+                     │
+                     ▼
+          🔴 SET PRIORITY (Critical/High/Medium/Low)
+                     │
+                     ▼
+         📍 LIVE COMMAND CENTER DASHBOARD
+                     │
+         ┌───────────┴───────────┐
+         ▼                       ▼
+   FIND RESPONDER           FIND SHELTER
+  (Skill + Distance)     (Capacity + Distance)
+         │                       │
+         ▼                       ▼
+    ASSIGN TASK              ALLOCATE
+         │
+         ▼
+    [ VOLUNTEER ]
+         │
+      ACCEPT (Status: Accepted)
+         │
+         ▼
+     EN ROUTE (Status: In Progress)
+         │
+         ▼
+    ASSISTANCE DELIVERED
+         │
+         ▼
+    RESOLVED (Status: Resolved)
+         │
+         ▼
+  📋 INCIDENT CLOSED (Added to Timeline)
+
+
+=============================================================================
+2. NEW FEATURES & IMPLEMENTATION STRATEGY
+=============================================================================
+
+A. Nearest Available Volunteer / Responder
+- What: Show distance and status of the nearest volunteer for any SOS.
+- Implementation: Use MongoDB `$geoNear` aggregation on the Volunteer collection, filtering by `status: 'AVAILABLE'`.
+
+B. Live Incident Timeline
+- What: A chronological history of every action taken on an SOS.
+- Implementation: Create an `IncidentEvent` MongoDB collection (incidentId, type, message, userId, timestamp). Every time a status changes, create a new event. Broadcast via Socket.io.
+
+C. Incident Ownership
+- What: Assign clear ownership to an incident (Coordinator, Rescue Team, NGO).
+- Implementation: Add `assignedCoordinator`, `assignedTeam`, and `assignedNGO` fields to the SOS model.
+
+D. Volunteer Availability Board
+- What: Live stats of volunteers (Available, On Task, Unavailable).
+- Implementation: Add a `status` field to Volunteer model. Use Socket.io to push live count updates to the dashboard.
+
+E. Volunteer Skill Matching
+- What: Filter volunteers based on required skills (e.g., Swimming, First Aid).
+- Implementation: Add `skills` (Array of Strings) to Volunteer model. Use MongoDB `$all` operator to query matches.
+
+F. Partial Fulfillment
+- What: Track partial fulfillment of resource requests (e.g., 60/100 water kits).
+- Implementation: Add `fulfilledQuantity` to the Resource Request model. Calculate `remaining = required - fulfilled`.
+
+G. Cross-NGO Resource Sharing
+- What: Allow NGOs to transfer excess resources to NGOs in need.
+- Implementation: Create a `ResourceTransfer` collection (fromNGO, toNGO, resource, quantity, status: Pending/Approved).
+
+H. Relief Request Priority
+- What: Rank requests by urgency (Critical, High, Medium, Low).
+- Implementation: Sort queries by a `priorityScore` and `createdAt` timestamp. 
+
+I. Unfulfilled Request Monitor
+- What: A dedicated screen showing grouped shortages (Water: 7, Medicine: 4).
+- Implementation: Use MongoDB `$group` aggregation on active resource requests.
+
+J. Live Shelter Capacity & Recommendation
+- What: Visual capacity bars for shelters and smart sorting by distance/capacity.
+- Implementation: Add `currentOccupancy` and `maxCapacity` to Camp model. Use Leaflet colored markers and Haversine formula sorting.
+
+K. Resource Allocation Board
+- What: Compare Available vs Needed resources across the network.
+- Implementation: Aggregate total inventory vs total unfulfilled requests.
+
+=============================================================================
+3. IMPACT ON THE PROJECT
+=============================================================================
+Instead of having disconnected modules (SOS here, Inventory there, Volunteers over there), these features tie everything together. 
+
+When an emergency occurs, ReliefLink will now automatically verify it, determine urgency, match the appropriate responder based on skills and distance, find available resources, track the progress via a timeline, and log the resolution. 
+
+This transitions ReliefLink from a "Management App" into a true "High-Stakes Live Disaster Coordination Platform".
