@@ -1,0 +1,140 @@
+================================================================================
+RELIEFLINK - DATA FLOW DIAGRAM (DFD) ARCHITECTURAL SPECIFICATIONS
+System: ReliefLink - Disaster Rescue & Relief Network Platform
+================================================================================
+
+--------------------------------------------------------------------------------
+1. LEVEL 0: CONTEXT-LEVEL DATA FLOW DIAGRAM (CONTEXT DIAGRAM)
+--------------------------------------------------------------------------------
+Central Process:
+  0.0 ReliefLink Disaster Relief & Coordination System
+
+External Entities:
+  1. Affected Citizen / Evacuee:
+     - Inputs to System: Emergency SOS Signals, Live GPS Coordinates, Family Needs (Food, Water, Medicine), Safety Status Check-ins.
+     - Outputs from System: Live Rescue Status, Assigned Relief Camp Location, Disaster Warnings & Weather Alerts.
+
+  2. Rescue Volunteer:
+     - Inputs to System: Availability, Live Location, Rescue Task Acceptances, Victim Delivery Status.
+     - Outputs from System: Nearby SOS Rescue Alerts, Triage-Ranked Incident Details, Victim Navigation & Contact.
+
+  3. NGO / Camp Coordinator:
+     - Inputs to System: Relief Camp Registration, Shelter Capacity, Real-time Occupancy, Critical Supply Shortages.
+     - Outputs from System: Evacuee Admission Rosters, Supply Delivery Notifications, Allocated Volunteer Teams.
+
+  4. Public Donor:
+     - Inputs to System: Monetary Donations, Verified Humanitarian Goods, Relief Camp Selection (or Auto-Allocate).
+     - Outputs from System: Verified Destination Receipt, Satellite Proximity Map, Live Camp Need Transparency.
+
+  5. Emergency Admin / Disaster Authority:
+     - Inputs to System: Regional Emergency Alert Broadcasts, Verification Approvals, System Policies.
+     - Outputs from System: Live Incident Analytics, System Reports, SOS Heatmaps, Relief Supply Chain Metrics.
+
+  6. External Gateways:
+     - OpenWeatherMap API: Live temperature, weather conditions, storm/rain alerts.
+     - Satellite GIS Tile Server (Esri / OpenStreetMap): Satellite base layers & geographic boundaries.
+     - Payment Gateway (UPI / Card Simulator): Transaction verification & settlement tokens.
+
+
+--------------------------------------------------------------------------------
+2. LEVEL 1: SYSTEM PROCESSES & DATA STORES
+--------------------------------------------------------------------------------
+Processes:
+  1.0 Authentication & Role Access:
+      - Validates user identity (Citizen, Volunteer, NGO, Admin) via JWT and role-based guards.
+      - Interacts with D1 (Users Store).
+
+  2.0 SOS Rescue Triage & Dispatch:
+      - Ingests emergency distress calls with live GPS coordinates.
+      - Calculates severity urgency score based on vulnerability (elderly, infants, flood depth).
+      - Dispatches alerts to nearby active volunteers.
+      - Interacts with D1 (Users Store) and D2 (SOS Requests Store).
+
+  3.0 Relief Request & Humanitarian Aid Matching:
+      - Collects specific material needs (packaged drinking water, food grains, blankets, first aid).
+      - Matches pending relief demands with local NGO inventory and incoming supplies.
+      - Interacts with D3 (Relief Needs Store) and D6 (Camp Inventory Store).
+
+  4.0 Shelter Camp & Capacity Tracking:
+      - Tracks real-time shelter capacity, headcount, and facility statuses.
+      - Computes occupancy ratio (currentOccupancy / capacity).
+      - Directs displaced citizens to non-full safe zones.
+      - Interacts with D4 (Relief Camps Store).
+
+  5.0 Geo-Proximity Donation & Supply Allocation:
+      - Computes distance between donor GPS and active relief camps via Haversine formula.
+      - Intelligently routes general donations to the nearest highest-need camp.
+      - Validates humanitarian relief item categories and monetary pledges.
+      - Interacts with D4 (Relief Camps Store), D5 (Donations Store), and D6 (Camp Inventory Store).
+
+  6.0 Disaster Broadcast & Weather Warning:
+      - Fetches meteorological warnings from external weather APIs.
+      - Enables admins to broadcast targeted red/orange disaster alerts to specific districts.
+      - Interacts with D7 (Disaster Alerts Store).
+
+Data Stores:
+  D1: Users (Citizens, Volunteers, NGOs, Admins)
+      - Stores credentials, full name, phone number, role, skills, assigned camp, safety status.
+
+  D2: SOS Requests (GPS, Urgency, Status)
+      - Stores coordinates [lng, lat], disaster type, family count, priority level, assigned volunteer, status (pending/assigned/resolved).
+
+  D3: Relief Needs (Food, Water, Medicine, Clothing)
+      - Stores requester reference, specific item categories, quantities, urgency, fulfillment progress.
+
+  D4: Relief Camps (Coordinates, Capacity, Facilities)
+      - Stores camp name, district, state, GPS coordinates [lng, lat], total capacity, current occupancy, status (active/full/closed), facilities, managed NGO.
+
+  D5: Donations (Monetary & Verified Goods)
+      - Stores donor name, phone, amount (or formatted goods list), target camp ID, transaction ID, verification status, timestamp.
+
+  D6: Camp Inventory
+      - Stores stock ledger by camp: item name, humanitarian category, quantity, unit, low-stock thresholds.
+
+  D7: Disaster Alerts & Broadcasts
+      - Stores emergency title, description, severity (advisory/warning/emergency), target district, active status, issue timestamp.
+
+
+--------------------------------------------------------------------------------
+3. LEVEL 2: DEEP DIVE INTO CORE WORKFLOWS
+--------------------------------------------------------------------------------
+Process 2.0: Live SOS Rescue Pipeline (Sub-Processes):
+  2.1 Capture GPS & Distress Signal:
+      - Ingests user geolocation, immediate hazard description, and number of trapped individuals.
+      - Writes initial record to D2 (SOS Requests Store) with status: "pending".
+
+  2.2 Urgency Severity Triage:
+      - Evaluates vulnerability criteria (e.g. rising water, medical emergency, infants, elderly).
+      - Computes automated triage score and tags priority as CRITICAL, HIGH, or MEDIUM.
+      - Updates priority in D2 (SOS Requests Store).
+
+  2.3 Proximity Volunteer Matching & Alert:
+      - Queries D1 (Users Store) for active volunteers within rescue radius.
+      - Emits real-time notification / audible dispatch alert to nearby volunteers.
+      - Assigns responding volunteer to the SOS record in D2.
+
+  2.4 Rescue Tracking & Shelter Admission:
+      - Tracks real-time rescue lifecycle: Dispatched -> En Route -> On Scene -> Rescued.
+      - On rescue completion, transitions evacuees to nearest active shelter in D4 (Relief Camps Store).
+      - Updates SOS record status to "resolved" in D2.
+
+Process 5.0: Geo-Smart Donation Routing (Sub-Processes):
+  5.1 Haversine Distance & Need Ratio Calculation:
+      - Reads donor's live GPS coordinates (lat, lng).
+      - Fetches active relief camps from D4 (Relief Camps Store).
+      - Calculates distance in km to each camp:
+          d = 2 * R * asin(sqrt(sin^2(dlat/2) + cos(lat1)*cos(lat2)*sin^2(dlon/2)))
+      - Calculates occupancy need ratio = (currentOccupancy / capacity).
+      - Filters regional camps (<= 150 km) and ranks by urgency score: (occupancy% * 100) - (distanceKm * 0.15).
+      - Automatically isolates the nearest critical relief camp.
+
+  5.2 Payment / Goods Processing:
+      - For monetary donations: triggers secure gateway transaction verification.
+      - For goods donations: validates item against APPROVED_RELIEF_CATEGORIES (Food, Clothing, First Aid, Hygiene, Survival).
+      - Records verified donation details in D5 (Donations Store).
+
+  5.3 Camp Inventory Allocation & Donor Map Verification:
+      - Updates D6 (Camp Inventory Store) with committed resources.
+      - Dynamically renders interactive multi-camp satellite map with donor location, target camp highlight (🎯), and neighbor relief centers.
+      - Provides donor with verification receipt, exact distance, and camp helpline.
+================================================================================
