@@ -116,9 +116,9 @@ const SURVIVAL_GUIDES = [
 function QuickSOSModal({ onClose }) {
   const navigate = useNavigate();
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-      <div style={{ width: '100%', maxWidth: 460, background: '#0F172A', border: '1.5px solid #EF4444', borderRadius: 20, padding: '2rem', color: 'white', position: 'relative', boxShadow: '0 25px 50px rgba(239,68,68,0.25)' }}>
-        <button onClick={onClose} style={{ position: 'absolute', right: '1.25rem', top: '1.25rem', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 32, height: 32, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: '#0F172A', border: '1.5px solid #EF4444', borderRadius: 20, padding: '2rem', color: 'white', position: 'relative', boxShadow: '0 25px 50px rgba(239,68,68,0.25)' }}>
+        <button onClick={onClose} style={{ position: 'absolute', right: '1.25rem', top: '1.25rem', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 32, height: 32, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10 }}>
           <X size={18} />
         </button>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem', animation: 'float 2s ease-in-out infinite' }}>
@@ -150,6 +150,8 @@ export default function LandingPage() {
   const [activeGuide, setActiveGuide] = useState(SURVIVAL_GUIDES[0]);
   const [geoToast, setGeoToast] = useState(null);
   const [mapView, setMapView] = useState(0); // 0 = Globe, 1 = Satellite Map
+  const [donateNavHovered, setDonateNavHovered] = useState(false);
+  const [donateHeroHovered, setDonateHeroHovered] = useState(false);
 
   useEffect(() => {
     getLocation();
@@ -247,27 +249,37 @@ export default function LandingPage() {
       )}
 
       {/* ── Navigation Header ── */}
-      <header style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(3,7,18,0.85)', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ maxWidth: 1240, margin: '0 auto', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <header style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(3,7,18,0.88)', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ width: '100%', padding: '0.65rem 1.75rem', minHeight: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.25rem', boxSizing: 'border-box' }}>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ width: 42, height: 42, background: 'linear-gradient(135deg, #DC2626, #2563EB)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(220,38,38,0.3)' }}>
-              <LifeBuoy size={24} color="white" />
-            </div>
-            <div>
-              <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '1.35rem', background: 'linear-gradient(135deg, #FFFFFF 0%, #93C5FD 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                ReliefLink
-              </span>
-              <span style={{ display: 'block', fontSize: '0.68rem', color: '#64748B', letterSpacing: 1.2, fontWeight: 700, textTransform: 'uppercase' }}>
-                Disaster Rescue & Relief Network
-              </span>
+          {/* Left: Language Switcher on far left, then divider, then ReliefLink Logo & Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}>
+            <LanguageSwitcher />
+
+            <div style={{ width: 1, height: 26, background: 'rgba(255,255,255,0.12)' }} />
+
+            <div 
+              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+              onClick={() => navigate('/')}
+            >
+              <div style={{ width: 38, height: 38, background: 'linear-gradient(135deg, #DC2626, #2563EB)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(220,38,38,0.25)', flexShrink: 0 }}>
+                <LifeBuoy size={22} color="white" />
+              </div>
+              <div style={{ whiteSpace: 'nowrap' }}>
+                <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '1.25rem', background: 'linear-gradient(135deg, #FFFFFF 0%, #93C5FD 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'block', lineHeight: 1.15 }}>
+                  ReliefLink
+                </span>
+                <span style={{ display: 'block', fontSize: '0.62rem', color: '#64748B', letterSpacing: 1.1, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1.15, marginTop: '2px' }}>
+                  Disaster Rescue & Relief Network
+                </span>
+              </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <LanguageSwitcher />
+          {/* Right: Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'nowrap', flexShrink: 0 }}>
             {lat && lng && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(37,99,235,0.3)', borderRadius: 20, padding: '0.35rem 0.75rem', fontSize: '0.78rem', color: '#93C5FD', fontWeight: 600 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.25)', borderRadius: 20, padding: '0 0.65rem', height: 38, fontSize: '0.75rem', color: '#93C5FD', fontWeight: 600, whiteSpace: 'nowrap', boxSizing: 'border-box' }}>
                 <span>{locationName || `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`}</span>
                 <button
                   onClick={handleTriggerGeo}
@@ -276,32 +288,148 @@ export default function LandingPage() {
                     background: source === 'gps' ? 'rgba(34,197,94,0.25)' : 'rgba(59,130,246,0.25)',
                     border: `1px solid ${source === 'gps' ? 'rgba(34,197,94,0.5)' : 'rgba(96,165,250,0.5)'}`,
                     borderRadius: '50%',
-                    width: 24,
-                    height: 24,
+                    width: 22,
+                    height: 22,
                     display: 'flex',
                     alignItems: 'center',
-                    justify: 'center',
+                    justifyContent: 'center',
                     color: source === 'gps' ? '#4ADE80' : '#60A5FA',
                     cursor: 'pointer',
                     padding: 0,
-                    marginLeft: '0.2rem',
                     transition: 'all 0.15s'
                   }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#2563EB'; e.currentTarget.style.color = '#FFFFFF'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = source === 'gps' ? 'rgba(34,197,94,0.25)' : 'rgba(59,130,246,0.25)'; e.currentTarget.style.color = source === 'gps' ? '#4ADE80' : '#60A5FA'; }}
                 >
-                  <Navigation size={12} />
+                  <Navigation size={11} />
                 </button>
               </div>
             )}
-            <button className="btn btn-sos" onClick={() => setSosModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', fontSize: '0.85rem' }}>
-              <LifeBuoy size={16} /> {t('landing.btnSos', 'Quick SOS')}
+
+            <button 
+              className="btn btn-sos" 
+              onClick={() => setSosModalOpen(true)} 
+              style={{ 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '0.4rem', 
+                padding: '0 0.95rem', 
+                height: 38,
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                borderRadius: 10,
+                whiteSpace: 'nowrap',
+                flexShrink: 0
+              }}
+            >
+              <LifeBuoy size={15} /> 
+              <span>{t('landing.btnSos', 'Emergency SOS').replace(/^🆘\s*/, '')}</span>
             </button>
-            <button onClick={() => navigate('/safety')} style={{ background: 'rgba(34,197,94,0.15)', border: '1.5px solid rgba(34,197,94,0.4)', borderRadius: 10, color: '#4ADE80', padding: '0.55rem 1.1rem', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <span>🟢</span> {t('nav.safetyMap', 'Global Safety Map')}
+
+            <button 
+              onClick={() => navigate('/safety')} 
+              style={{ 
+                background: 'rgba(34,197,94,0.12)', 
+                border: '1.5px solid rgba(34,197,94,0.35)', 
+                borderRadius: 10, 
+                color: '#4ADE80', 
+                padding: '0 0.95rem', 
+                height: 38,
+                fontSize: '0.82rem', 
+                fontWeight: 700, 
+                cursor: 'pointer', 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '0.45rem',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.2)'; e.currentTarget.style.borderColor = 'rgba(34,197,94,0.6)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.12)'; e.currentTarget.style.borderColor = 'rgba(34,197,94,0.35)'; }}
+            >
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 6px #22C55E', display: 'inline-block' }} />
+              <span>{t('nav.safetyMap', 'Safety Map').replace(/^🟢\s*/, '')}</span>
             </button>
-            <button className="btn btn-primary" onClick={() => navigate('/login')} style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)', padding: '0.55rem 1.25rem', fontSize: '0.875rem' }}>
-              {t('nav.login', 'Access Platform')} →
+
+            <button 
+              onClick={() => navigate('/donate')} 
+              onMouseEnter={() => setDonateNavHovered(true)}
+              onMouseLeave={() => setDonateNavHovered(false)}
+              style={{ 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '0.4rem', 
+                background: donateNavHovered 
+                  ? 'linear-gradient(135deg, #059669, #047857)' 
+                  : 'linear-gradient(135deg, #10B981, #059669)', 
+                border: 'none', 
+                borderRadius: 10, 
+                color: 'white', 
+                padding: '0 0.95rem', 
+                height: 38,
+                fontSize: '0.82rem', 
+                fontWeight: 700, 
+                cursor: 'pointer', 
+                boxShadow: donateNavHovered 
+                  ? '0 4px 16px rgba(16,185,129,0.5)' 
+                  : '0 2px 10px rgba(16,185,129,0.25)',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                transform: donateNavHovered ? 'translateY(-1px)' : 'none',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+              }}
+            >
+              <Heart 
+                size={15} 
+                color="white" 
+                fill={donateNavHovered ? "white" : "none"} 
+                style={{ 
+                  transition: 'all 0.25s ease',
+                  transform: donateNavHovered ? 'scale(1.2)' : 'scale(1)' 
+                }} 
+              /> 
+              <span>Donate Now</span>
+              {donateNavHovered && (
+                <span 
+                  style={{ 
+                    display: 'inline-block', 
+                    fontSize: '0.9rem',
+                    animation: 'popIn 0.25s ease-out, heartBeat 0.8s infinite alternate ease-in-out',
+                    lineHeight: 1
+                  }}
+                >
+                  💖
+                </span>
+              )}
+            </button>
+
+            <button 
+              className="btn btn-primary" 
+              onClick={() => navigate('/login')} 
+              style={{ 
+                background: 'linear-gradient(135deg, #2563EB, #1D4ED8)', 
+                padding: '0 0.95rem', 
+                height: 38,
+                fontSize: '0.84rem', 
+                fontWeight: 700,
+                borderRadius: 10, 
+                border: 'none', 
+                color: 'white', 
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                boxShadow: '0 2px 10px rgba(37,99,235,0.25)',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.1)'}
+              onMouseLeave={e => e.currentTarget.style.filter = 'none'}
+            >
+              <span>{t('nav.login', 'Login')}</span>
+              <span>→</span>
             </button>
           </div>
         </div>
@@ -366,17 +494,46 @@ export default function LandingPage() {
 
                 <button
                   onClick={() => navigate('/donate')}
+                  onMouseEnter={() => setDonateHeroHovered(true)}
+                  onMouseLeave={() => setDonateHeroHovered(false)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '0.75rem',
-                    background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white',
+                    display: 'flex', alignItems: 'center', gap: '0.65rem',
+                    background: donateHeroHovered 
+                      ? 'linear-gradient(135deg, #059669, #047857)' 
+                      : 'linear-gradient(135deg, #10B981, #059669)', 
+                    color: 'white',
                     padding: '0.9rem 1.8rem', borderRadius: 14,
                     fontSize: '1rem', fontWeight: 800, cursor: 'pointer',
-                    border: 'none', boxShadow: '0 8px 30px rgba(16,185,129,0.3)', transition: 'all 0.2s'
+                    border: 'none', 
+                    boxShadow: donateHeroHovered 
+                      ? '0 10px 35px rgba(16,185,129,0.5)' 
+                      : '0 8px 30px rgba(16,185,129,0.3)', 
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transform: donateHeroHovered ? 'translateY(-2px)' : 'none'
                   }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = ''}
                 >
-                  <Heart size={20} /> Donate Now
+                  <Heart 
+                    size={20} 
+                    color="white" 
+                    fill={donateHeroHovered ? "white" : "none"} 
+                    style={{ 
+                      transition: 'all 0.25s ease',
+                      transform: donateHeroHovered ? 'scale(1.2)' : 'scale(1)' 
+                    }} 
+                  /> 
+                  <span>Donate Now</span>
+                  {donateHeroHovered && (
+                    <span 
+                      style={{ 
+                        display: 'inline-block', 
+                        fontSize: '1.2rem',
+                        animation: 'popIn 0.25s ease-out, heartBeat 0.8s infinite alternate ease-in-out',
+                        lineHeight: 1
+                      }}
+                    >
+                      💖
+                    </span>
+                  )}
                 </button>
               </div>
 
