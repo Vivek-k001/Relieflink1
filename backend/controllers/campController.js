@@ -29,19 +29,35 @@ const getCamps = async (req, res) => {
     let query = {};
     if (status) query.status = status;
 
-    if (lat && lng) {
-      query.location = {
-        $near: {
-          $geometry: { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] },
-          $maxDistance: parseFloat(radius) * 1000,
-        },
-      };
-    }
-
     // NGO only sees their own camps
     if (req.user && req.user.role === 'ngo') query.managedBy = req.user._id;
 
-    const camps = await ReliefCamp.find(query).populate('managedBy', 'name organizationName phone');
+    let camps = [];
+    const radiusNum = parseFloat(radius);
+
+    if (lat && lng && radius !== 'all' && !isNaN(radiusNum) && radiusNum > 0) {
+      try {
+        const geoQuery = {
+          ...query,
+          location: {
+            $near: {
+              $geometry: { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] },
+              $maxDistance: radiusNum * 1000,
+            },
+          },
+        };
+        camps = await ReliefCamp.find(geoQuery).populate('managedBy', 'name organizationName phone');
+      } catch (geoErr) {
+        console.warn('Geo query fallback:', geoErr.message);
+      }
+    }
+
+    // In emergency relief, NEVER leave the user with 0 camps if camps exist in the system!
+    // Fallback to all camps matching filter if radius returned 0 or if no coords provided
+    if (!camps || camps.length === 0) {
+      camps = await ReliefCamp.find(query).populate('managedBy', 'name organizationName phone');
+    }
+
     res.json({ success: true, camps });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

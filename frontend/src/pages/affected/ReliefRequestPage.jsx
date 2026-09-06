@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
-import { useLocationStore } from '../../store/locationStore';
+import { useLocationStore, getIPLocation } from '../../store/locationStore';
 import { useAuthStore } from '../../store/authStore';
 import { reliefAPI } from '../../api';
 import toast from 'react-hot-toast';
@@ -44,10 +44,17 @@ export default function ReliefRequestPage() {
     if (items.length === 0) { toast.error('Please select at least one item'); return; }
     if (!address || address.trim().length < 5) { toast.error('Please provide a valid delivery address (min 5 chars)'); return; }
     if (!people || parseInt(people) < 1) { toast.error('Number of people must be at least 1'); return; }
-    if (!lat || !lng) { toast.error('Location required. Enable GPS.'); getLocation(true); return; }
+    let targetLat = lat;
+    let targetLng = lng;
+    if (!targetLat || !targetLng) {
+      const fallback = await getIPLocation();
+      targetLat = fallback.lat;
+      targetLng = fallback.lng;
+    }
+    if (!targetLat || !targetLng) { toast.error('Location required. Please enable GPS or enter full landmark address.'); getLocation(true); return; }
     setSubmitting(true);
     try {
-      await reliefAPI.create({ items, notes, address, numberOfPeople: parseInt(people) || 1, priority, location: { coordinates: [lng, lat] } });
+      await reliefAPI.create({ items, notes, address, numberOfPeople: parseInt(people) || 1, priority, location: { coordinates: [targetLng, targetLat] } });
       setSubmitted(true);
       toast.success('Relief request submitted successfully!');
     } catch (e) { toast.error(e.response?.data?.message || 'Failed to submit'); }

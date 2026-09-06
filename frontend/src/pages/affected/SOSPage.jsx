@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
-import { useLocationStore } from '../../store/locationStore';
+import { useLocationStore, getIPLocation } from '../../store/locationStore';
 import { useAuthStore } from '../../store/authStore';
 import { useLanguage } from '../../context/LanguageContext';
 import { sosAPI } from '../../api';
@@ -41,10 +41,19 @@ export default function SOSPage() {
     if (!form.address || form.address.trim().length < 5) { toast.error('Please provide a valid address/landmark (min 5 chars)'); return; }
     if (!form.description || form.description.trim().length < 5) { toast.error('Please provide a valid description (min 5 chars)'); return; }
     if (!form.numberOfPeople || form.numberOfPeople < 1) { toast.error('Number of people must be at least 1'); return; }
-    if (!lat || !lng) { toast.error('Location is required. Please enable GPS.'); return; }
+    
+    let targetLat = lat;
+    let targetLng = lng;
+    if (!targetLat || !targetLng) {
+      const fallback = await getIPLocation();
+      targetLat = fallback.lat;
+      targetLng = fallback.lng;
+    }
+    if (!targetLat || !targetLng) { toast.error('Location is required. Please enable GPS or specify landmark.'); return; }
+
     setSubmitting(true);
     try {
-      await sosAPI.create({ ...form, location: { coordinates: [lng, lat] } });
+      await sosAPI.create({ ...form, location: { coordinates: [targetLng, targetLat] } });
       setSubmitted(true);
       toast.success('🆘 SOS sent! Help is on the way!', { duration: 5000 });
     } catch (e) {

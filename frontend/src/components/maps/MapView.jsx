@@ -38,6 +38,35 @@ function SetView({ lat, lng }) {
   return null;
 }
 
+function FocusView({ lat, lng }) {
+  const map = useMap();
+  useEffect(() => {
+    if (lat && lng) {
+      map.flyTo([lat, lng], 14, { duration: 1 });
+    }
+  }, [lat, lng, map]);
+  return null;
+}
+
+function FitAllCamps({ camps }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!camps || camps.length === 0) return;
+    const points = camps
+      .map(c => {
+        const [lng, lat] = c.location?.coordinates || [];
+        return (lat && lng) ? [lat, lng] : null;
+      })
+      .filter(Boolean);
+    if (points.length > 1) {
+      map.fitBounds(L.latLngBounds(points), { padding: [30, 30], maxZoom: 12 });
+    } else if (points.length === 1) {
+      map.setView(points[0], 12);
+    }
+  }, [camps, map]);
+  return null;
+}
+
 function AutoFitBounds({ userLat, userLng, highlightCampId, camps }) {
   const map = useMap();
   useEffect(() => {
@@ -97,6 +126,8 @@ export default function MapView({
   sosRequests = [], 
   userLat, 
   userLng, 
+  focusLat,
+  focusLng,
   highlightCampId = null,
   autoFit = false,
   onCampClick, 
@@ -105,8 +136,8 @@ export default function MapView({
   showRadius = false,
   radiusKm = 10,
 }) {
-  const defaultLat = userLat || 20.5937;
-  const defaultLng = userLng || 78.9629;
+  const defaultLat = userLat || focusLat || 20.5937;
+  const defaultLng = userLng || focusLng || 78.9629;
 
   return (
     <div className="map-container" style={{ height, position: 'relative' }}>
@@ -119,7 +150,7 @@ export default function MapView({
       `}</style>
       <MapContainer
         center={[defaultLat, defaultLng]}
-        zoom={userLat ? 12 : 5}
+        zoom={userLat || focusLat ? 12 : 5}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
       >
@@ -148,9 +179,15 @@ export default function MapView({
           />
         )}
 
+        {/* If user clicks a specific camp, fly smoothly to it */}
+        {focusLat && focusLng && <FocusView lat={focusLat} lng={focusLng} />}
+
+        {/* If no user GPS is available and not auto-fitting, frame all camps so mobile users immediately see them */}
+        {!userLat && !focusLat && !autoFit && camps.length > 0 && <FitAllCamps camps={camps} />}
+
         {userLat && userLng && (
           <>
-            {!autoFit && <SetView lat={userLat} lng={userLng} />}
+            {!autoFit && !focusLat && <SetView lat={userLat} lng={userLng} />}
             <Marker position={[userLat, userLng]} icon={userIcon}>
               <Popup><strong>📍 Your Location</strong></Popup>
             </Marker>

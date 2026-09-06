@@ -39,14 +39,23 @@ export const useLocationStore = create((set, get) => ({
 
     set({ loading: true, error: null });
 
+    // Instantly initiate IP/Cell-tower fallback in parallel so lat/lng are populated without waiting
+    if (!get().lat || !get().lng) {
+      getIPLocation().then(({ lat, lng, address, city, source }) => {
+        if (get().source !== 'gps' && get().source !== 'manual') {
+          set({ lat, lng, address, city, source });
+        }
+      }).catch(() => {});
+    }
+
     if (!navigator.geolocation) {
-      // No GPS support — use server-proxied IP/Mobile tower fallback
       getIPLocation().then(({ lat, lng, address, city, source }) => {
         set({ lat, lng, address, city, source, loading: false });
       });
       return;
     }
 
+    // Try device location with 5s timeout; maximumAge allows fast cached network/cell position
     navigator.geolocation.getCurrentPosition(
       (pos) => set({
         lat: pos.coords.latitude,
@@ -55,14 +64,17 @@ export const useLocationStore = create((set, get) => ({
         loading: false,
       }),
       async (err) => {
-        // User denied or GPS error — fallback seamlessly to server-proxied IP location
-        if (err.code === err.PERMISSION_DENIED && isManual) {
-          toast.error("Location access is blocked. Please allow location in your browser site settings and click the GPS button again.", { id: 'gps-denied', duration: 5000 });
+        if (err.code === 1 && isManual) {
+          toast.error("Location access is blocked. Please allow location in your browser site settings.", { id: 'gps-denied', duration: 4000 });
         }
-        const { lat, lng, address, city, source } = await getIPLocation();
-        set({ lat, lng, address, city, source, loading: false, error: null });
+        if (!get().lat || !get().lng) {
+          const fallback = await getIPLocation();
+          set({ ...fallback, loading: false, error: null });
+        } else {
+          set({ loading: false });
+        }
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
     );
   },
 
