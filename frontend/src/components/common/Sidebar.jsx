@@ -104,7 +104,7 @@ export default function Sidebar() {
 
       <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div style={{ padding: '0 0.5rem' }}>
-          <LanguageSwitcher style={{ width: '100%', justifyContent: 'center' }} />
+          <LanguageSwitcher direction="up" style={{ width: '100%' }} />
         </div>
 
         <div className="sidebar-user">

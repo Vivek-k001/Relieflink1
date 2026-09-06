@@ -42,6 +42,8 @@ export default function ReliefRequestPage() {
   const handleSubmit = async () => {
     const items = Object.entries(selected).map(([k, v]) => ({ name: v.name, category: v.category, quantity: parseInt(v.quantity) || 1 }));
     if (items.length === 0) { toast.error('Please select at least one item'); return; }
+    if (!address || address.trim().length < 5) { toast.error('Please provide a valid delivery address (min 5 chars)'); return; }
+    if (!people || parseInt(people) < 1) { toast.error('Number of people must be at least 1'); return; }
     if (!lat || !lng) { toast.error('Location required. Enable GPS.'); getLocation(true); return; }
     setSubmitting(true);
     try {

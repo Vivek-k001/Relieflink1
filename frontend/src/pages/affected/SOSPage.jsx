@@ -38,6 +38,9 @@ export default function SOSPage() {
   useEffect(() => { getLocation(); }, []);
 
   const handleSOS = async () => {
+    if (!form.address || form.address.trim().length < 5) { toast.error('Please provide a valid address/landmark (min 5 chars)'); return; }
+    if (!form.description || form.description.trim().length < 5) { toast.error('Please provide a valid description (min 5 chars)'); return; }
+    if (!form.numberOfPeople || form.numberOfPeople < 1) { toast.error('Number of people must be at least 1'); return; }
     if (!lat || !lng) { toast.error('Location is required. Please enable GPS.'); return; }
     setSubmitting(true);
     try {

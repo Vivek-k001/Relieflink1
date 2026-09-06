@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
-import SafetyGlobe from '../../components/globe/SafetyGlobe';
+import SafetyMap from '../../components/globe/SafetyMap';
 import { useLocationStore } from '../../store/locationStore';
 import { safetyAPI } from '../../api';
 import { useAuthStore } from '../../store/authStore';
@@ -63,8 +63,16 @@ export default function GlobalSafetyPage() {
 
   const handlePostSafetyStatus = async (e) => {
     if (e) e.preventDefault();
-    if (!formName || !formUpdateText) {
-      toast.error('Name and status update text are required');
+    if (!formName || formName.trim().length < 2 || !/^[A-Za-z\s]+$/.test(formName)) {
+      toast.error('Please enter a valid full name (letters and spaces only)');
+      return;
+    }
+    if (!formUpdateText || formUpdateText.trim().length < 5) {
+      toast.error('Status update text must be at least 5 characters long');
+      return;
+    }
+    if (formPhone && formPhone.replace(/\D/g, '').length !== 10) {
+      toast.error('Phone number must be exactly 10 digits');
       return;
     }
 
@@ -155,7 +163,7 @@ export default function GlobalSafetyPage() {
               🟢 Global Safety Map & Citizen Broadcaster
             </h1>
             <p style={{ color: 'rgba(255,255,255,0.85)', marginTop: '0.25rem', fontSize: '0.875rem' }}>
-              Click anywhere on 3D Earth to drop your location pin & broadcast real-time safety status
+              Click anywhere on the map to drop your location pin & broadcast real-time safety status
             </p>
           </div>
           <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
@@ -181,9 +189,9 @@ export default function GlobalSafetyPage() {
         <div style={{ padding: '1.5rem 2rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: '1.5rem', alignItems: 'start' }}>
             
-            {/* Left: 3D Earth Safety Map with Stationary Camera & Clickable Drop Pin */}
+            {/* Left: Interactive Leaflet Safety Map with Clickable Drop Pin */}
             <div>
-              <SafetyGlobe 
+              <SafetyMap 
                 broadcasts={broadcasts} 
                 userLat={lat} 
                 userLng={lng} 
@@ -282,7 +290,7 @@ export default function GlobalSafetyPage() {
               ) : (
                 <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748B' }}>
                   <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🟢</div>
-                  <p style={{ fontSize: '0.9rem' }}>Tap any green marker on the 3D Earth Globe to view citizen details and status updates timeline.</p>
+                  <p style={{ fontSize: '0.9rem' }}>Tap any green marker on the map to view citizen details and status updates timeline.</p>
                 </div>
               )}
             </div>
@@ -336,7 +344,7 @@ export default function GlobalSafetyPage() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 700, color: '#CBD5E1', marginBottom: 4 }}>Phone Number (Optional)</label>
-                  <input type="tel" placeholder="+91 9876543210" value={formPhone} onChange={e => setFormPhone(e.target.value)} onFocus={e => e.target.select()} style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(15,23,42,0.9)', color: 'white', fontSize: '0.875rem' }} />
+                  <input type="tel" placeholder="9876543210" value={formPhone} onChange={e => setFormPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} onFocus={e => e.target.select()} style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(15,23,42,0.9)', color: 'white', fontSize: '0.875rem' }} />
                 </div>
 
                 <div>
@@ -345,7 +353,7 @@ export default function GlobalSafetyPage() {
                 </div>
 
                 <div style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 10, padding: '0.6rem 0.85rem', fontSize: '0.75rem', color: '#FCD34D', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <MapPin size={14} /> Location: {droppedPin ? `Lat ${droppedPin.lat.toFixed(4)}°, Lng ${droppedPin.lng.toFixed(4)}° (Dropped Pin)` : lat ? `Lat ${lat.toFixed(4)}°, Lng ${lng.toFixed(4)}° (GPS)` : 'Click on globe to drop pin'}
+                  <MapPin size={14} /> Location: {droppedPin ? `Lat ${droppedPin.lat.toFixed(4)}°, Lng ${droppedPin.lng.toFixed(4)}° (Dropped Pin)` : lat ? `Lat ${lat.toFixed(4)}°, Lng ${lng.toFixed(4)}° (GPS)` : 'Click on map to drop pin'}
                 </div>
 
                 <button type="submit" disabled={posting} style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)', color: 'white', padding: '0.8rem', borderRadius: 12, border: 'none', fontWeight: 800, fontSize: '0.9375rem', cursor: 'pointer', boxShadow: '0 4px 14px rgba(34,197,94,0.4)' }}>
