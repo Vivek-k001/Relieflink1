@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
 import { useLocationStore } from '../../store/locationStore';
 import { useAuthStore } from '../../store/authStore';
+import { useLanguage } from '../../context/LanguageContext';
 import { sosAPI } from '../../api';
 import toast from 'react-hot-toast';
 import { MapPin, Users, AlertTriangle, Phone, Navigation, ArrowLeft } from 'lucide-react';
@@ -25,6 +26,7 @@ const PRIORITIES = [
 ];
 
 export default function SOSPage() {
+  const { t } = useLanguage();
   const { lat, lng, loading: locationLoading, getLocation } = useLocationStore();
   const navigate = useNavigate();
   const { user } = useAuthStore();
@@ -82,9 +84,9 @@ export default function SOSPage() {
         <div style={{ background: 'linear-gradient(135deg, #DC2626, #B91C1C)', padding: '1.75rem 2rem', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h1 style={{ color: 'white', fontFamily: 'Outfit,sans-serif', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              🆘 Emergency SOS Request
+              {t('sos.title', '🆘 Emergency SOS Request')}
             </h1>
-            <p style={{ color: 'rgba(255,255,255,0.8)', marginTop: '0.25rem' }}>Your location will be shared with nearby rescue teams</p>
+            <p style={{ color: 'rgba(255,255,255,0.8)', marginTop: '0.25rem' }}>{t('sos.subtitle', 'Your location will be shared with nearby rescue teams')}</p>
           </div>
           <button 
             onClick={() => navigate(-1)} 
@@ -163,7 +165,7 @@ export default function SOSPage() {
               </label>
 
               <button className="btn btn-danger btn-full btn-lg" onClick={handleSOS} disabled={submitting || locationLoading} style={{ background: 'linear-gradient(135deg, #EF4444, #B91C1C)', fontSize: '1rem', fontWeight: 800, letterSpacing: '0.05em', animation: 'pulse-sos 2s infinite' }}>
-                {submitting ? <div className="spinner spinner-sm" style={{ borderTopColor: 'white', borderColor: 'rgba(255,255,255,0.3)' }} /> : '🆘 SEND SOS NOW'}
+                {submitting ? <div className="spinner spinner-sm" style={{ borderTopColor: 'white', borderColor: 'rgba(255,255,255,0.3)' }} /> : `🆘 ${t('sos.btnBroadcast', 'SEND SOS NOW')}`}
               </button>
 
               <p style={{ textAlign: 'center', marginTop: '1rem', color: '#94A3B8', fontSize: '0.8125rem' }}>

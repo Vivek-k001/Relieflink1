@@ -5,6 +5,7 @@ import { io } from 'socket.io-client';
 import { useAuthStore } from './store/authStore';
 import { useAlertStore } from './store/alertStore';
 import { useNotificationStore } from './store/notificationStore';
+import { LanguageProvider } from './context/LanguageContext';
 
 // Fallback loader component for lazy-loaded routes
 function PageLoader() {
@@ -127,144 +128,146 @@ function App() {
   }, [isAuthenticated, user]);
 
   return (
-    <BrowserRouter>
-      <OfflineBanner />
-      <Toaster position="top-right" toastOptions={{ duration: 4000, style: { fontFamily: 'Inter, sans-serif' } }} />
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/home" element={<RoleRedirect />} />
+    <LanguageProvider>
+      <BrowserRouter>
+        <OfflineBanner />
+        <Toaster position="top-right" toastOptions={{ duration: 4000, style: { fontFamily: 'Inter, sans-serif' } }} />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/home" element={<RoleRedirect />} />
 
-          {/* Missing Persons Directory Route */}
-          <Route path="/missing-persons" element={
-            <ProtectedRoute allowedRoles={['affected', 'volunteer', 'ngo', 'admin']}>
-              <MissingPersonsPage />
-            </ProtectedRoute>
-          } />
+            {/* Missing Persons Directory Route */}
+            <Route path="/missing-persons" element={
+              <ProtectedRoute allowedRoles={['affected', 'volunteer', 'ngo', 'admin']}>
+                <MissingPersonsPage />
+              </ProtectedRoute>
+            } />
 
-          {/* Affected Person Routes */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute allowedRoles={['affected']}>
-              <AffectedDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/sos" element={
-            <ProtectedRoute allowedRoles={['affected', 'admin']}>
-              <SOSPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/relief-request" element={
-            <ProtectedRoute allowedRoles={['affected', 'admin']}>
-              <ReliefRequestPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/camp-finder" element={
-            <ProtectedRoute allowedRoles={['affected', 'volunteer', 'admin']}>
-              <CampFinderPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/my-requests" element={
-            <ProtectedRoute allowedRoles={['affected']}>
-              <MyRequestsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/alerts" element={<AlertsPage />} />
-          <Route path="/safety" element={<GlobalSafetyPage />} />
-          <Route path="/donate" element={<PublicDonatePage />} />
+            {/* Affected Person Routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute allowedRoles={['affected']}>
+                <AffectedDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/sos" element={
+              <ProtectedRoute allowedRoles={['affected', 'admin']}>
+                <SOSPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/relief-request" element={
+              <ProtectedRoute allowedRoles={['affected', 'admin']}>
+                <ReliefRequestPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/camp-finder" element={
+              <ProtectedRoute allowedRoles={['affected', 'volunteer', 'admin']}>
+                <CampFinderPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-requests" element={
+              <ProtectedRoute allowedRoles={['affected']}>
+                <MyRequestsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/alerts" element={<AlertsPage />} />
+            <Route path="/safety" element={<GlobalSafetyPage />} />
+            <Route path="/donate" element={<PublicDonatePage />} />
 
-          {/* Volunteer Routes */}
-          <Route path="/volunteer" element={
-            <ProtectedRoute allowedRoles={['volunteer']}>
-              <VolunteerDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/volunteer/nearby" element={
-            <ProtectedRoute allowedRoles={['volunteer']}>
-              <NearbyRequestsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/volunteer/tasks/:id" element={
-            <ProtectedRoute allowedRoles={['volunteer']}>
-              <TaskDetailPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/volunteer/history" element={
-            <ProtectedRoute allowedRoles={['volunteer']}>
-              <TaskHistoryPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/volunteer/skills" element={
-            <ProtectedRoute allowedRoles={['volunteer']}>
-              <SkillsPage />
-            </ProtectedRoute>
-          } />
+            {/* Volunteer Routes */}
+            <Route path="/volunteer" element={
+              <ProtectedRoute allowedRoles={['volunteer']}>
+                <VolunteerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/volunteer/nearby" element={
+              <ProtectedRoute allowedRoles={['volunteer']}>
+                <NearbyRequestsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/volunteer/tasks/:id" element={
+              <ProtectedRoute allowedRoles={['volunteer']}>
+                <TaskDetailPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/volunteer/history" element={
+              <ProtectedRoute allowedRoles={['volunteer']}>
+                <TaskHistoryPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/volunteer/skills" element={
+              <ProtectedRoute allowedRoles={['volunteer']}>
+                <SkillsPage />
+              </ProtectedRoute>
+            } />
 
-          {/* NGO Routes */}
-          <Route path="/ngo" element={
-            <ProtectedRoute allowedRoles={['ngo']}>
-              <NGODashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/ngo/camps" element={
-            <ProtectedRoute allowedRoles={['ngo', 'admin']}>
-              <CampManagementPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/ngo/inventory" element={
-            <ProtectedRoute allowedRoles={['ngo', 'admin']}>
-              <InventoryPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/ngo/approvals" element={
-            <ProtectedRoute allowedRoles={['ngo', 'admin']}>
-              <ReliefApprovalsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/ngo/donations" element={
-            <ProtectedRoute allowedRoles={['ngo', 'admin']}>
-              <DonationsPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/ngo/reports" element={
-            <ProtectedRoute allowedRoles={['ngo', 'admin']}>
-              <NGOReportsPage />
-            </ProtectedRoute>
-          } />
+            {/* NGO Routes */}
+            <Route path="/ngo" element={
+              <ProtectedRoute allowedRoles={['ngo']}>
+                <NGODashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/ngo/camps" element={
+              <ProtectedRoute allowedRoles={['ngo', 'admin']}>
+                <CampManagementPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/ngo/inventory" element={
+              <ProtectedRoute allowedRoles={['ngo', 'admin']}>
+                <InventoryPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/ngo/approvals" element={
+              <ProtectedRoute allowedRoles={['ngo', 'admin']}>
+                <ReliefApprovalsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/ngo/donations" element={
+              <ProtectedRoute allowedRoles={['ngo', 'admin']}>
+                <DonationsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/ngo/reports" element={
+              <ProtectedRoute allowedRoles={['ngo', 'admin']}>
+                <NGOReportsPage />
+              </ProtectedRoute>
+            } />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/users" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <UserManagementPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/alerts" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AlertBroadcastPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/sos" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <SOSManagementPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/reports" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <SystemReportsPage />
-            </ProtectedRoute>
-          } />
+            {/* Admin Routes */}
+            <Route path="/admin" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <UserManagementPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/alerts" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AlertBroadcastPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/sos" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <SOSManagementPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/reports" element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <SystemReportsPage />
+              </ProtectedRoute>
+            } />
 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </LanguageProvider>
   );
 }
 

@@ -1,6 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import basicSsl from '@vitejs/plugin-basic-ssl'
+let basicSsl;
+try {
+  basicSsl = (await import('@vitejs/plugin-basic-ssl')).default;
+} catch (e) {
+  basicSsl = null;
+}
 
 const filterUrlsPlugin = () => ({
   name: 'filter-network-urls',
@@ -19,7 +24,7 @@ const filterUrlsPlugin = () => ({
 });
 
 export default defineConfig({
-  plugins: [react(), basicSsl(), filterUrlsPlugin()],
+  plugins: [react(), ...(basicSsl ? [basicSsl()] : []), filterUrlsPlugin()],
   server: {
     port: 5173,
     host: true,

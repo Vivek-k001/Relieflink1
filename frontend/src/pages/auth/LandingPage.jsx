@@ -1,7 +1,8 @@
 import React, { Suspense, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WeatherWidget from '../../components/common/WeatherWidget';
-// import DisasterNews from '../../components/common/DisasterNews';
+import LanguageSwitcher from '../../components/common/LanguageSwitcher';
+import { useLanguage } from '../../context/LanguageContext';
 import { useLocationStore } from '../../store/locationStore';
 import { alertAPI, campAPI } from '../../api';
 import {
@@ -140,6 +141,7 @@ function QuickSOSModal({ onClose }) {
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { lat, lng, locationName, source, getLocation, setLocation } = useLocationStore();
   const [sosModalOpen, setSosModalOpen] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState([]);
@@ -262,7 +264,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <LanguageSwitcher />
             {lat && lng && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(37,99,235,0.3)', borderRadius: 20, padding: '0.35rem 0.75rem', fontSize: '0.78rem', color: '#93C5FD', fontWeight: 600 }}>
                 <span>{locationName || `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`}</span>
@@ -292,13 +295,13 @@ export default function LandingPage() {
               </div>
             )}
             <button className="btn btn-sos" onClick={() => setSosModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', fontSize: '0.85rem' }}>
-              <LifeBuoy size={16} /> Quick SOS
+              <LifeBuoy size={16} /> {t('landing.btnSos', 'Quick SOS')}
             </button>
             <button onClick={() => navigate('/safety')} style={{ background: 'rgba(34,197,94,0.15)', border: '1.5px solid rgba(34,197,94,0.4)', borderRadius: 10, color: '#4ADE80', padding: '0.55rem 1.1rem', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <span>🟢</span> Global Safety Map
+              <span>🟢</span> {t('nav.safetyMap', 'Global Safety Map')}
             </button>
             <button className="btn btn-primary" onClick={() => navigate('/login')} style={{ background: 'linear-gradient(135deg, #2563EB, #1D4ED8)', padding: '0.55rem 1.25rem', fontSize: '0.875rem' }}>
-              Access Platform →
+              {t('nav.login', 'Access Platform')} →
             </button>
           </div>
         </div>

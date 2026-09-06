@@ -2,64 +2,65 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useNotificationStore } from '../../store/notificationStore';
+import { useLanguage } from '../../context/LanguageContext';
+import LanguageSwitcher from './LanguageSwitcher';
 import {
   LayoutDashboard, AlertTriangle, Package, MapPin, Bell,
   LogOut, Menu, X, Users, Settings, ClipboardList,
   Truck, BarChart3, Heart, ShieldAlert, Radio, Award, Phone, LifeBuoy, UserCheck
 } from 'lucide-react';
 
-const navConfig = {
+const getNavConfig = (t) => ({
   affected: [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/safety', icon: Radio, label: '🟢 Safety Map' },
-    { to: '/sos', icon: AlertTriangle, label: 'Send SOS', highlight: true },
-    { to: '/missing-persons', icon: UserCheck, label: '👨‍👩‍👧 Missing Persons' },
-    { to: '/relief-request', icon: Package, label: 'Request Relief' },
-    { to: '/camp-finder', icon: MapPin, label: 'Find Camps' },
-    { to: '/my-requests', icon: ClipboardList, label: 'My Requests' },
-    { to: '/alerts', icon: Radio, label: 'Live Alerts' },
+    { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard') },
+    { to: '/safety', icon: Radio, label: t('nav.safetyMap', '🟢 Safety Map') },
+    { to: '/sos', icon: AlertTriangle, label: t('nav.sendSos', 'Send SOS'), highlight: true },
+    { to: '/missing-persons', icon: UserCheck, label: t('nav.missingPersons', '👨‍👩‍👧 Missing Persons') },
+    { to: '/relief-request', icon: Package, label: t('nav.requestRelief', 'Request Relief') },
+    { to: '/camp-finder', icon: MapPin, label: t('nav.findCamps', 'Find Camps') },
+    { to: '/my-requests', icon: ClipboardList, label: t('nav.myRequests', 'My Requests') },
+    { to: '/alerts', icon: Radio, label: t('nav.liveAlerts', 'Live Alerts') },
   ],
   volunteer: [
-    { to: '/volunteer', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/safety', icon: Radio, label: '🟢 Safety Map' },
-    { to: '/missing-persons', icon: UserCheck, label: '👨‍👩‍👧 Missing Persons' },
-    { to: '/volunteer/nearby', icon: MapPin, label: 'Nearby Requests' },
-    { to: '/volunteer/skills', icon: Award, label: 'My Skills' },
-    { to: '/volunteer/history', icon: ClipboardList, label: 'Task History' },
-    { to: '/alerts', icon: Radio, label: 'Live Alerts' },
+    { to: '/volunteer', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard') },
+    { to: '/safety', icon: Radio, label: t('nav.safetyMap', '🟢 Safety Map') },
+    { to: '/missing-persons', icon: UserCheck, label: t('nav.missingPersons', '👨‍👩‍👧 Missing Persons') },
+    { to: '/volunteer/nearby', icon: MapPin, label: t('nav.nearbyRequests', 'Nearby Requests') },
+    { to: '/volunteer/skills', icon: Award, label: t('nav.mySkills', 'My Skills') },
+    { to: '/volunteer/history', icon: ClipboardList, label: t('nav.taskHistory', 'Task History') },
+    { to: '/alerts', icon: Radio, label: t('nav.liveAlerts', 'Live Alerts') },
   ],
   ngo: [
-    { to: '/ngo', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/safety', icon: Radio, label: '🟢 Safety Map' },
-    { to: '/missing-persons', icon: UserCheck, label: '👨‍👩‍👧 Missing Persons' },
-    { to: '/ngo/camps', icon: MapPin, label: 'My Camps' },
-    { to: '/ngo/inventory', icon: Package, label: 'Inventory' },
-    { to: '/ngo/approvals', icon: ClipboardList, label: 'Relief Approvals' },
-    { to: '/ngo/donations', icon: Heart, label: 'Donations' },
-    { to: '/ngo/reports', icon: BarChart3, label: 'Reports' },
+    { to: '/ngo', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard') },
+    { to: '/safety', icon: Radio, label: t('nav.safetyMap', '🟢 Safety Map') },
+    { to: '/missing-persons', icon: UserCheck, label: t('nav.missingPersons', '👨‍👩‍👧 Missing Persons') },
+    { to: '/ngo/camps', icon: MapPin, label: t('nav.myCamps', 'My Camps') },
+    { to: '/ngo/inventory', icon: Package, label: t('nav.inventory', 'Inventory') },
+    { to: '/ngo/approvals', icon: ClipboardList, label: t('nav.reliefApprovals', 'Relief Approvals') },
+    { to: '/ngo/donations', icon: Heart, label: t('nav.donations', 'Donations') },
+    { to: '/ngo/reports', icon: BarChart3, label: t('nav.reports', 'Reports') },
   ],
   admin: [
-    { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/safety', icon: Radio, label: '🟢 Safety Map' },
-    { to: '/missing-persons', icon: UserCheck, label: '👨‍👩‍👧 Missing Persons' },
-    { to: '/admin/users', icon: Users, label: 'Users' },
-    { to: '/admin/alerts', icon: ShieldAlert, label: 'Broadcast Alert' },
-    { to: '/admin/sos', icon: AlertTriangle, label: 'SOS Management' },
-    { to: '/ngo/camps', icon: MapPin, label: 'Camps' },
-    { to: '/ngo/approvals', icon: ClipboardList, label: 'Relief Requests' },
-    { to: '/admin/reports', icon: BarChart3, label: 'System Reports' },
+    { to: '/admin', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard') },
+    { to: '/safety', icon: Radio, label: t('nav.safetyMap', '🟢 Safety Map') },
+    { to: '/missing-persons', icon: UserCheck, label: t('nav.missingPersons', '👨‍👩‍👧 Missing Persons') },
+    { to: '/admin/users', icon: Users, label: t('nav.users', 'Users') },
+    { to: '/admin/alerts', icon: ShieldAlert, label: t('nav.broadcastAlert', 'Broadcast Alert') },
+    { to: '/admin/sos', icon: AlertTriangle, label: t('nav.sosManagement', 'SOS Management') },
+    { to: '/ngo/camps', icon: MapPin, label: t('nav.camps', 'Camps') },
+    { to: '/ngo/approvals', icon: ClipboardList, label: t('nav.requestRelief', 'Relief Requests') },
+    { to: '/admin/reports', icon: BarChart3, label: t('nav.systemReports', 'System Reports') },
   ],
-};
-
-
-const roleLabels = { affected: 'Affected Person', volunteer: 'Volunteer', ngo: 'NGO / Relief Center', admin: 'Administrator' };
+});
 
 export default function Sidebar() {
   const { user, logout } = useAuthStore();
+  const { t } = useLanguage();
   const { unreadCount } = useNotificationStore();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
 
+  const navConfig = getNavConfig(t);
   const nav = navConfig[user?.role] || [];
 
   const handleLogout = () => {
@@ -75,8 +76,8 @@ export default function Sidebar() {
             <LifeBuoy size={18} color="white" />
           </div>
           <div>
-            <div className="sidebar-logo-text">ReliefLink</div>
-            <div className="sidebar-logo-sub">{roleLabels[user?.role]}</div>
+            <div className="sidebar-logo-text">{t('brand', 'ReliefLink')}</div>
+            <div className="sidebar-logo-sub">{t(`roles.${user?.role}`, user?.role)}</div>
           </div>
         </div>
       </div>
@@ -101,7 +102,11 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="sidebar-footer">
+      <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ padding: '0 0.5rem' }}>
+          <LanguageSwitcher style={{ width: '100%', justifyContent: 'center' }} />
+        </div>
+
         <div className="sidebar-user">
           <div className="sidebar-avatar">
             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
@@ -114,7 +119,7 @@ export default function Sidebar() {
               {user?.email || user?.phone || ''}
             </div>
           </div>
-          <button onClick={handleLogout} className="btn-ghost" style={{ color: 'var(--blue-300)', padding: '0.4rem' }} title="Logout">
+          <button onClick={handleLogout} className="btn-ghost" style={{ color: 'var(--blue-300)', padding: '0.4rem' }} title={t('nav.logout', 'Logout')}>
             <LogOut size={16} />
           </button>
         </div>
