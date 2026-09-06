@@ -5,24 +5,24 @@ function mapArticle(article, defaultSource = 'Live News') {
   const title = article.title || '';
   const desc = article.description || '';
   const text = (title + ' ' + desc).toLowerCase();
-  
+
   let category = 'Disaster Alert', icon = '🚨', color = '#EF4444';
-  if (text.includes('flood') || text.includes('rain') || text.includes('inundat')) { 
-    category = 'Flood'; icon = '🌊'; color = '#0284C7'; 
-  } else if (text.includes('cyclone') || text.includes('storm') || text.includes('typhoon') || text.includes('wind')) { 
-    category = 'Cyclone'; icon = '🌀'; color = '#7C3AED'; 
-  } else if (text.includes('earthquake') || text.includes('seismic') || text.includes('tremor')) { 
-    category = 'Earthquake'; icon = '🌍'; color = '#B45309'; 
-  } else if (text.includes('rescue') || text.includes('ndrf') || text.includes('evacuat')) { 
-    category = 'Rescue'; icon = '🚁'; color = '#F97316'; 
-  } else if (text.includes('relief') || text.includes('camp') || text.includes('ration') || text.includes('aid')) { 
-    category = 'Relief'; icon = '🏕️'; color = '#059669'; 
-  } else if (text.includes('heat') || text.includes('sun') || text.includes('temperature')) { 
-    category = 'Heatwave'; icon = '☀️'; color = '#D97706'; 
-  } else if (text.includes('fire') || text.includes('blaze')) { 
-    category = 'Fire'; icon = '🔥'; color = '#DC2626'; 
-  } else if (text.includes('landslide') || text.includes('avalanche') || text.includes('mudslide')) { 
-    category = 'Landslide'; icon = '⛰️'; color = '#92400E'; 
+  if (text.includes('flood') || text.includes('rain') || text.includes('inundat')) {
+    category = 'Flood'; icon = '🌊'; color = '#0284C7';
+  } else if (text.includes('cyclone') || text.includes('storm') || text.includes('typhoon') || text.includes('wind')) {
+    category = 'Cyclone'; icon = '🌀'; color = '#7C3AED';
+  } else if (text.includes('earthquake') || text.includes('seismic') || text.includes('tremor')) {
+    category = 'Earthquake'; icon = '🌍'; color = '#B45309';
+  } else if (text.includes('rescue') || text.includes('ndrf') || text.includes('evacuat')) {
+    category = 'Rescue'; icon = '🚁'; color = '#F97316';
+  } else if (text.includes('relief') || text.includes('camp') || text.includes('ration') || text.includes('aid')) {
+    category = 'Relief'; icon = '🏕️'; color = '#059669';
+  } else if (text.includes('heat') || text.includes('sun') || text.includes('temperature')) {
+    category = 'Heatwave'; icon = '☀️'; color = '#D97706';
+  } else if (text.includes('fire') || text.includes('blaze')) {
+    category = 'Fire'; icon = '🔥'; color = '#DC2626';
+  } else if (text.includes('landslide') || text.includes('avalanche') || text.includes('mudslide')) {
+    category = 'Landslide'; icon = '⛰️'; color = '#92400E';
   }
 
   return {

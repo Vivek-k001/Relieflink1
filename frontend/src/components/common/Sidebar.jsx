@@ -5,7 +5,7 @@ import { useNotificationStore } from '../../store/notificationStore';
 import {
   LayoutDashboard, AlertTriangle, Package, MapPin, Bell,
   LogOut, Menu, X, Users, Settings, ClipboardList,
-  Truck, BarChart3, Heart, ShieldAlert, Radio, Award, Phone, LifeBuoy
+  Truck, BarChart3, Heart, ShieldAlert, Radio, Award, Phone, LifeBuoy, UserCheck
 } from 'lucide-react';
 
 const navConfig = {
@@ -13,6 +13,7 @@ const navConfig = {
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/safety', icon: Radio, label: '🟢 Safety Map' },
     { to: '/sos', icon: AlertTriangle, label: 'Send SOS', highlight: true },
+    { to: '/missing-persons', icon: UserCheck, label: '👨‍👩‍👧 Missing Persons' },
     { to: '/relief-request', icon: Package, label: 'Request Relief' },
     { to: '/camp-finder', icon: MapPin, label: 'Find Camps' },
     { to: '/my-requests', icon: ClipboardList, label: 'My Requests' },
@@ -21,6 +22,7 @@ const navConfig = {
   volunteer: [
     { to: '/volunteer', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/safety', icon: Radio, label: '🟢 Safety Map' },
+    { to: '/missing-persons', icon: UserCheck, label: '👨‍👩‍👧 Missing Persons' },
     { to: '/volunteer/nearby', icon: MapPin, label: 'Nearby Requests' },
     { to: '/volunteer/skills', icon: Award, label: 'My Skills' },
     { to: '/volunteer/history', icon: ClipboardList, label: 'Task History' },
@@ -29,6 +31,7 @@ const navConfig = {
   ngo: [
     { to: '/ngo', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/safety', icon: Radio, label: '🟢 Safety Map' },
+    { to: '/missing-persons', icon: UserCheck, label: '👨‍👩‍👧 Missing Persons' },
     { to: '/ngo/camps', icon: MapPin, label: 'My Camps' },
     { to: '/ngo/inventory', icon: Package, label: 'Inventory' },
     { to: '/ngo/approvals', icon: ClipboardList, label: 'Relief Approvals' },
@@ -38,6 +41,7 @@ const navConfig = {
   admin: [
     { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/safety', icon: Radio, label: '🟢 Safety Map' },
+    { to: '/missing-persons', icon: UserCheck, label: '👨‍👩‍👧 Missing Persons' },
     { to: '/admin/users', icon: Users, label: 'Users' },
     { to: '/admin/alerts', icon: ShieldAlert, label: 'Broadcast Alert' },
     { to: '/admin/sos', icon: AlertTriangle, label: 'SOS Management' },

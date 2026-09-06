@@ -143,3 +143,12 @@ export const safetyAPI = {
   delete: (id) => api.delete(`/safety/${id}`),
 };
 
+// ---- Missing Persons ----
+export const missingAPI = {
+  getAll: (params) => api.get('/missing-persons', { params }),
+  create: (data) => api.post('/missing-persons', data),
+  updateStatus: (id, data) => api.put(`/missing-persons/${id}`, data),
+  delete: (id) => api.delete(`/missing-persons/${id}`),
+};
+
+

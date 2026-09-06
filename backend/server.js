@@ -1,6 +1,12 @@
 require('dotenv').config();
+const dns = require('dns');
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
+}
 const express = require('express');
 const http = require('http');
+const path = require('path');
+const fs = require('fs');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const connectDB = require('./config/db');
@@ -19,6 +25,7 @@ const weatherRoutes = require('./routes/weather.routes');
 const donationRoutes = require('./routes/donation.routes');
 const newsRoutes = require('./routes/news.routes');
 const safetyRoutes = require('./routes/safety.routes');
+const missingRoutes = require('./routes/missing.routes');
 
 const app = express();
 const server = http.createServer(app);
@@ -56,15 +63,26 @@ app.use('/api/weather', weatherRoutes);
 app.use('/api/donations', donationRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/safety', safetyRoutes);
+app.use('/api/missing-persons', missingRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'ReliefLink API is running 🚀', timestamp: new Date() });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
+// Serve frontend static assets if dist exists
+const frontendDist = path.join(__dirname, '../frontend/dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get('{*path}', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api')) return next();
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
+
+// 404 handler for API routes
+app.use('/api', (req, res) => {
+  res.status(404).json({ success: false, message: `API route ${req.originalUrl} not found` });
 });
 
 // Global error handler
@@ -97,11 +115,11 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`
-  ╔══════════════════════════════════════════╗
-  ║   🆘 ReliefLink Backend Server           ║
-  ║   Running on port: ${PORT}                  ║
-  ║   Environment: ${process.env.NODE_ENV || 'development'}            ║
-  ╚══════════════════════════════════════════╝
+  ╔════════════════════════════════════════╗
+  ║   🆘 ReliefLink Backend Server         ║
+  ║   Running on port: ${String(PORT).padEnd(20, ' ')}║
+  ║   Environment: ${(process.env.NODE_ENV || 'development').padEnd(24, ' ')}║
+  ╚════════════════════════════════════════╝
   `);
 });
 
