@@ -27,11 +27,32 @@ const userIcon = L.divIcon({
   className: '', iconSize: [28, 28], iconAnchor: [14, 14],
 });
 
-
+const targetCampIcon = L.divIcon({
+  html: '<div style="background:#059669;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:20px;border:3px solid white;box-shadow:0 0 16px rgba(16,185,129,0.9);animation:pulse-target 1.5s infinite">🎯</div>',
+  className: '', iconSize: [38, 38], iconAnchor: [19, 19],
+});
 
 function SetView({ lat, lng }) {
   const map = useMap();
   useEffect(() => { if (lat && lng) map.setView([lat, lng], 13); }, [lat, lng]);
+  return null;
+}
+
+function AutoFitBounds({ userLat, userLng, highlightCampId, camps }) {
+  const map = useMap();
+  useEffect(() => {
+    const points = [];
+    if (userLat && userLng) points.push([userLat, userLng]);
+    const highlighted = camps.find(c => c._id === highlightCampId);
+    if (highlighted?.location?.coordinates) {
+      points.push([highlighted.location.coordinates[1], highlighted.location.coordinates[0]]);
+    }
+    if (points.length >= 2) {
+      map.fitBounds(L.latLngBounds(points), { padding: [45, 45], maxZoom: 13 });
+    } else if (points.length === 1) {
+      map.setView(points[0], 12);
+    }
+  }, [userLat, userLng, highlightCampId, camps]);
   return null;
 }
 
@@ -76,6 +97,8 @@ export default function MapView({
   sosRequests = [], 
   userLat, 
   userLng, 
+  highlightCampId = null,
+  autoFit = false,
   onCampClick, 
   onSosClick,
   onMapClick,
@@ -86,59 +109,48 @@ export default function MapView({
   const defaultLng = userLng || 78.9629;
 
   return (
-    <div className="map-container" style={{ height }}>
+    <div className="map-container" style={{ height, position: 'relative' }}>
+      <style>{`
+        @keyframes pulse-target {
+          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+          70% { transform: scale(1.12); box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+      `}</style>
       <MapContainer
         center={[defaultLat, defaultLng]}
         zoom={userLat ? 12 : 5}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
       >
-        <LayersControl position="topright">
-          <LayersControl.BaseLayer name="Normal Map View">
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-          </LayersControl.BaseLayer>
-
-          <LayersControl.BaseLayer name="Esri Street Map">
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-              attribution='Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
-              maxZoom={19}
-            />
-          </LayersControl.BaseLayer>
-
-          <LayersControl.BaseLayer name="Humanitarian Disaster Map">
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr/" target="_blank">OpenStreetMap France</a>'
-              maxZoom={19}
-            />
-          </LayersControl.BaseLayer>
-
-          <LayersControl.BaseLayer checked name="Satellite View">
-            <LayerGroup>
-              <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-                maxZoom={19}
-              />
-              <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-                maxZoom={19}
-              />
-            </LayerGroup>
-          </LayersControl.BaseLayer>
-        </LayersControl>
+        {/* Fixed Satellite View */}
+        <LayerGroup>
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+            maxZoom={19}
+          />
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={19}
+          />
+        </LayerGroup>
 
         {onMapClick && <MapEvents onMapClick={onMapClick} />}
 
-
+        {/* Auto fit bounds when requested (e.g. In donation modal to frame user & destination camp) */}
+        {autoFit && (
+          <AutoFitBounds 
+            userLat={userLat} 
+            userLng={userLng} 
+            highlightCampId={highlightCampId} 
+            camps={camps} 
+          />
+        )}
 
         {userLat && userLng && (
           <>
-            <SetView lat={userLat} lng={userLng} />
+            {!autoFit && <SetView lat={userLat} lng={userLng} />}
             <Marker position={[userLat, userLng]} icon={userIcon}>
               <Popup><strong>📍 Your Location</strong></Popup>
             </Marker>
@@ -155,13 +167,21 @@ export default function MapView({
         {camps.map((camp) => {
           const [lng, lat] = camp.location?.coordinates || [0, 0];
           if (!lat || !lng) return null;
+          const isTarget = highlightCampId && String(camp._id) === String(highlightCampId);
+          const icon = isTarget ? targetCampIcon : campIcon;
+
           return (
-            <Marker key={camp._id} position={[lat, lng]} icon={campIcon}>
+            <Marker key={camp._id} position={[lat, lng]} icon={icon} zIndexOffset={isTarget ? 1000 : 0}>
               <Popup>
                 <div style={{ fontFamily: 'Inter,sans-serif', minWidth: 180 }}>
-                  <strong style={{ color: '#1D4ED8', fontSize: '0.9rem' }}>🏕️ {camp.name}</strong>
+                  {isTarget && (
+                    <div style={{ background: '#DCFCE7', color: '#15803D', fontWeight: 800, fontSize: '0.72rem', padding: '3px 8px', borderRadius: 12, display: 'inline-block', marginBottom: 5 }}>
+                      🎯 YOUR DONATION DESTINATION
+                    </div>
+                  )}
+                  <strong style={{ color: '#1D4ED8', fontSize: '0.9rem', display: 'block' }}>🏕️ {camp.name}</strong>
                   <p style={{ margin: '4px 0', fontSize: '0.8rem', color: '#64748B' }}>{camp.address}</p>
-                  <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '0.75rem', background: '#DBEAFE', color: '#1E40AF', padding: '2px 6px', borderRadius: 12 }}>
                       👥 {camp.currentOccupancy}/{camp.capacity}
                     </span>
