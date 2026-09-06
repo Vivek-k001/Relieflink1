@@ -1,12 +1,12 @@
 import React, { Suspense, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WeatherWidget from '../../components/common/WeatherWidget';
-import DisasterNews from '../../components/common/DisasterNews';
+// import DisasterNews from '../../components/common/DisasterNews';
 import { useLocationStore } from '../../store/locationStore';
-import { alertAPI } from '../../api';
-import { 
-  AlertTriangle, Package, MapPin, Users, Heart, Radio, Shield, 
-  Phone, ArrowRight, ArrowDown, CheckCircle, Navigation, Search, 
+import { alertAPI, campAPI } from '../../api';
+import {
+  AlertTriangle, Package, MapPin, Users, Heart, Radio, Shield,
+  Phone, ArrowRight, ArrowDown, CheckCircle, Navigation, Search,
   HelpCircle, ChevronLeft, ChevronRight, BookOpen, Compass, X, LifeBuoy
 } from 'lucide-react';
 
@@ -140,9 +140,10 @@ function QuickSOSModal({ onClose }) {
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { lat, lng, locationName, source, getLocation } = useLocationStore();
+  const { lat, lng, locationName, source, getLocation, setLocation } = useLocationStore();
   const [sosModalOpen, setSosModalOpen] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState([]);
+  const [camps, setCamps] = useState([]);
   const [helplineSearch, setHelplineSearch] = useState('');
   const [activeGuide, setActiveGuide] = useState(SURVIVAL_GUIDES[0]);
   const [geoToast, setGeoToast] = useState(null);
@@ -152,7 +153,11 @@ export default function LandingPage() {
     getLocation();
     alertAPI.getAll({ active: true })
       .then(res => setActiveAlerts(res.data.alerts || []))
-      .catch(() => {});
+      .catch(() => { });
+    
+    campAPI.getAll()
+      .then(res => setCamps(res.data.camps || []))
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -191,15 +196,15 @@ export default function LandingPage() {
     getLocation(true);
   };
 
-  const filteredHelplines = HELP_DIRECTORIES.filter(h => 
-    h.service.toLowerCase().includes(helplineSearch.toLowerCase()) || 
+  const filteredHelplines = HELP_DIRECTORIES.filter(h =>
+    h.service.toLowerCase().includes(helplineSearch.toLowerCase()) ||
     h.number.includes(helplineSearch) ||
     h.type.toLowerCase().includes(helplineSearch.toLowerCase())
   );
 
   return (
     <div style={{ background: '#030712', minHeight: '100vh', color: '#F8FAFC', fontFamily: 'Inter, sans-serif', overflowX: 'hidden' }}>
-      
+
       {/* ── Animated Geolocation Toast Badge ── */}
       {geoToast && (
         <div style={{
@@ -242,7 +247,7 @@ export default function LandingPage() {
       {/* ── Navigation Header ── */}
       <header style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(3,7,18,0.85)', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ maxWidth: 1240, margin: '0 auto', padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{ width: 42, height: 42, background: 'linear-gradient(135deg, #DC2626, #2563EB)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(220,38,38,0.3)' }}>
               <LifeBuoy size={24} color="white" />
@@ -261,7 +266,7 @@ export default function LandingPage() {
             {lat && lng && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(37,99,235,0.3)', borderRadius: 20, padding: '0.35rem 0.75rem', fontSize: '0.78rem', color: '#93C5FD', fontWeight: 600 }}>
                 <span>{locationName || `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`}</span>
-                <button 
+                <button
                   onClick={handleTriggerGeo}
                   title="Request browser GPS location permission"
                   style={{
@@ -302,9 +307,9 @@ export default function LandingPage() {
       {/* ── Hero Section ── */}
       <section style={{ position: 'relative', padding: '4rem 1.5rem 2rem', background: 'radial-gradient(ellipse at 50% 0%, rgba(37,99,235,0.15) 0%, rgba(3,7,18,0) 70%)' }}>
         <div style={{ maxWidth: 1240, margin: '0 auto' }}>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 480px', gap: '3rem', alignItems: 'center' }}>
-            
+
             {/* Left Content */}
             <div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 20, padding: '0.4rem 1rem', fontSize: '0.8125rem', color: '#FCA5A5', fontWeight: 700, marginBottom: '1.25rem' }}>
@@ -325,7 +330,7 @@ export default function LandingPage() {
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
-                <button 
+                <button
                   onClick={() => setSosModalOpen(true)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.75rem',
@@ -340,7 +345,7 @@ export default function LandingPage() {
                   <LifeBuoy size={20} /> Send Emergency SOS
                 </button>
 
-                <button 
+                <button
                   onClick={() => navigate('/register')}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '0.75rem',
@@ -355,12 +360,27 @@ export default function LandingPage() {
                 >
                   Join as Volunteer / NGO →
                 </button>
+
+                <button
+                  onClick={() => navigate('/donate')}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.75rem',
+                    background: 'linear-gradient(135deg, #10B981, #059669)', color: 'white',
+                    padding: '0.9rem 1.8rem', borderRadius: 14,
+                    fontSize: '1rem', fontWeight: 800, cursor: 'pointer',
+                    border: 'none', boxShadow: '0 8px 30px rgba(16,185,129,0.3)', transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = ''}
+                >
+                  <Heart size={20} /> Donate Now
+                </button>
               </div>
 
               {/* Quick Role Badges */}
               <div style={{ display: 'flex', gap: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#94A3B8' }}>
-                  <LifeBuoy size={18} color="#EF4444" /> <strong>Affected Person:</strong> OTP SOS Access
+                  <LifeBuoy size={18} color="#EF4444" /> <strong>User:</strong> OTP SOS Access
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#94A3B8' }}>
                   <span style={{ fontSize: '1.1rem' }}>🦺</span> <strong>Volunteer:</strong> Task Dashboard
@@ -386,12 +406,12 @@ export default function LandingPage() {
                   <div style={{ background: 'rgba(15,23,42,0.8)', padding: '0.3rem 0.6rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 700, color: '#94A3B8', backdropFilter: 'blur(4px)' }}>
                     {mapView === 0 ? '3D Globe' : 'Satellite Map'}
                   </div>
-                  <button 
+                  <button
                     onClick={() => setMapView(0)}
                     style={{ background: mapView === 0 ? 'rgba(37,99,235,0.5)' : 'rgba(15,23,42,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '0.4rem', color: 'white', cursor: 'pointer', display: 'flex', backdropFilter: 'blur(4px)' }}>
                     <ChevronLeft size={16} />
                   </button>
-                  <button 
+                  <button
                     onClick={() => setMapView(1)}
                     style={{ background: mapView === 1 ? 'rgba(37,99,235,0.5)' : 'rgba(15,23,42,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '0.4rem', color: 'white', cursor: 'pointer', display: 'flex', backdropFilter: 'blur(4px)' }}>
                     <ChevronRight size={16} />
@@ -407,7 +427,10 @@ export default function LandingPage() {
                   {mapView === 0 ? (
                     <EarthGlobe userLat={lat} userLng={lng} height={360} />
                   ) : (
-                    <InteractiveMap lat={lat} lng={lng} height={360} />
+                    <div style={{ position: 'relative' }}>
+
+                      <InteractiveMap lat={lat} lng={lng} height={360} camps={camps} onRefresh={handleTriggerGeo} />
+                    </div>
                   )}
                 </Suspense>
               </div>
@@ -423,17 +446,17 @@ export default function LandingPage() {
             <h3 style={{ fontSize: '1.25rem', fontFamily: 'Outfit,sans-serif', color: 'white', marginBottom: '1rem' }}>Local Weather & Hazard Radar</h3>
             <WeatherWidget />
           </div>
-          <div>
+          {/* <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#60A5FA', textTransform: 'uppercase', letterSpacing: 1, marginBottom: '0.5rem' }}>Live Breaking News Engine</div>
             <h3 style={{ fontSize: '1.25rem', fontFamily: 'Outfit,sans-serif', color: 'white', marginBottom: '1rem' }}>UN ReliefWeb & Google News</h3>
             <DisasterNews limit={3} />
-          </div>
+          </div> */}
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#F87171', textTransform: 'uppercase', letterSpacing: 1, marginBottom: '0.5rem' }}>Official Government Bulletins</div>
             <h3 style={{ fontSize: '1.25rem', fontFamily: 'Outfit,sans-serif', color: 'white', marginBottom: '1rem' }}>IMD District Warnings (Kerala)</h3>
             <div style={{ background: '#FFFFFF', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', height: 420, boxShadow: '0 10px 30px rgba(0,0,0,0.3)', position: 'relative' }}>
-              <iframe 
-                src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/alerts/imd-proxy?id=4&v=3`} 
+              <iframe
+                src={`${import.meta.env.VITE_API_URL || '/api'}/alerts/imd-proxy?id=4&v=3`}
                 style={{ width: '100%', height: '100%', border: 'none', background: '#FFFFFF' }}
                 title="IMD District Warnings"
               />
@@ -445,19 +468,19 @@ export default function LandingPage() {
       {/* ── NEW FEATURE 1: Interactive Emergency Helpline Directory ── */}
       <section style={{ padding: '3.5rem 1.5rem', background: '#030712' }}>
         <div style={{ maxWidth: 1240, margin: '0 auto' }}>
-          
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#FCA5A5', textTransform: 'uppercase', letterSpacing: 1, marginBottom: '0.5rem' }}>Emergency Directory</div>
               <h2 style={{ fontSize: '1.75rem', fontFamily: 'Outfit, sans-serif', color: 'white', margin: 0 }}>📞 Instant Emergency Toll-Free Numbers</h2>
             </div>
-            
+
             {/* Search input */}
             <div style={{ position: 'relative', width: 320 }}>
               <Search size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
-              <input 
-                type="text" 
-                placeholder="Search service or number..." 
+              <input
+                type="text"
+                placeholder="Search service or number..."
                 value={helplineSearch}
                 onChange={e => setHelplineSearch(e.target.value)}
                 style={{
@@ -476,8 +499,8 @@ export default function LandingPage() {
                 background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: 14, padding: '1.25rem', transition: 'all 0.2s', position: 'relative'
               }}
-              onMouseEnter={e => { e.currentTarget.style.border = `1px solid ${h.color}`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.08)'; e.currentTarget.style.transform = ''; }}>
+                onMouseEnter={e => { e.currentTarget.style.border = `1px solid ${h.color}`; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.08)'; e.currentTarget.style.transform = ''; }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                   <div style={{ width: 42, height: 42, borderRadius: 10, background: `${h.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem' }}>
                     {h.icon}
@@ -503,7 +526,7 @@ export default function LandingPage() {
       {/* ── NEW FEATURE 2: Interactive Survival & Preparedness Guide ── */}
       <section style={{ padding: '3.5rem 1.5rem', background: 'rgba(15,23,42,0.5)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ maxWidth: 1240, margin: '0 auto' }}>
-          
+
           <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 2.5rem' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#60A5FA', textTransform: 'uppercase', letterSpacing: 1, marginBottom: '0.5rem' }}>Safety & Resilience</div>
             <h2 style={{ fontSize: '1.875rem', fontFamily: 'Outfit, sans-serif', color: 'white', marginBottom: '0.75rem' }}>📖 Interactive Disaster Survival Guide</h2>

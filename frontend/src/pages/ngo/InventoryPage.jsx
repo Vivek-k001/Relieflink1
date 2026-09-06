@@ -16,6 +16,9 @@ export default function InventoryPage() {
   const [lowStock, setLowStock] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [showDispenseModal, setShowDispenseModal] = useState(false);
+  const [selectedItemForDispense, setSelectedItemForDispense] = useState(null);
+  const [dispenseQty, setDispenseQty] = useState('');
   const [form, setForm] = useState({ itemName: '', category: 'food', quantity: 0, unit: 'units', minStockLevel: 10, donor: '', notes: '' });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
@@ -45,13 +48,29 @@ export default function InventoryPage() {
     } catch (e) { toast.error(e.response?.data?.message || 'Failed'); }
   };
 
-  const handleDispense = async (item) => {
-    const qty = parseInt(prompt(`Dispense from ${item.itemName} (current: ${item.quantity}):`) || 0);
-    if (!qty || qty <= 0) return;
+  const openDispenseModal = (item) => {
+    setSelectedItemForDispense(item);
+    setDispenseQty('');
+    setShowDispenseModal(true);
+  };
+
+  const submitDispense = async () => {
+    if (!selectedItemForDispense) return;
+    const qty = parseInt(dispenseQty);
+    if (isNaN(qty) || qty <= 0) {
+      toast.error('Please enter a valid quantity greater than 0');
+      return;
+    }
+    if (qty > selectedItemForDispense.quantity) {
+      toast.error(`Cannot dispense more than available (${selectedItemForDispense.quantity})`);
+      return;
+    }
     try {
-      await inventoryAPI.dispense(item._id, qty);
-      toast.success(`${qty} ${item.unit} dispensed`);
+      await inventoryAPI.dispense(selectedItemForDispense._id, qty);
+      toast.success(`${qty} ${selectedItemForDispense.unit} dispensed`);
       fetchInventory();
+      setShowDispenseModal(false);
+      setSelectedItemForDispense(null);
     } catch (e) { toast.error(e.response?.data?.message || 'Failed'); }
   };
 
@@ -112,7 +131,7 @@ export default function InventoryPage() {
                           <td>{item.minStockLevel}</td>
                           <td><span className={`badge badge-${isLow ? 'red' : 'green'}`}>{isLow ? '⚠️ Low' : '✅ OK'}</span></td>
                           <td>
-                            <button onClick={() => handleDispense(item)} style={{ padding: '0.3rem 0.75rem', background: '#EFF6FF', color: '#2563EB', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <button onClick={() => openDispenseModal(item)} style={{ padding: '0.3rem 0.75rem', background: '#EFF6FF', color: '#2563EB', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                               <Minus size={12} /> Dispense
                             </button>
                           </td>
@@ -150,6 +169,38 @@ export default function InventoryPage() {
                 <div className="form-group"><label className="form-label">Donor (optional)</label><input className="form-control" value={form.donor} onChange={e => set('donor', e.target.value)} /></div>
               </div>
               <div className="modal-footer"><button className="btn btn-ghost" onClick={() => setShowAdd(false)}>Cancel</button><button className="btn btn-primary" onClick={handleAdd}>Add Item</button></div>
+            </div>
+          </div>
+        )}
+
+        {/* Dispense Modal */}
+        {showDispenseModal && selectedItemForDispense && (
+          <div className="modal-overlay" onClick={() => setShowDispenseModal(false)} style={{ zIndex: 9999 }}>
+            <div className="modal" style={{ maxWidth: 400, zIndex: 10000 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h4>📦 Dispense Item</h4>
+                <button onClick={() => setShowDispenseModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748B' }}>×</button>
+              </div>
+              <div className="modal-body">
+                <p style={{ marginBottom: '1rem', color: '#475569', fontSize: '0.875rem' }}>
+                  Dispense <strong>{selectedItemForDispense.itemName}</strong>. 
+                  Current stock: <strong>{selectedItemForDispense.quantity} {selectedItemForDispense.unit}</strong>.
+                </p>
+                <div className="form-group">
+                  <label className="form-label">Quantity to Dispense</label>
+                  <input 
+                    type="number" 
+                    className="form-control" 
+                    value={dispenseQty} 
+                    onChange={e => setDispenseQty(e.target.value)} 
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-ghost" onClick={() => setShowDispenseModal(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={submitDispense}>Dispense {selectedItemForDispense.unit}</button>
+              </div>
             </div>
           </div>
         )}

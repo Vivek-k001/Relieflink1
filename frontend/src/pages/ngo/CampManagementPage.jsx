@@ -18,6 +18,9 @@ export default function CampManagementPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [selected, setSelected] = useState(null);
   const [droppedPin, setDroppedPin] = useState(null);
+  const [showOccupancyModal, setShowOccupancyModal] = useState(false);
+  const [selectedCampForOccupancy, setSelectedCampForOccupancy] = useState(null);
+  const [newOccupancyValue, setNewOccupancyValue] = useState('');
   const [form, setForm] = useState({ name: '', description: '', address: '', district: '', state: '', capacity: 100, contactPhone: '', contactEmail: '', facilities: [], disasterTypes: [], location: { coordinates: [0, 0] } });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const toggleFac = (f) => setForm(p => ({ ...p, facilities: p.facilities.includes(f) ? p.facilities.filter(x => x !== f) : [...p.facilities, f] }));
@@ -46,14 +49,25 @@ export default function CampManagementPage() {
     try { await campAPI.delete(id); toast.success('Camp deleted'); fetchCamps(); } catch { toast.error('Failed'); }
   };
 
-  const handleOccupancy = async (camp) => {
-    const input = prompt(`Update occupancy for ${camp.name} (max: ${camp.capacity}):`, camp.currentOccupancy);
-    if (input === null) return; // Cancelled
-    const val = parseInt(input);
-    if (isNaN(val)) return;
+  const openOccupancyModal = (camp) => {
+    setSelectedCampForOccupancy(camp);
+    setNewOccupancyValue(camp.currentOccupancy || 0);
+    setShowOccupancyModal(true);
+  };
+
+  const handleOccupancySubmit = async () => {
+    if (!selectedCampForOccupancy) return;
+    const val = parseInt(newOccupancyValue);
+    if (isNaN(val)) { toast.error('Please enter a valid number'); return; }
     if (val < 0) { toast.error('Occupancy cannot be negative'); return; }
-    if (val > camp.capacity) { toast.error(`Occupancy cannot exceed the total capacity (${camp.capacity})`); return; }
-    try { await campAPI.updateOccupancy(camp._id, val); toast.success('Occupancy updated'); fetchCamps(); } catch (e) { toast.error(e.response?.data?.message || 'Failed'); }
+    if (val > selectedCampForOccupancy.capacity) { toast.error(`Occupancy cannot exceed the total capacity (${selectedCampForOccupancy.capacity})`); return; }
+    try { 
+      await campAPI.updateOccupancy(selectedCampForOccupancy._id, val); 
+      toast.success('Occupancy updated'); 
+      fetchCamps(); 
+      setShowOccupancyModal(false);
+      setSelectedCampForOccupancy(null);
+    } catch (e) { toast.error(e.response?.data?.message || 'Failed'); }
   };
 
   return (
@@ -80,16 +94,7 @@ export default function CampManagementPage() {
               userLat={lat} 
               userLng={lng} 
               onCampClick={setSelected}
-              droppedPin={droppedPin}
-              onMapClick={(clickedLat, clickedLng) => {
-                setDroppedPin({ lat: clickedLat, lng: clickedLng });
-                setForm(p => ({ ...p, location: { coordinates: [clickedLng, clickedLat] } }));
-                setShowCreate(true);
-              }}
             />
-            <p style={{ textAlign: 'center', fontSize: '0.875rem', color: '#64748B', marginTop: '0.5rem' }}>
-              💡 Tip: Click anywhere on the map to drop a pin and create a camp at that location.
-            </p>
           </div>
 
           {loading ? [...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: 120, borderRadius: 12, marginBottom: '0.875rem' }} />) :
@@ -114,7 +119,7 @@ export default function CampManagementPage() {
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                      <button onClick={() => handleOccupancy(c)} style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', background: '#EFF6FF', color: '#2563EB', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
+                      <button onClick={() => openOccupancyModal(c)} style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', background: '#EFF6FF', color: '#2563EB', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
                         <Users size={13} /> Update
                       </button>
                       <button onClick={() => handleDelete(c._id)} style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', background: '#FEF2F2', color: '#DC2626', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
@@ -172,14 +177,41 @@ export default function CampManagementPage() {
                   <div style={{ fontSize: '0.875rem', color: '#64748B', background: '#F8FAFC', borderRadius: 8, padding: '0.5rem 0.875rem', border: '1px solid #E2E8F0' }}>
                     📍 {form.location.coordinates[1] ? `${form.location.coordinates[1].toFixed(5)}, ${form.location.coordinates[0].toFixed(5)}` : 'Location not available'}
                   </div>
-                  {droppedPin && (
-                    <div style={{ fontSize: '0.75rem', color: '#DB2777', marginTop: '0.25rem', fontWeight: 600 }}>
-                      📌 Using dropped pin location
-                    </div>
-                  )}
+
                 </div>
               </div>
               <div className="modal-footer"><button className="btn btn-ghost" onClick={() => { setShowCreate(false); setDroppedPin(null); }}>Cancel</button><button className="btn btn-primary" onClick={handleCreate}>🏕️ Create Camp</button></div>
+            </div>
+          </div>
+        )}
+
+        {/* Occupancy Modal */}
+        {showOccupancyModal && selectedCampForOccupancy && (
+          <div className="modal-overlay" onClick={() => setShowOccupancyModal(false)} style={{ zIndex: 9999 }}>
+            <div className="modal" style={{ maxWidth: 400, zIndex: 10000 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h4>👥 Update Occupancy</h4>
+                <button onClick={() => setShowOccupancyModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748B' }}>×</button>
+              </div>
+              <div className="modal-body">
+                <p style={{ marginBottom: '1rem', color: '#475569', fontSize: '0.875rem' }}>
+                  Update the number of people currently at <strong>{selectedCampForOccupancy.name}</strong>.
+                </p>
+                <div className="form-group">
+                  <label className="form-label">Current Occupancy (Max: {selectedCampForOccupancy.capacity})</label>
+                  <input 
+                    type="number" 
+                    className="form-control" 
+                    value={newOccupancyValue} 
+                    onChange={e => setNewOccupancyValue(e.target.value)} 
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-ghost" onClick={() => setShowOccupancyModal(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleOccupancySubmit}>Update Occupancy</button>
+              </div>
             </div>
           </div>
         )}

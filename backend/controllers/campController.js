@@ -39,7 +39,7 @@ const getCamps = async (req, res) => {
     }
 
     // NGO only sees their own camps
-    if (req.user.role === 'ngo') query.managedBy = req.user._id;
+    if (req.user && req.user.role === 'ngo') query.managedBy = req.user._id;
 
     const camps = await ReliefCamp.find(query).populate('managedBy', 'name organizationName phone');
     res.json({ success: true, camps });

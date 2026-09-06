@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, LayersControl, LayerGroup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.heat';
 
 // Fix Leaflet default markers
 delete L.Icon.Default.prototype._getIconUrl;
@@ -22,14 +23,11 @@ const sosIcon = L.divIcon({
 });
 
 const userIcon = L.divIcon({
-  html: '<div style="background:#10B981;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;border:3px solid white;box-shadow:0 4px 12px rgba(16,185,129,0.4)">📍</div>',
+  html: '<div style="background:#10B981;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;border:3px solid white;box-shadow:0 4px 12px rgba(16,185,129,0.4)">🔵</div>',
   className: '', iconSize: [28, 28], iconAnchor: [14, 14],
 });
 
-const pinIcon = L.divIcon({
-  html: '<div style="background:#DB2777;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;border:3px solid white;box-shadow:0 4px 12px rgba(219,39,119,0.4)">📌</div>',
-  className: '', iconSize: [28, 28], iconAnchor: [14, 14],
-});
+
 
 function SetView({ lat, lng }) {
   const map = useMap();
@@ -46,6 +44,32 @@ function MapEvents({ onMapClick }) {
   return null;
 }
 
+function HeatmapLayer({ points }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!points || points.length === 0) return;
+    
+    // extract [lat, lng, intensity]
+    const heatData = points.map(p => {
+      const [lng, lat] = p.location?.coordinates || [0, 0];
+      return [lat, lng, 1];
+    }).filter(p => p[0] !== 0 && p[1] !== 0);
+
+    const heat = L.heatLayer(heatData, {
+      radius: 30,
+      blur: 20,
+      maxZoom: 17,
+      gradient: { 0.4: 'blue', 0.6: 'cyan', 0.7: 'lime', 0.8: 'yellow', 1.0: 'red' }
+    }).addTo(map);
+
+    return () => {
+      map.removeLayer(heat);
+    };
+  }, [map, points]);
+
+  return null;
+}
+
 export default function MapView({ 
   height = '400px', 
   camps = [], 
@@ -55,7 +79,6 @@ export default function MapView({
   onCampClick, 
   onSosClick,
   onMapClick,
-  droppedPin,
   showRadius = false,
   radiusKm = 10,
 }) {
@@ -71,7 +94,7 @@ export default function MapView({
         scrollWheelZoom={true}
       >
         <LayersControl position="topright">
-          <LayersControl.BaseLayer checked name="Normal Map View">
+          <LayersControl.BaseLayer name="Normal Map View">
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -94,7 +117,7 @@ export default function MapView({
             />
           </LayersControl.BaseLayer>
 
-          <LayersControl.BaseLayer name="Satellite View">
+          <LayersControl.BaseLayer checked name="Satellite View">
             <LayerGroup>
               <TileLayer
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -111,11 +134,7 @@ export default function MapView({
 
         {onMapClick && <MapEvents onMapClick={onMapClick} />}
 
-        {droppedPin && droppedPin.lat && droppedPin.lng && (
-          <Marker position={[droppedPin.lat, droppedPin.lng]} icon={pinIcon}>
-             <Popup><strong>📌 Selected Location</strong></Popup>
-          </Marker>
-        )}
+
 
         {userLat && userLng && (
           <>
@@ -183,6 +202,8 @@ export default function MapView({
             </Marker>
           );
         })}
+        
+        {sosRequests && sosRequests.length > 0 && <HeatmapLayer points={sosRequests} />}
       </MapContainer>
     </div>
   );

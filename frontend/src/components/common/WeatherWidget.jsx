@@ -117,7 +117,7 @@ async function getCityName(lat, lng) {
       signal: AbortSignal.timeout(5000),
     });
     const d = await res.json();
-    return d.address?.city || d.address?.town || d.address?.district || d.address?.state || null;
+    return d.address?.city || d.address?.town || d.address?.municipality || d.address?.county || d.address?.state_district || d.address?.district || d.address?.state || null;
   } catch { return null; }
 }
 

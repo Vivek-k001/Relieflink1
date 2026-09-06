@@ -2,17 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
 import MapView from '../../components/maps/MapView';
-import { taskAPI, sosAPI } from '../../api';
+import { taskAPI, sosAPI, campAPI } from '../../api';
 import { useAuthStore } from '../../store/authStore';
 import { useLocationStore } from '../../store/locationStore';
 import { CheckCircle, Clock, MapPin, BarChart3 } from 'lucide-react';
 
 export default function VolunteerDashboard() {
   const { user } = useAuthStore();
-  const { lat, lng, getLocation } = useLocationStore();
+  const { lat, lng, getLocation, setLocation } = useLocationStore();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [nearbySos, setNearbySos] = useState([]);
+  const [nearbyCamps, setNearbyCamps] = useState([]);
   const [stats, setStats] = useState({ active: 0, completed: 0, pending: 0 });
 
   useEffect(() => { getLocation(); }, []);
@@ -25,6 +26,7 @@ export default function VolunteerDashboard() {
     }).catch(() => {});
     if (lat && lng) {
       sosAPI.getAll({ lat, lng, radius: 20, status: 'pending' }).then(r => setNearbySos(r.data.sosList || [])).catch(() => {});
+      campAPI.getAll({ lat, lng, radius: 20 }).then(r => setNearbyCamps(r.data.camps || [])).catch(() => {});
     }
   }, [lat, lng]);
 
@@ -88,12 +90,18 @@ export default function VolunteerDashboard() {
             {/* Nearby SOS Map */}
             <div className="card">
               <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h4>🗺️ Nearby SOS ({nearbySos.length})</h4>
+                <h4>🗺️ Nearby SOS & Camps</h4>
                 <button onClick={() => navigate('/volunteer/nearby')} style={{ background: 'none', border: 'none', color: '#2563EB', fontSize: '0.8125rem', cursor: 'pointer', fontWeight: 600 }}>Full map →</button>
               </div>
-              <div style={{ height: 280 }}>
-                <MapView height="280px" sosRequests={nearbySos} userLat={lat} userLng={lng} showRadius radiusKm={20}
-                  onSosClick={(sos) => navigate('/volunteer/nearby')} />
+              <div style={{ height: 280, position: 'relative' }}>
+                <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, background: 'rgba(30, 41, 59, 0.9)', color: 'white', padding: '0.35rem 0.75rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 600, backdropFilter: 'blur(4px)', pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: '0.375rem', width: 'max-content' }}>
+                  <MapPin size={12} color="#60A5FA" /> Click map to set exact location
+                </div>
+                <MapView height="280px" sosRequests={nearbySos} camps={nearbyCamps} userLat={lat} userLng={lng} showRadius radiusKm={20}
+                  onSosClick={(sos) => navigate('/volunteer/nearby')}
+                  onMapClick={(clickedLat, clickedLng) => {
+                    setLocation(clickedLat, clickedLng, 'Manual Map Selection');
+                  }} />
               </div>
             </div>
           </div>

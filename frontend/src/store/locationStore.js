@@ -22,7 +22,7 @@ export async function getIPLocation() {
   return { lat: 9.9312, lng: 76.2673, address: 'Kerala, India', city: 'Kochi', country: 'India', source: 'default' };
 }
 
-export const useLocationStore = create((set) => ({
+export const useLocationStore = create((set, get) => ({
   lat: null,
   lng: null,
   address: '',
@@ -32,6 +32,11 @@ export const useLocationStore = create((set) => ({
   loading: false,
 
   getLocation: (isManual = false) => {
+    // Don't overwrite if the user has manually set their location, unless they explicitly request it
+    if (!isManual && get().source === 'manual') {
+      return;
+    }
+
     set({ loading: true, error: null });
 
     if (!navigator.geolocation) {
@@ -57,7 +62,7 @@ export const useLocationStore = create((set) => ({
         const { lat, lng, address, city, source } = await getIPLocation();
         set({ lat, lng, address, city, source, loading: false, error: null });
       },
-      { timeout: 5000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   },
 

@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { authAPI } from '../../api';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
 import { Phone, Mail, Lock, ArrowLeft, Eye, EyeOff, ChevronRight, Search, ChevronDown } from 'lucide-react';
 
 const ROLES = [
-  { value: 'affected', emoji: '🆘', label: 'Affected Person (User)', desc: 'Quick access with phone OTP', color: '#DC2626' },
-  { value: 'volunteer', emoji: '🦺', label: 'Volunteer', desc: 'Email + password login', color: '#2563EB' },
+  { value: 'affected', emoji: '🆘', label: 'User', desc: 'Quick access with phone OTP', color: '#DC2626' },
+  { value: 'volunteer', emoji: '🦺', label: 'Volunteer', desc: 'Manage rescue tasks', color: '#2563EB' },
   { value: 'ngo', emoji: '🏥', label: 'NGO Relief Center (Admin)', desc: 'Email + password login', color: '#059669' },
 ];
 
@@ -113,9 +113,12 @@ function OtpPinInput({ value, onChange, onEnter }) {
 }
 
 export default function LoginPage() {
-  const { setAuth } = useAuthStore();
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState(null);
+  const location = useLocation();
+  const { setAuth } = useAuthStore();
+  const [selectedRole, setSelectedRole] = useState(() => {
+    return location.state?.from?.pathname === '/donate' ? 'affected' : null;
+  });
   
   // Phone & Country code state
   const [selectedCountry, setSelectedCountry] = useState(COUNTRY_CODES[0]); // India (+91) by default
@@ -165,8 +168,8 @@ export default function LoginPage() {
   const handleSendOTP = async () => {
     const fullPhone = getFullPhoneNumber();
     const cleanPhone = phone.replace(/\D/g, '');
-    if (cleanPhone.length < 7 || cleanPhone.length > 15) { 
-      toast.error('Enter a valid phone number (7-15 digits)'); 
+    if (cleanPhone.length !== 10) { 
+      toast.error('Enter a valid 10-digit phone number'); 
       return; 
     }
     setLoading(true);
@@ -201,7 +204,8 @@ export default function LoginPage() {
       const res = await authAPI.verifyOTP(fullPhone, otpCode, name.trim());
       setAuth(res.data.user, res.data.token);
       toast.success('Welcome to ReliefLink!');
-      navigate('/dashboard');
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from);
     } catch (e) {
       toast.error(e.response?.data?.message || 'Invalid OTP');
     } finally { 
@@ -223,8 +227,9 @@ export default function LoginPage() {
       const res = await authAPI.login(email, password);
       setAuth(res.data.user, res.data.token);
       toast.success(`Welcome back, ${res.data.user.name}!`);
-      const home = { volunteer: '/volunteer', ngo: '/ngo', admin: '/admin' }[res.data.user.role] || '/dashboard';
-      navigate(home);
+      const defaultHome = { volunteer: '/volunteer', ngo: '/ngo', admin: '/admin' }[res.data.user.role] || '/dashboard';
+      const from = location.state?.from?.pathname || defaultHome;
+      navigate(from);
     } catch (e) {
       toast.error(e.response?.data?.message || 'Login failed');
     } finally { 
@@ -364,6 +369,7 @@ export default function LoginPage() {
                         value={name} 
                         onChange={e => setName(e.target.value)} 
                         onKeyDown={e => handleKeyDown(e, 'login-phone')}
+                        autoFocus
                         style={{
                           width: '100%',
                           padding: '0.75rem 1rem',
@@ -491,9 +497,10 @@ export default function LoginPage() {
                           type="tel"
                           className="form-control" 
                           style={{ paddingLeft: '2.5rem' }} 
-                          placeholder="9876543210" 
+                          placeholder="9876543210"
+                          maxLength={10} 
                           value={phone} 
-                          onChange={e => setPhone(e.target.value)} 
+                          onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} 
                           onFocus={e => e.target.select()}
                           onKeyDown={e => handleKeyDown(e, 'submit-otp')} 
                         />
@@ -537,7 +544,7 @@ export default function LoginPage() {
                 <label className="form-label">Email Address</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
-                  <input id="login-email" type="email" className="form-control" style={{ paddingLeft: '2.5rem' }} placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} onFocus={e => e.target.select()} onKeyDown={e => handleKeyDown(e, 'login-password')} />
+                  <input id="login-email" autoFocus type="email" className="form-control" style={{ paddingLeft: '2.5rem' }} placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} onFocus={e => e.target.select()} onKeyDown={e => handleKeyDown(e, 'login-password')} />
                 </div>
               </div>
               <div className="form-group">

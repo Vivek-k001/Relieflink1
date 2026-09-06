@@ -13,7 +13,7 @@ export default function RegisterPage() {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState('volunteer');
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '', phone: '', skills: [], vehicleType: '', organizationName: '', registrationNumber: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', phone: '', skills: [], vehicleType: '', organizationName: '' });
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
   const toggleSkill = (s) => set('skills', form.skills.includes(s) ? form.skills.filter(x => x !== s) : [...form.skills, s]);
@@ -27,7 +27,7 @@ export default function RegisterPage() {
   };
 
   const handleRegister = async () => {
-    if (!form.name || form.name.trim().length < 2 || !/^[A-Za-z\s]+$/.test(form.name)) { 
+    if (role === 'volunteer' && (!form.name || form.name.trim().length < 2 || !/^[A-Za-z\s]+$/.test(form.name))) { 
       toast.error('Please enter a valid full name (letters and spaces only)'); 
       return; 
     }
@@ -39,17 +39,13 @@ export default function RegisterPage() {
       toast.error('Password must be at least 6 characters'); 
       return; 
     }
-    if (form.phone && (form.phone.replace(/\D/g, '').length < 7 || form.phone.replace(/\D/g, '').length > 15)) {
-      toast.error('If provided, phone number must be valid (7-15 digits)');
+    if (form.phone && (form.phone.replace(/\D/g, '').length !== 10)) {
+      toast.error('If provided, phone number must be exactly 10 digits');
       return;
     }
     if (role === 'ngo') {
       if (!form.organizationName || form.organizationName.trim().length < 2) {
         toast.error('Please enter a valid Organization Name');
-        return;
-      }
-      if (!form.registrationNumber || form.registrationNumber.trim().length < 2) {
-        toast.error('Please enter a valid Registration Number');
         return;
       }
     }
@@ -134,10 +130,12 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label"><User size={14} style={{ display: 'inline', marginRight: 4 }} /> Full Name *</label>
-            <input id="reg-name" className="form-control" placeholder="Enter your full name" value={form.name} onChange={e => set('name', e.target.value)} onKeyDown={e => handleKeyDown(e, 'reg-email')} />
-          </div>
+          {role === 'volunteer' && (
+            <div className="form-group">
+              <label className="form-label"><User size={14} style={{ display: 'inline', marginRight: 4 }} /> Full Name *</label>
+              <input id="reg-name" autoFocus className="form-control" placeholder="Enter your full name" value={form.name} onChange={e => set('name', e.target.value)} onKeyDown={e => handleKeyDown(e, 'reg-email')} />
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label"><Mail size={14} style={{ display: 'inline', marginRight: 4 }} /> Email Address *</label>
@@ -151,20 +149,14 @@ export default function RegisterPage() {
 
           <div className="form-group">
             <label className="form-label"><Phone size={14} style={{ display: 'inline', marginRight: 4 }} /> Phone Number</label>
-            <input id="reg-phone" className="form-control" placeholder="+91 XXXXXXXXXX" value={form.phone} onChange={e => set('phone', e.target.value)} onKeyDown={e => handleKeyDown(e, role === 'ngo' ? 'reg-org' : 'submit')} />
+            <input id="reg-phone" type="tel" maxLength={10} className="form-control" placeholder="9876543210" value={form.phone} onChange={e => set('phone', e.target.value.replace(/\D/g, '').slice(0, 10))} onKeyDown={e => handleKeyDown(e, role === 'ngo' ? 'reg-org' : 'submit')} />
           </div>
 
           {role === 'ngo' && (
-            <>
-              <div className="form-group">
-                <label className="form-label"><Building size={14} style={{ display: 'inline', marginRight: 4 }} /> Organization Name</label>
-                <input id="reg-org" className="form-control" placeholder="Organization name" value={form.organizationName} onChange={e => set('organizationName', e.target.value)} onKeyDown={e => handleKeyDown(e, 'reg-regnum')} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Registration Number</label>
-                <input id="reg-regnum" className="form-control" placeholder="NGO registration number" value={form.registrationNumber} onChange={e => set('registrationNumber', e.target.value)} onKeyDown={e => handleKeyDown(e, 'submit')} />
-              </div>
-            </>
+            <div className="form-group">
+              <label className="form-label"><Building size={14} style={{ display: 'inline', marginRight: 4 }} /> Organization Name *</label>
+              <input id="reg-org" className="form-control" placeholder="Organization name" value={form.organizationName} onChange={e => set('organizationName', e.target.value)} onKeyDown={e => handleKeyDown(e, 'submit')} />
+            </div>
           )}
 
           {role === 'volunteer' && (

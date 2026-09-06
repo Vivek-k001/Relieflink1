@@ -53,12 +53,30 @@ export default function DonationsPage() {
                 <div className="card-body" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: '0.25rem' }}>💝 {d.donorName} — {d.type === 'monetary' ? `₹${d.amount}` : 'Goods donation'}</div>
+                    {d.items && d.items.length > 0 && (
+                      <div style={{ display: 'flex', gap: '0.375rem', marginTop: '0.25rem', marginBottom: '0.375rem', flexWrap: 'wrap' }}>
+                        {d.items.map((it, idx) => (
+                          <span key={idx} style={{ background: '#F1F5F9', color: '#475569', padding: '2px 8px', borderRadius: 4, fontSize: '0.7rem', border: '1px solid #E2E8F0' }}>
+                            {it.name} ×{it.quantity}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     <div style={{ fontSize: '0.8125rem', color: '#64748B' }}>{d.donorPhone} | {d.receiptNumber}</div>
                     <div style={{ fontSize: '0.8125rem', color: '#94A3B8' }}>{new Date(d.createdAt).toLocaleDateString()}</div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <span className={`badge badge-${d.status === 'received' ? 'green' : 'yellow'}`}>{d.status}</span>
-                    {d.status === 'pending' && <button className="btn btn-primary btn-sm" onClick={() => handleReceive(d._id)}><CheckCircle size={13} /> Receive</button>}
+                    {d.status === 'pending' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                        <button className="btn btn-primary btn-sm" onClick={() => handleReceive(d._id)}>
+                          <CheckCircle size={13} /> Receive
+                        </button>
+                        {(d.type === 'goods' || d.type === 'both') && (
+                          <span style={{ fontSize: '0.7rem', color: '#64748B' }}>⚡ Auto-updates inventory</span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

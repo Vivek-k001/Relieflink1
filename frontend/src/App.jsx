@@ -1,5 +1,5 @@
 import React, { useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { io } from 'socket.io-client';
 import { useAuthStore } from './store/authStore';
@@ -34,6 +34,7 @@ const CampFinderPage = lazy(() => import('./pages/affected/CampFinderPage'));
 const MyRequestsPage = lazy(() => import('./pages/affected/MyRequestsPage'));
 const AlertsPage = lazy(() => import('./pages/affected/AlertsPage'));
 const GlobalSafetyPage = lazy(() => import('./pages/affected/GlobalSafetyPage'));
+const PublicDonatePage = lazy(() => import('./pages/PublicDonatePage'));
 
 // Lazy loaded Volunteer Pages
 const VolunteerDashboard = lazy(() => import('./pages/volunteer/Dashboard'));
@@ -57,12 +58,14 @@ const AlertBroadcastPage = lazy(() => import('./pages/admin/AlertBroadcastPage')
 const SOSManagementPage = lazy(() => import('./pages/admin/SOSManagementPage'));
 const SystemReportsPage = lazy(() => import('./pages/admin/SystemReportsPage'));
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+// Use an empty string so Socket.IO automatically uses the current browser origin (localtunnel) and proxies it through Vite.
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || '';
 
 // Protected Route Guard
 function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, user } = useAuthStore();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  const location = useLocation();
+  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
     return <Navigate to={getRoleHome(user?.role)} replace />;
   }
@@ -170,6 +173,7 @@ function App() {
           } />
           <Route path="/alerts" element={<AlertsPage />} />
           <Route path="/safety" element={<GlobalSafetyPage />} />
+          <Route path="/donate" element={<PublicDonatePage />} />
 
           {/* Volunteer Routes */}
           <Route path="/volunteer" element={
