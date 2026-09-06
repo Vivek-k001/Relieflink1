@@ -1,27 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
-
-const DISASTER_POINTS = [
-  { lat: 11.2588, lng: 75.7804, size: 0.6, color: '#EF4444', label: 'Wayanad, Kerala Flood' },
-  { lat: 22.5726, lng: 88.3639, size: 0.5, color: '#EF4444', label: 'Kolkata Cyclone Zone' },
-  { lat: 20.9374, lng: 85.0900, size: 0.55, color: '#F97316', label: 'Odisha Flood Zone' },
-  { lat: 15.3173, lng: 75.7139, size: 0.4, color: '#FBBF24', label: 'Karnataka Relief Camp' },
-  { lat: 28.7041, lng: 77.1025, size: 0.35, color: '#3B82F6', label: 'Delhi Command Center' },
-  { lat: 19.0760, lng: 72.8777, size: 0.45, color: '#3B82F6', label: 'Mumbai Relief Hub' },
-  { lat: 26.8467, lng: 80.9462, size: 0.4, color: '#34D399', label: 'Lucknow Relief Center' },
-];
-
-// Disaster zones — real coordinates exactly matching DISASTER_POINTS
-const DISASTER_ARCS = [
-  { startLat: 11.2588, startLng: 75.7804, endLat: 22.5726, endLng: 88.3639, color: '#EF4444', label: 'Kerala ↔ Kolkata Aid Route' },
-  { startLat: 19.0760, startLng: 72.8777, endLat: 28.7041, endLng: 77.1025, color: '#3B82F6', label: 'Mumbai ↔ Delhi Relief Corridor' },
-  { startLat: 20.9374, startLng: 85.0900, endLat: 26.8467, endLng: 80.9462, color: '#F97316', label: 'Odisha ↔ Lucknow Route' },
-  { startLat: 15.3173, startLng: 75.7139, endLat: 19.0760, endLng: 72.8777, color: '#FBBF24', label: 'Karnataka ↔ Mumbai Route' },
-];
+import { campAPI } from '../../api';
 
 export default function EarthGlobe({ userLat, userLng, height = 360 }) {
   const containerRef = useRef(null);
   const globeRef = useRef(null);
   const [loaded, setLoaded] = useState(false);
+  const [camps, setCamps] = useState([]);
+
+  // Fetch real camps from backend
+  useEffect(() => {
+    const fetchCamps = async () => {
+      try {
+        const res = await campAPI.getAll();
+        if (res.data && res.data.success) {
+          setCamps(res.data.camps);
+        }
+      } catch (err) {
+        console.error("Failed to fetch camps for globe", err);
+      }
+    };
+    fetchCamps();
+  }, []);
 
   useEffect(() => {
     let globe = null;
@@ -33,11 +32,6 @@ export default function EarthGlobe({ userLat, userLng, height = 360 }) {
 
       containerRef.current.innerHTML = '';
 
-      const points = [...DISASTER_POINTS];
-      if (userLat && userLng) {
-        points.push({ lat: userLat, lng: userLng, size: 0.7, color: '#22C55E', label: `<div style="display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Your Location</div>` });
-      }
-
       const initialWidth = containerRef.current.offsetWidth || 380;
 
       globe = GlobeGL()(containerRef.current)
@@ -48,7 +42,6 @@ export default function EarthGlobe({ userLat, userLng, height = 360 }) {
         .backgroundColor('rgba(0,0,0,0)')
         .width(initialWidth)
         .height(height)
-        .pointsData(points)
         .pointColor(d => d.color)
         .pointRadius(d => d.size)
         .pointAltitude(0.01)
@@ -57,7 +50,6 @@ export default function EarthGlobe({ userLat, userLng, height = 360 }) {
             <strong style="color:${d.color}">${d.label}</strong>
           </div>
         `)
-        .arcsData(DISASTER_ARCS)
         .arcColor(d => d.color)
         .arcDashLength(0.4)
         .arcDashGap(0.2)
@@ -106,7 +98,82 @@ export default function EarthGlobe({ userLat, userLng, height = 360 }) {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [userLat, userLng, height]);
+  }, [height]); // Removed userLat, userLng to prevent re-initializing globe completely
+
+  // Separate effect to update points dynamically when camps or location changes
+  useEffect(() => {
+    if (!loaded || !globeRef.current) return;
+
+    // Create points from real camps
+    const points = camps.map(camp => ({
+      lat: camp.location?.coordinates?.[1] || 0,
+      lng: camp.location?.coordinates?.[0] || 0,
+      size: 0.45,
+      color: '#3B82F6', // Relief Hub color
+      label: camp.name
+    })).filter(p => p.lat !== 0 && p.lng !== 0); // exclude invalid
+
+    // Add user location point
+    if (userLat && userLng) {
+      points.push({ 
+        lat: userLat, 
+        lng: userLng, 
+        size: 0.7, 
+        color: '#22C55E', 
+        label: `<div style="display:flex;align-items:center;gap:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Your Location</div>` 
+      });
+    }
+
+    globeRef.current.pointsData(points);
+
+    // Create arcs from user location to nearby camps, AND between camps to form a network
+    const arcs = [];
+    
+    if (userLat && userLng && camps.length > 0) {
+      camps.slice(0, 2).forEach(camp => {
+        const cLat = camp.location?.coordinates?.[1];
+        const cLng = camp.location?.coordinates?.[0];
+        if (cLat && cLng) {
+          arcs.push({
+            startLat: userLat,
+            startLng: userLng,
+            endLat: cLat,
+            endLng: cLng,
+            color: '#F97316',
+            label: `Route to ${camp.name}`
+          });
+        }
+      });
+    }
+
+    // Connect camps to each other to create a bustling relief network
+    if (camps.length > 1) {
+      for (let i = 0; i < camps.length; i++) {
+        const current = camps[i];
+        // Connect each camp to the next one in the array to form a complete circuit
+        const next = camps[(i + 1) % camps.length];
+        
+        const lat1 = current.location?.coordinates?.[1];
+        const lng1 = current.location?.coordinates?.[0];
+        const lat2 = next.location?.coordinates?.[1];
+        const lng2 = next.location?.coordinates?.[0];
+        
+        if (lat1 && lng1 && lat2 && lng2) {
+          arcs.push({
+            startLat: lat1,
+            startLng: lng1,
+            endLat: lat2,
+            endLng: lng2,
+            color: '#F97316', // Relief Route Color
+            label: `${current.district || 'Hub'} ↔ ${next.district || 'Hub'} Relief Corridor`
+          });
+        }
+      }
+    }
+
+    globeRef.current.arcsData(arcs);
+
+  }, [loaded, camps, userLat, userLng]);
 
   const updateSpeedForAltitude = (alt) => {
     if (!globeRef.current) return;

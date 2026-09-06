@@ -52,47 +52,20 @@ export default function InteractiveMap({ lat, lng, height = 360, camps = [], onR
         <MapUpdater center={position} />
         {onMapClick && <MapEvents onMapClick={onMapClick} />}
         
-        <LayersControl position="topright">
-          <LayersControl.BaseLayer checked name="Satellite View">
-            <LayerGroup>
-              {/* High-Resolution Satellite Map (Esri) - Completely free! */}
-              <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-                maxZoom={19}
-              />
-              {/* Adds city labels and street names on top of satellite */}
-              <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-                maxZoom={19}
-              />
-            </LayerGroup>
-          </LayersControl.BaseLayer>
-
-          <LayersControl.BaseLayer name="Normal Map View">
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              maxZoom={19}
-            />
-          </LayersControl.BaseLayer>
-
-          <LayersControl.BaseLayer name="Esri Street Map">
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-              attribution='Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
-              maxZoom={19}
-            />
-          </LayersControl.BaseLayer>
-
-          <LayersControl.BaseLayer name="Humanitarian Disaster Map">
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr/" target="_blank">OpenStreetMap France</a>'
-              maxZoom={19}
-            />
-          </LayersControl.BaseLayer>
-        </LayersControl>
+        {/* Fixed Satellite View */}
+        <LayerGroup>
+          {/* High-Resolution Satellite Map (Esri) - Completely free! */}
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+            maxZoom={19}
+          />
+          {/* Adds city labels and street names on top of satellite */}
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={19}
+          />
+        </LayerGroup>
         
         {lat && lng && (
           <Marker position={position} icon={userIcon}>
