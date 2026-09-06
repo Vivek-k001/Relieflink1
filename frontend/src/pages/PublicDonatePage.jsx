@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Heart, Package, ChevronRight, Loader2, ArrowLeft, ShieldCheck, CheckCircle } from 'lucide-react';
+import { Heart, Package, ChevronRight, Loader2, ArrowLeft, ShieldCheck, CheckCircle, MapPin, Phone, Users, ExternalLink, X, Navigation, Building2, Target } from 'lucide-react';
 import { campAPI, donationAPI } from '../api';
+import { useLocationStore } from '../store/locationStore';
 import MockPaymentGateway from '../components/MockPaymentGateway';
+import MapView from '../components/maps/MapView';
 
 const QUOTES = [
   { line1: "What may seem small to you", line2: "can mean everything to someone else." },
@@ -22,8 +24,87 @@ const QUOTES = [
   { line1: "Hope grows wherever", line2: "kindness is given freely." }
 ];
 
+const APPROVED_RELIEF_CATEGORIES = [
+  {
+    category: "🍲 Food & Nutrition",
+    items: [
+      { name: "Packaged Drinking Water", unit: "liters", emoji: "💧" },
+      { name: "Rice & Wheat Grains", unit: "kg", emoji: "🍚" },
+      { name: "Ready-to-Eat Meals / Instant Food", unit: "boxes", emoji: "🍜" },
+      { name: "Baby Milk Powder & Baby Food", unit: "boxes", emoji: "🍼" },
+      { name: "Biscuits & Energy Bars", unit: "boxes", emoji: "🍪" },
+      { name: "Pulses & Dal", unit: "kg", emoji: "🥣" },
+      { name: "Cooking Oil & Salt", unit: "liters", emoji: "🫒" },
+    ]
+  },
+  {
+    category: "👕 Clothing & Bedding",
+    items: [
+      { name: "Clean Blankets & Comforters", unit: "pieces", emoji: "🛏️" },
+      { name: "Sleeping Mats & Tarpaulins", unit: "pieces", emoji: "⛺" },
+      { name: "Clothing Sets (Adults)", unit: "pieces", emoji: "👕" },
+      { name: "Clothing Sets (Children)", unit: "pieces", emoji: "🧒" },
+      { name: "Bed Sheets & Towels", unit: "pieces", emoji: "🧺" },
+      { name: "Raincoats & Waterproof Boots", unit: "pieces", emoji: "🌧️" },
+    ]
+  },
+  {
+    category: "🩹 Medical & First Aid",
+    items: [
+      { name: "Emergency First Aid Kits", unit: "kits", emoji: "🩹" },
+      { name: "Antiseptic & Wound Care Supplies", unit: "boxes", emoji: "🧴" },
+      { name: "Basic OTC Medicines (Paracetamol / Fever)", unit: "boxes", emoji: "💊" },
+      { name: "ORS Oral Rehydration Salts", unit: "boxes", emoji: "🥤" },
+      { name: "Water Purification Tablets", unit: "boxes", emoji: "🧪" },
+    ]
+  },
+  {
+    category: "🧼 Hygiene & Sanitation",
+    items: [
+      { name: "Sanitary Napkins / Pads", unit: "boxes", emoji: "🩸" },
+      { name: "Baby Diapers", unit: "boxes", emoji: "👶" },
+      { name: "Soaps & Hand Sanitizers", unit: "pieces", emoji: "🧼" },
+      { name: "Toothpaste & Toothbrushes", unit: "boxes", emoji: "🪥" },
+      { name: "Bleaching Powder & Disinfectants", unit: "kg", emoji: "🧹" },
+    ]
+  },
+  {
+    category: "🔦 Emergency Survival Gear",
+    items: [
+      { name: "Flashlights & Torches", unit: "pieces", emoji: "🔦" },
+      { name: "Batteries (AA / AAA / D)", unit: "boxes", emoji: "🔋" },
+      { name: "Mosquito Nets", unit: "pieces", emoji: "🦟" },
+      { name: "Emergency Candles & Matches", unit: "boxes", emoji: "🕯️" },
+    ]
+  }
+];
+
+const QUICK_RELIEF_CHIPS = [
+  { name: "Packaged Drinking Water", unit: "liters", label: "💧 Clean Water" },
+  { name: "Clean Blankets & Comforters", unit: "pieces", label: "🛏️ Blankets" },
+  { name: "Rice & Wheat Grains", unit: "kg", label: "🍚 Rice & Grains" },
+  { name: "Emergency First Aid Kits", unit: "kits", label: "🩹 First Aid" },
+  { name: "Sanitary Napkins / Pads", unit: "boxes", label: "🩸 Sanitary Pads" },
+  { name: "Baby Milk Powder & Baby Food", unit: "boxes", label: "🍼 Baby Food" },
+];
+
+// Calculate distance between two coordinates in km using Haversine formula
+function calculateDistanceKm(lat1, lon1, lat2, lon2) {
+  if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return null;
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c * 10) / 10;
+}
+
 export default function PublicDonatePage() {
   const navigate = useNavigate();
+  const { lat: userLat, lng: userLng, getLocation } = useLocationStore();
   const [loading, setLoading] = useState(true);
   const [camps, setCamps] = useState([]);
   
@@ -42,9 +123,15 @@ export default function PublicDonatePage() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [finalCamp, setFinalCamp] = useState(null);
+  const [showCampModal, setShowCampModal] = useState(false);
   
   // Quote rotation state
   const [quoteIndex, setQuoteIndex] = useState(0);
+
+  // Request user GPS on mount
+  useEffect(() => {
+    getLocation();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -63,14 +150,91 @@ export default function PublicDonatePage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Enrich camps with real-time distance from donor's GPS
+  const enrichedCamps = useMemo(() => {
+    return camps.map(camp => {
+      const [cLng, cLat] = camp.location?.coordinates || [];
+      const dist = (userLat && userLng && cLat && cLng)
+        ? calculateDistanceKm(userLat, userLng, cLat, cLng)
+        : null;
+      return { ...camp, distanceKm: dist };
+    });
+  }, [camps, userLat, userLng]);
+
+  // Sorted camps for dropdown (by proximity first, then occupancy)
+  const sortedCamps = useMemo(() => {
+    return [...enrichedCamps].sort((a, b) => {
+      if (a.distanceKm != null && b.distanceKm != null) {
+        return a.distanceKm - b.distanceKm;
+      }
+      return ((b.currentOccupancy || 0) / (b.capacity || 1)) - ((a.currentOccupancy || 0) / (a.capacity || 1));
+    });
+  }, [enrichedCamps]);
+
+  // Geo-aware intelligent camp selector for "General / Most Needed"
+  const getRecommendedCamp = () => {
+    if (enrichedCamps.length === 0) return null;
+
+    // Filter out closed camps
+    const validCamps = enrichedCamps.filter(c => c.status !== 'closed');
+    const pool = validCamps.length > 0 ? validCamps : enrichedCamps;
+
+    if (userLat && userLng) {
+      // 1. First look for camps within regional vicinity (<= 150 km)
+      let candidates = pool.filter(c => c.distanceKm !== null && c.distanceKm <= 150);
+      if (candidates.length === 0) {
+        // Expand search to 350 km if none in immediate 150km
+        candidates = pool.filter(c => c.distanceKm !== null && c.distanceKm <= 350);
+      }
+      if (candidates.length === 0) {
+        candidates = pool;
+      }
+
+      // 2. Score candidate camps based on urgency ratio (occupancy) and proximity:
+      return [...candidates].sort((a, b) => {
+        const ratioA = (a.currentOccupancy || 0) / (a.capacity || 1);
+        const ratioB = (b.currentOccupancy || 0) / (b.capacity || 1);
+        
+        const distA = a.distanceKm ?? 500;
+        const distB = b.distanceKm ?? 500;
+
+        // Score: high occupancy gets up to 100 points; distance penalty subtracts 0.15 pts per km
+        const scoreA = (ratioA * 100) - (distA * 0.15);
+        const scoreB = (ratioB * 100) - (distB * 0.15);
+
+        return scoreB - scoreA;
+      })[0];
+    }
+
+    // Fallback if GPS not available: sort purely by urgency ratio
+    return [...pool].sort((a, b) => {
+      const ratioA = (a.currentOccupancy || 0) / (a.capacity || 1);
+      const ratioB = (b.currentOccupancy || 0) / (b.capacity || 1);
+      return ratioB - ratioA;
+    })[0];
+  };
+
   const handleGoodsItemChange = (index, field, value) => {
     const newItems = [...items];
     newItems[index][field] = value;
     setItems(newItems);
   };
 
-  const addGoodsItem = () => {
-    setItems([...items, { name: '', quantity: '', unit: 'pieces' }]);
+  const addGoodsItem = (presetName = '', presetUnit = 'pieces') => {
+    setItems([...items, { name: presetName, quantity: '', unit: presetUnit }]);
+  };
+
+  const handleQuickAddChip = (chip) => {
+    if (items.length === 1 && !items[0].name) {
+      setItems([{ name: chip.name, quantity: '10', unit: chip.unit }]);
+    } else {
+      const existing = items.find(i => i.name === chip.name);
+      if (existing) {
+        toast('Item already added to your donation list', { icon: 'ℹ️' });
+      } else {
+        setItems([...items, { name: chip.name, quantity: '10', unit: chip.unit }]);
+      }
+    }
   };
 
   const removeGoodsItem = (index) => {
@@ -88,7 +252,9 @@ export default function PublicDonatePage() {
         if (!amount || isNaN(amount) || amount <= 0) return toast.error('Please enter a valid amount');
         setStep(3);
       } else {
-        if (items.some(i => !i.name || !i.quantity)) return toast.error('Please fill all item details');
+        if (items.some(i => (!i.name || (i.name === 'custom' && !i.customName)) || !i.quantity || isNaN(i.quantity) || Number(i.quantity) <= 0)) {
+          return toast.error('Please select valid relief items and specify quantities');
+        }
         submitDonation();
       }
     } else {
@@ -102,18 +268,23 @@ export default function PublicDonatePage() {
       const isGeneral = selectedCamp === 'general';
       let actualCamp;
       
-      if (isGeneral && camps.length > 0) {
-        // Find camp with highest need (highest occupancy/capacity ratio)
-        actualCamp = [...camps].sort((a, b) => {
-          const ratioA = (a.currentOccupancy || 0) / (a.capacity || 1);
-          const ratioB = (b.currentOccupancy || 0) / (b.capacity || 1);
-          return ratioB - ratioA; 
-        })[0];
+      if (isGeneral) {
+        actualCamp = getRecommendedCamp();
       } else {
-        actualCamp = camps.find(c => c._id === selectedCamp);
+        actualCamp = enrichedCamps.find(c => String(c._id) === String(selectedCamp)) || camps.find(c => String(c._id) === String(selectedCamp));
+      }
+      
+      if (!actualCamp && enrichedCamps.length > 0) {
+        actualCamp = enrichedCamps[0];
       }
       
       setFinalCamp(actualCamp);
+
+      const formattedItems = items.map(it => ({
+        name: it.name === 'custom' ? (it.customName?.trim() || 'General Relief Aid') : it.name,
+        quantity: Number(it.quantity) || 1,
+        unit: it.unit || 'pieces'
+      }));
 
       const payload = {
         ngoId: actualCamp?.managedBy?._id || actualCamp?.managedBy,
@@ -122,7 +293,7 @@ export default function PublicDonatePage() {
         notes,
         donorName,
         donorPhone,
-        ...(type === 'monetary' ? { amount: Number(amount) } : { items })
+        ...(type === 'monetary' ? { amount: Number(amount) } : { items: formattedItems })
       };
       
       await donationAPI.make(payload);
@@ -293,19 +464,54 @@ export default function PublicDonatePage() {
               </div>
 
               <div style={{ marginBottom: '1.75rem' }}>
-                <label style={{ display: 'block', fontSize: '0.95rem', fontWeight: 700, color: '#334155', marginBottom: '0.75rem' }}>Select Relief Camp to Support *</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <label style={{ fontSize: '0.95rem', fontWeight: 700, color: '#334155' }}>
+                    Select Relief Camp to Support *
+                  </label>
+                  {userLat && (
+                    <span style={{ fontSize: '0.75rem', color: '#059669', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '0.2rem 0.6rem', borderRadius: 20, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                      📍 GPS Active • Proximity Enabled
+                    </span>
+                  )}
+                </div>
                 <select 
                   value={selectedCamp} 
                   onChange={(e) => setSelectedCamp(e.target.value)}
-                  style={{ width: '100%', background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 12, padding: '1rem', color: '#0F172A', outline: 'none', fontSize: '1.05rem', fontWeight: 500, transition: 'border-color 0.2s', cursor: 'pointer', appearance: 'none' }}
+                  style={{ width: '100%', background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 12, padding: '1rem', color: '#0F172A', outline: 'none', fontSize: '1.02rem', fontWeight: 500, transition: 'border-color 0.2s', cursor: 'pointer' }}
                   onFocus={e => e.target.style.borderColor = '#2563EB'}
                   onBlur={e => e.target.style.borderColor = '#E2E8F0'}
                 >
-                  <option value="general">Allocate where most needed (Recommended)</option>
-                  {camps.map(camp => (
-                    <option key={camp._id} value={camp._id}>{camp.name} ({camp.district}) - Managed by {camp.managedBy?.name || 'NGO'}</option>
+                  <option value="general">
+                    ⚡ Allocate to Nearest Critical Camp (Auto-detected based on live urgent need & proximity)
+                  </option>
+                  {sortedCamps.map(camp => (
+                    <option key={camp._id} value={camp._id}>
+                      {camp.name} ({camp.district || camp.state || 'General'})
+                      {camp.distanceKm != null ? ` • ${camp.distanceKm < 1 ? '< 1' : camp.distanceKm} km away` : ''}
+                      {` • ${camp.currentOccupancy || 0}/${camp.capacity || 100} capacity (${Math.round(((camp.currentOccupancy || 0) / (camp.capacity || 100)) * 100)}%)`}
+                    </option>
                   ))}
                 </select>
+
+                {selectedCamp === 'general' ? (
+                  <div style={{ marginTop: '0.65rem', background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '0.75rem 1rem', borderRadius: 10, fontSize: '0.825rem', color: '#1E40AF', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Target size={16} color="#2563EB" style={{ flexShrink: 0 }} />
+                    <span>
+                      <strong>Smart Geo-Routing:</strong> We will automatically assign your donation to the highest-urgency relief center operating in your region ({userLat ? 'within your local district' : 'based on live capacity'}).
+                    </span>
+                  </div>
+                ) : (
+                  (() => {
+                    const active = sortedCamps.find(c => String(c._id) === String(selectedCamp));
+                    if (!active) return null;
+                    return (
+                      <div style={{ marginTop: '0.65rem', background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '0.75rem 1rem', borderRadius: 10, fontSize: '0.825rem', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <span>📍 <strong>{active.address || active.district}</strong> {active.distanceKm != null && `(${active.distanceKm} km away)`}</span>
+                        <span style={{ color: active.status === 'active' ? '#16A34A' : '#DC2626', fontWeight: 700 }}>● {active.status?.toUpperCase()} ({active.currentOccupancy}/{active.capacity} evacuees)</span>
+                      </div>
+                    );
+                  })()
+                )}
               </div>
 
               {type === 'monetary' ? (
@@ -328,38 +534,245 @@ export default function PublicDonatePage() {
                 </div>
               ) : (
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.95rem', fontWeight: 700, color: '#334155', marginBottom: '0.75rem' }}>Items to Donate</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.95rem', fontWeight: 700, color: '#334155' }}>
+                      Items to Donate (Relief Camp Approved) *
+                    </label>
+                    <span style={{ fontSize: '0.78rem', background: '#ECFDF5', color: '#047857', border: '1px solid #A7F3D0', padding: '0.2rem 0.6rem', borderRadius: 20, fontWeight: 700 }}>
+                      ✓ Verified Humanitarian Needs
+                    </span>
+                  </div>
+
+                  {/* Official Humanitarian Relief Policy Banner */}
+                  <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: 12, padding: '0.75rem 1rem', marginBottom: '1.25rem', display: 'flex', gap: '0.65rem', alignItems: 'flex-start' }}>
+                    <ShieldCheck size={18} color="#2563EB" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <div style={{ fontSize: '0.82rem', color: '#1E40AF', lineHeight: 1.45 }}>
+                      <strong>Camp Priority Guidelines:</strong> Relief camps strictly accept essential humanitarian supplies (Drinking Water, Rice/Food, Blankets, Medicines, Sanitary & Baby Care). Non-essential or damaged items cannot be accepted.
+                    </div>
+                  </div>
+
+                  {/* Quick Add Chips */}
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: 0.5 }}>
+                      ⚡ Quick-Add Most Needed Supplies:
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+                      {QUICK_RELIEF_CHIPS.map((chip) => (
+                        <button
+                          key={chip.name}
+                          type="button"
+                          onClick={() => handleQuickAddChip(chip)}
+                          style={{
+                            background: '#F1F5F9',
+                            border: '1px solid #CBD5E1',
+                            borderRadius: 20,
+                            padding: '0.35rem 0.75rem',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            color: '#334155',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.25rem'
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#2563EB'; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = '#2563EB'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#334155'; e.currentTarget.style.borderColor = '#CBD5E1'; }}
+                        >
+                          {chip.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Item Rows: Guaranteed inside the box using grid with minmax(0, 1fr) */}
                   {items.map((item, idx) => (
-                    <div key={idx} style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                      <input 
-                        type="text" placeholder="Item Name (e.g., Blankets)" value={item.name} onChange={e => handleGoodsItemChange(idx, 'name', e.target.value)}
-                        style={{ flex: 2, background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 10, padding: '0.875rem', color: '#0F172A', outline: 'none', fontWeight: 500, transition: 'border-color 0.2s' }}
-                        onFocus={e => e.target.style.borderColor = '#2563EB'}
-                        onBlur={e => e.target.style.borderColor = '#E2E8F0'}
-                      />
-                      <input 
-                        type="number" placeholder="Qty" value={item.quantity} onChange={e => handleGoodsItemChange(idx, 'quantity', e.target.value)}
-                        style={{ flex: 1, background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 10, padding: '0.875rem', color: '#0F172A', outline: 'none', fontWeight: 500, transition: 'border-color 0.2s' }}
-                        onFocus={e => e.target.style.borderColor = '#2563EB'}
-                        onBlur={e => e.target.style.borderColor = '#E2E8F0'}
-                      />
-                      <select 
-                        value={item.unit} onChange={e => handleGoodsItemChange(idx, 'unit', e.target.value)}
-                        style={{ flex: 1, background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 10, padding: '0.875rem', color: '#0F172A', outline: 'none', fontWeight: 500, transition: 'border-color 0.2s' }}
-                        onFocus={e => e.target.style.borderColor = '#2563EB'}
-                        onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+                    <div key={idx} style={{ marginBottom: '0.75rem', width: '100%', boxSizing: 'border-box' }}>
+                      <div 
+                        style={{ 
+                          display: 'grid', 
+                          gridTemplateColumns: items.length > 1 ? 'minmax(0, 2.2fr) minmax(0, 0.9fr) minmax(0, 0.9fr) 38px' : 'minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr)', 
+                          gap: '0.5rem', 
+                          alignItems: 'center',
+                          width: '100%',
+                          boxSizing: 'border-box'
+                        }}
                       >
-                        <option value="pieces">pcs</option>
-                        <option value="kg">kg</option>
-                        <option value="liters">L</option>
-                        <option value="boxes">boxes</option>
-                      </select>
-                      {items.length > 1 && (
-                        <button onClick={() => removeGoodsItem(idx)} style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#EF4444', borderRadius: 10, padding: '0 0.875rem', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 800 }} onMouseEnter={e => {e.currentTarget.style.background = '#EF4444'; e.currentTarget.style.color = 'white';}} onMouseLeave={e => {e.currentTarget.style.background = '#FEF2F2'; e.currentTarget.style.color = '#EF4444';}}>X</button>
+                        {/* Relief Item Selector */}
+                        <select
+                          value={item.name}
+                          onChange={(e) => {
+                            const chosenVal = e.target.value;
+                            let matchedUnit = item.unit;
+                            for (const cat of APPROVED_RELIEF_CATEGORIES) {
+                              const match = cat.items.find(i => i.name === chosenVal);
+                              if (match) { matchedUnit = match.unit; break; }
+                            }
+                            handleGoodsItemChange(idx, 'name', chosenVal);
+                            if (matchedUnit) handleGoodsItemChange(idx, 'unit', matchedUnit);
+                          }}
+                          style={{
+                            minWidth: 0,
+                            width: '100%',
+                            background: '#F8FAFC',
+                            border: '2px solid #E2E8F0',
+                            borderRadius: 10,
+                            padding: '0.75rem 0.6rem',
+                            color: item.name ? '#0F172A' : '#64748B',
+                            outline: 'none',
+                            fontWeight: 600,
+                            fontSize: '0.88rem',
+                            boxSizing: 'border-box',
+                            cursor: 'pointer'
+                          }}
+                          onFocus={e => e.target.style.borderColor = '#2563EB'}
+                          onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+                        >
+                          <option value="">-- Select Relief Supply --</option>
+                          {APPROVED_RELIEF_CATEGORIES.map((cat) => (
+                            <optgroup key={cat.category} label={cat.category}>
+                              {cat.items.map((it) => (
+                                <option key={it.name} value={it.name}>
+                                  {it.emoji} {it.name} ({it.unit})
+                                </option>
+                              ))}
+                            </optgroup>
+                          ))}
+                          <option value="custom">✏️ Other Humanitarian Item (Specify)</option>
+                        </select>
+
+                        {/* Quantity */}
+                        <input 
+                          type="number" 
+                          min="1"
+                          placeholder="Qty" 
+                          value={item.quantity} 
+                          onChange={e => handleGoodsItemChange(idx, 'quantity', e.target.value)}
+                          style={{ 
+                            minWidth: 0,
+                            width: '100%',
+                            background: '#F8FAFC', 
+                            border: '2px solid #E2E8F0', 
+                            borderRadius: 10, 
+                            padding: '0.75rem 0.5rem', 
+                            color: '#0F172A', 
+                            outline: 'none', 
+                            fontWeight: 600, 
+                            fontSize: '0.9rem',
+                            textAlign: 'center',
+                            boxSizing: 'border-box'
+                          }}
+                          onFocus={e => e.target.style.borderColor = '#2563EB'}
+                          onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+                        />
+
+                        {/* Unit */}
+                        <select 
+                          value={item.unit} 
+                          onChange={e => handleGoodsItemChange(idx, 'unit', e.target.value)}
+                          style={{ 
+                            minWidth: 0,
+                            width: '100%',
+                            background: '#F8FAFC', 
+                            border: '2px solid #E2E8F0', 
+                            borderRadius: 10, 
+                            padding: '0.75rem 0.4rem', 
+                            color: '#0F172A', 
+                            outline: 'none', 
+                            fontWeight: 600, 
+                            fontSize: '0.88rem',
+                            boxSizing: 'border-box',
+                            cursor: 'pointer'
+                          }}
+                          onFocus={e => e.target.style.borderColor = '#2563EB'}
+                          onBlur={e => e.target.style.borderColor = '#E2E8F0'}
+                        >
+                          <option value="pieces">pcs</option>
+                          <option value="kg">kg</option>
+                          <option value="liters">L</option>
+                          <option value="boxes">boxes</option>
+                          <option value="kits">kits</option>
+                        </select>
+
+                        {/* Delete X Button: fully inside box, never overflows */}
+                        {items.length > 1 && (
+                          <button 
+                            type="button"
+                            onClick={() => removeGoodsItem(idx)} 
+                            title="Remove item"
+                            style={{ 
+                              width: 36, 
+                              height: 42, 
+                              padding: 0, 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              justifyContent: 'center', 
+                              background: '#FEF2F2', 
+                              border: '1px solid #FECACA', 
+                              color: '#EF4444', 
+                              borderRadius: 10, 
+                              cursor: 'pointer', 
+                              transition: 'all 0.15s', 
+                              fontWeight: 800, 
+                              fontSize: '0.9rem',
+                              flexShrink: 0,
+                              boxSizing: 'border-box'
+                            }} 
+                            onMouseEnter={e => { e.currentTarget.style.background = '#EF4444'; e.currentTarget.style.color = 'white'; }} 
+                            onMouseLeave={e => { e.currentTarget.style.background = '#FEF2F2'; e.currentTarget.style.color = '#EF4444'; }}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Custom Item Name input if "Other" selected */}
+                      {item.name === 'custom' && (
+                        <div style={{ marginTop: '0.4rem', width: '100%', boxSizing: 'border-box' }}>
+                          <input
+                            type="text"
+                            placeholder="Specify humanitarian item name..."
+                            value={item.customName || ''}
+                            onChange={e => handleGoodsItemChange(idx, 'customName', e.target.value)}
+                            style={{
+                              width: '100%',
+                              background: '#F8FAFC',
+                              border: '2px solid #93C5FD',
+                              borderRadius: 8,
+                              padding: '0.65rem 0.75rem',
+                              fontSize: '0.85rem',
+                              color: '#0F172A',
+                              outline: 'none',
+                              boxSizing: 'border-box'
+                            }}
+                          />
+                        </div>
                       )}
                     </div>
                   ))}
-                  <button onClick={addGoodsItem} style={{ background: '#F8FAFC', border: '2px dashed #CBD5E1', color: '#475569', borderRadius: 10, padding: '0.875rem', width: '100%', cursor: 'pointer', marginTop: '0.5rem', fontSize: '0.95rem', fontWeight: 600, transition: 'all 0.2s' }} onMouseEnter={e => {e.currentTarget.style.borderColor = '#2563EB'; e.currentTarget.style.color = '#2563EB';}} onMouseLeave={e => {e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569';}}>+ Add Another Item</button>
+
+                  <button 
+                    type="button"
+                    onClick={() => addGoodsItem()} 
+                    style={{ 
+                      background: '#F8FAFC', 
+                      border: '2px dashed #CBD5E1', 
+                      color: '#475569', 
+                      borderRadius: 10, 
+                      padding: '0.875rem', 
+                      width: '100%', 
+                      cursor: 'pointer', 
+                      marginTop: '0.5rem', 
+                      fontSize: '0.95rem', 
+                      fontWeight: 600, 
+                      transition: 'all 0.2s',
+                      boxSizing: 'border-box'
+                    }} 
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#2563EB'; e.currentTarget.style.color = '#2563EB'; }} 
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#CBD5E1'; e.currentTarget.style.color = '#475569'; }}
+                  >
+                    + Add Another Relief Item
+                  </button>
                 </div>
               )}
 
@@ -395,7 +808,7 @@ export default function PublicDonatePage() {
 
         {/* STEP 4: Success */}
         {step === 4 && (
-          <div className="success-container" style={{ textAlign: 'center', padding: '4rem 2rem', background: '#FFFFFF', borderRadius: 20, border: '1px solid #E2E8F0', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05)' }}>
+          <div className="success-container" style={{ textAlign: 'center', padding: '3.5rem 2rem', background: '#FFFFFF', borderRadius: 24, border: '1px solid #E2E8F0', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05)', maxWidth: 680, margin: '0 auto' }}>
             <div className="success-icon-wrap" style={{ width: 96, height: 96, background: '#ECFDF5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '4px solid #A7F3D0' }}>
               <CheckCircle className="success-icon" size={48} color="#10B981" />
             </div>
@@ -405,36 +818,287 @@ export default function PublicDonatePage() {
             </h3>
             
             {type === 'monetary' && (
-              <div className="success-amount" style={{ fontSize: '1.75rem', fontWeight: 800, color: '#10B981', marginBottom: '1.25rem' }}>
+              <div className="success-amount" style={{ fontSize: '2rem', fontWeight: 800, color: '#10B981', marginBottom: '1rem' }}>
                 ₹{amount}
               </div>
             )}
 
-            <p className="success-text" style={{ color: '#475569', fontSize: '1.1rem', marginBottom: '1.25rem', maxWidth: 500, margin: '0 auto 1.25rem', lineHeight: 1.6 }}>
-              Thank you from the bottom of our hearts. Your kindness brings immediate hope and relief to those who need it most.
+            <p className="success-text" style={{ color: '#475569', fontSize: '1.05rem', marginBottom: '1.75rem', maxWidth: 500, margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
+              Thank you from the bottom of our hearts. Your kindness brings immediate hope, food, medical aid, and shelter to those affected.
             </p>
             
-            <div className="success-badge" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '1.25rem 1.75rem', borderRadius: 16, display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginBottom: '2.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02)' }}>
-              <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Destination of your gift</span>
-              <span style={{ fontWeight: 800, color: '#0F172A', fontSize: '1.2rem' }}>
-                {finalCamp?.name} {finalCamp?.district ? `(${finalCamp.district})` : ''}
-              </span>
-              {selectedCamp === 'general' && (
-                <span style={{ fontSize: '0.9rem', color: '#10B981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span style={{ fontSize: '1.2rem' }}>★</span> Automatically selected for highest need
+            {/* Relief Camp Card with Live Map action */}
+            <div className="success-badge" style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', padding: '1.5rem', borderRadius: 18, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.03)', width: '100%', boxSizing: 'border-box' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                  🎁 DESTINATION OF YOUR GIFT
                 </span>
-              )}
-            </div>
+                <span style={{ background: '#DCFCE7', color: '#166534', padding: '0.25rem 0.65rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
+                  🟢 {finalCamp?.status?.toUpperCase() || 'ACTIVE RELIEF CAMP'}
+                </span>
+              </div>
+
+                <div style={{ fontWeight: 800, color: '#0F172A', fontSize: '1.3rem', textAlign: 'center' }}>
+                  🏕️ {finalCamp?.name || 'Designated Relief Camp'} {finalCamp?.district ? `(${finalCamp.district})` : ''}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#64748B', fontSize: '0.85rem', textAlign: 'center' }}>
+                  <MapPin size={14} color="#2563EB" />
+                  <span>{finalCamp?.address || `${finalCamp?.district || 'General Area'}, ${finalCamp?.state || 'India'}`}</span>
+                </div>
+
+                {finalCamp?.distanceKm != null && (
+                  <div style={{ fontSize: '0.8rem', color: '#1D4ED8', fontWeight: 700, background: '#DBEAFE', padding: '0.2rem 0.7rem', borderRadius: 20 }}>
+                    📍 {finalCamp.distanceKm < 1 ? 'Less than 1 km' : `${finalCamp.distanceKm} km`} away from your location
+                  </div>
+                )}
+
+                {selectedCamp === 'general' && (
+                  <div style={{ fontSize: '0.82rem', color: '#047857', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: '#ECFDF5', padding: '0.35rem 0.85rem', borderRadius: 20, border: '1px solid #A7F3D0', textAlign: 'center' }}>
+                    <span>★</span> Intelligently routed to the highest-urgency camp in your region ({finalCamp?.district || 'local area'})
+                  </div>
+                )}
+
+                {/* View Camp Map & Details Trigger Button */}
+                <button
+                  onClick={() => setShowCampModal(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 12,
+                    padding: '0.75rem 1.5rem',
+                    fontSize: '0.925rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    marginTop: '0.4rem',
+                    boxShadow: '0 4px 14px rgba(37,99,235,0.3)',
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(37,99,235,0.45)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,99,235,0.3)'; }}
+                >
+                  <MapPin size={16} /> View All Relief Centers & Live Map →
+                </button>
+              </div>
             
-            <div className="success-btn">
+            {/* Success Action Buttons */}
+            <div className="success-btn" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button 
+                onClick={() => setShowCampModal(true)}
+                style={{
+                  padding: '0.95rem 1.75rem',
+                  background: '#F1F5F9',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: 14,
+                  color: '#334155',
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#E2E8F0'}
+                onMouseLeave={e => e.currentTarget.style.background = '#F1F5F9'}
+              >
+                <MapPin size={17} color="#2563EB" /> Camp Map & Info
+              </button>
+
               <button 
                 onClick={() => navigate('/')}
-                style={{ padding: '1.2rem 3rem', background: '#2563EB', border: 'none', borderRadius: 14, color: 'white', fontWeight: 700, fontSize: '1.05rem', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 10px 15px -3px rgba(37,99,235,0.3)' }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(37,99,235,0.4)'; }}
+                style={{
+                  padding: '0.95rem 2.25rem',
+                  background: '#2563EB',
+                  border: 'none',
+                  borderRadius: 14,
+                  color: 'white',
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 10px 15px -3px rgba(37,99,235,0.3)'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(37,99,235,0.4)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(37,99,235,0.3)'; }}
               >
                 Return Home
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Camp Details & Satellite Map Modal */}
+        {showCampModal && finalCamp && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(8px)', zIndex: 999, display: 'flex',
+            alignItems: 'center', justifyContent: 'center', padding: '1rem'
+          }}>
+            {/* Backdrop click to close */}
+            <div style={{ position: 'absolute', inset: 0 }} onClick={() => setShowCampModal(false)} />
+
+            <div style={{
+              position: 'relative', width: '100%', maxWidth: 620, background: '#FFFFFF',
+              borderRadius: 20, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              overflow: 'hidden', animation: 'scaleUp 0.25s ease-out forwards', zIndex: 10
+            }}>
+              {/* Modal Header */}
+              <div style={{ padding: '1.2rem 1.5rem', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F8FAFC' }}>
+                <div>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563EB', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                    Relief Camp Network & Live Map
+                  </div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', margin: '0.15rem 0 0', fontFamily: 'Outfit, sans-serif', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span>🎯</span> {finalCamp.name}
+                  </h3>
+                </div>
+                <button 
+                  onClick={() => setShowCampModal(false)}
+                  style={{ background: '#E2E8F0', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#475569', transition: 'all 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#CBD5E1'; e.currentTarget.style.color = '#0F172A'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#E2E8F0'; e.currentTarget.style.color = '#475569'; }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Map Sub-banner explaining markers and showing all camps count */}
+              <div style={{ background: '#0F172A', borderBottom: '1px solid #334155', color: '#94A3B8', padding: '0.45rem 1.25rem', fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: '#6EE7B7', fontWeight: 700 }}>
+                    🔵 You ({userLat ? 'GPS' : 'Local'})
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: '#FCD34D', fontWeight: 700 }}>
+                    🎯 Destination
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: '#93C5FD' }}>
+                    🏕️ All Relief Centers ({camps.length})
+                  </span>
+                </div>
+                {finalCamp.distanceKm != null && (
+                  <span style={{ color: '#F8FAFC', fontWeight: 700 }}>
+                    📍 {finalCamp.distanceKm < 1 ? '< 1 km' : `${finalCamp.distanceKm} km`} from you
+                  </span>
+                )}
+              </div>
+
+              {/* Satellite Map showing ALL camps with autoFit bounds */}
+              <div style={{ height: 270, position: 'relative', background: '#0F172A' }}>
+                <MapView 
+                  height="270px"
+                  camps={enrichedCamps.length > 0 ? enrichedCamps : camps}
+                  highlightCampId={finalCamp._id}
+                  autoFit={true}
+                  userLat={userLat || (finalCamp.location?.coordinates?.[1] || 11.0402)}
+                  userLng={userLng || (finalCamp.location?.coordinates?.[0] || 76.1559)}
+                />
+                <div style={{ position: 'absolute', bottom: 10, left: 10, zIndex: 500, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(6px)', padding: '0.3rem 0.65rem', borderRadius: 8, fontSize: '0.75rem', color: '#93C5FD', fontWeight: 600, border: '1px solid rgba(255,255,255,0.1)' }}>
+                  📍 GPS: {(finalCamp.location?.coordinates?.[1] || 10.85).toFixed(4)}°, {(finalCamp.location?.coordinates?.[0] || 76.27).toFixed(4)}°
+                </div>
+              </div>
+
+              {/* Camp Details */}
+              <div style={{ padding: '1.25rem 1.5rem', maxHeight: '320px', overflowY: 'auto' }}>
+                {/* Address & Status */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                    <MapPin size={18} color="#2563EB" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <div>
+                      <div style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.95rem' }}>
+                        {finalCamp.address || `${finalCamp.district || 'State Control'}, ${finalCamp.state || 'India'}`}
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginTop: 2 }}>
+                        <span>District: <strong>{finalCamp.district || 'All Districts'}</strong> {finalCamp.state ? `• State: ${finalCamp.state}` : ''}</span>
+                        {finalCamp.distanceKm != null && (
+                          <span style={{ color: '#2563EB', fontWeight: 700, background: '#EFF6FF', padding: '1px 6px', borderRadius: 6 }}>
+                            📍 {finalCamp.distanceKm < 1 ? '< 1 km' : `${finalCamp.distanceKm} km`} from your location
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <span style={{ background: finalCamp.status === 'active' ? '#DCFCE7' : '#FEE2E2', color: finalCamp.status === 'active' ? '#15803D' : '#B91C1C', padding: '0.25rem 0.65rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 800, flexShrink: 0, textTransform: 'uppercase' }}>
+                    ● {finalCamp.status || 'Active'}
+                  </span>
+                </div>
+
+                {/* Occupancy Progress */}
+                <div style={{ background: '#F8FAFC', padding: '0.85rem 1rem', borderRadius: 12, border: '1px solid #E2E8F0', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '0.4rem' }}>
+                    <span style={{ color: '#64748B', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Users size={14} color="#2563EB" /> Shelter Occupancy Status
+                    </span>
+                    <span style={{ fontWeight: 700, color: '#0F172A' }}>
+                      {finalCamp.currentOccupancy || 0} / {finalCamp.capacity || 100} sheltered ({Math.round(((finalCamp.currentOccupancy || 0) / (finalCamp.capacity || 100)) * 100)}%)
+                    </span>
+                  </div>
+                  <div style={{ width: '100%', height: 8, background: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${Math.min(100, Math.round(((finalCamp.currentOccupancy || 0) / (finalCamp.capacity || 100)) * 100))}%`,
+                      height: '100%',
+                      background: ((finalCamp.currentOccupancy || 0) / (finalCamp.capacity || 100)) > 0.85 ? '#EF4444' : '#10B981',
+                      borderRadius: 4,
+                      transition: 'width 0.5s ease'
+                    }} />
+                  </div>
+                </div>
+
+                {/* Contact & Status Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+                  <div style={{ background: '#F8FAFC', padding: '0.75rem', borderRadius: 10, border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Camp Coordinator / Phone</div>
+                    <a 
+                      href={`tel:${finalCamp.contactPhone || '112'}`} 
+                      style={{ color: '#2563EB', fontWeight: 700, fontSize: '0.875rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.2rem' }}
+                    >
+                      <Phone size={14} /> {finalCamp.contactPhone || 'Helpline: 112'}
+                    </a>
+                  </div>
+
+                  <div style={{ background: '#F8FAFC', padding: '0.75rem', borderRadius: 10, border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Admission Status</div>
+                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0F172A', marginTop: '0.2rem' }}>
+                      {finalCamp.acceptingRefugees !== false ? '✅ Open to Evacuees' : '⚠️ At Max Capacity'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Facilities tags */}
+                {finalCamp.facilities && finalCamp.facilities.length > 0 && (
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.35rem' }}>Relief Aid & Facilities Provided</div>
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      {finalCamp.facilities.map((fac, idx) => (
+                        <span key={idx} style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#1D4ED8', padding: '0.2rem 0.55rem', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600 }}>
+                          ✓ {fac}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div style={{ padding: '1rem 1.5rem', background: '#F8FAFC', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <button
+                  onClick={() => setShowCampModal(false)}
+                  style={{
+                    padding: '0.65rem 2rem', background: '#2563EB', color: 'white',
+                    border: 'none', borderRadius: 10, fontSize: '0.9rem', fontWeight: 700,
+                    cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(37,99,235,0.25)'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#1D4ED8'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#2563EB'}
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}
