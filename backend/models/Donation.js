@@ -22,6 +22,11 @@ const donationSchema = new mongoose.Schema(
       enum: ['pending', 'received', 'acknowledged'],
       default: 'pending',
     },
+    paymentMethod: {
+      type: String,
+      enum: ['upi', 'card', 'cash', 'other'],
+      default: 'upi',
+    },
     notes: { type: String },
     receivedAt: { type: Date },
     receiptNumber: { type: String },

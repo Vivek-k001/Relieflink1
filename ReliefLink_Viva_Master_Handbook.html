@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ReliefLink - Comprehensive Technical Viva & Project Architecture Handbook</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap');
+
+  @page {
+    size: A4;
+    margin: 20mm 15mm 20mm 15mm;
+    @bottom-right {
+      content: counter(page);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #1e293b;
+    line-height: 1.6;
+    font-size: 13.5px;
+    background: #ffffff;
+    margin: 0;
+    padding: 0;
+  }
+
+  .cover-page {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 60px 40px;
+    page-break-after: always;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    color: #ffffff;
+    border-radius: 8px;
+  }
+
+  .cover-badge {
+    display: inline-block;
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid #3b82f6;
+    color: #60a5fa;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .cover-title {
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0 0 16px 0;
+    background: linear-gradient(90deg, #ffffff, #93c5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .cover-subtitle {
+    font-size: 18px;
+    font-weight: 400;
+    color: #94a3b8;
+    max-width: 680px;
+    margin: 0 0 40px 0;
+    line-height: 1.5;
+  }
+
+  .cover-divider {
+    width: 80px;
+    height: 4px;
+    background: #3b82f6;
+    border-radius: 2px;
+    margin-bottom: 40px;
+  }
+
+  .cover-meta {
+    margin-top: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    width: 100%;
+    max-width: 550px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 10px;
+  }
+
+  .meta-item { display: flex; flex-direction: column; }
+  .meta-label { font-size: 10px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; font-weight: 600; }
+  .meta-val { font-size: 15px; font-weight: 700; color: #f8fafc; margin-top: 4px; }
+
+  .page-break { page-break-before: always; padding-top: 10px; }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    border-bottom: 2.5px solid #2563eb;
+    padding-bottom: 8px;
+    margin-top: 24px;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+
+  h3 {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-top: 14px;
+    margin-bottom: 6px;
+  }
+
+  p { margin: 8px 0 12px 0; }
+
+  .callout {
+    background: #f0fdf4;
+    border-left: 4px solid #16a34a;
+    padding: 12px 16px;
+    margin: 14px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+  }
+
+  .callout.info {
+    background: #eff6ff;
+    border-left-color: #2563eb;
+  }
+
+  .callout.warning {
+    background: #fefce8;
+    border-left-color: #ca8a04;
+  }
+
+  .callout-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  code {
+    font-family: 'Fira Code', monospace;
+    font-size: 12px;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #be185d;
+  }
+
+  pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    font-family: 'Fira Code', monospace;
+    font-size: 11.5px;
+    line-height: 1.5;
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 12px 0;
+    border: 1px solid #334155;
+  }
+
+  pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
+
+  .token-keyword { color: #c084fc; font-weight: 600; }
+  .token-func { color: #60a5fa; }
+  .token-str { color: #86efac; }
+  .token-comment { color: #94a3b8; font-style: italic; }
+  .token-var { color: #fcd34d; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 12.5px;
+  }
+
+  th {
+    background: #1e293b;
+    color: #ffffff;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 12px;
+    border: 1px solid #334155;
+  }
+
+  td {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) { background: #f8fafc; }
+
+  .workflow-step {
+    display: flex;
+    margin-bottom: 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .step-num {
+    background: #2563eb;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
+  .step-content { flex-grow: 1; }
+  .step-title { font-weight: 700; color: #0f172a; margin-bottom: 2px; }
+  .step-desc { font-size: 12.5px; color: #475569; margin: 0; }
+
+  .toc-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dotted #cbd5e1;
+    font-weight: 500;
+  }
+  .toc-dots { flex-grow: 1; border-bottom: 1px dotted #94a3b8; margin: 0 8px 4px 8px; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 12px 0;
+  }
+
+  .card {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .card-title { font-weight: 700; color: #1e3a8a; margin-bottom: 6px; font-size: 13.5px; }
+
+  .footer-tag {
+    margin-top: 30px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 11px;
+    color: #94a3b8;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover-page">
+  <div class="cover-badge">Academic Project · Comprehensive Technical Handbook</div>
+  <div class="cover-title">ReliefLink</div>
+  <div class="cover-subtitle">Real-Time Disaster Response & Humanitarian Relief Coordination Platform<br><br>
+  Complete Engineering Architecture, React Hooks, State Management, API Connectivity, Security Protocols & Viva Defense Manual</div>
+  <div class="cover-divider"></div>
+  
+  <div class="cover-meta">
+    <div class="meta-item">
+      <div class="meta-label">Author / Developer</div>
+      <div class="meta-val">Vivek</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Core Tech Stack</div>
+      <div class="meta-val">MERN + Socket.io + Leaflet GIS</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Frontend State & Routing</div>
+      <div class="meta-val">Zustand + React Router v6</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Document Purpose</div>
+      <div class="meta-val">Technical Viva & Viva-Voce Master Guide</div>
+    </div>
+  </div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="page-break">
+  <h1>Table of Contents</h1>
+  <div style="margin: 20px 0;">
+    <div class="toc-item"><span>1. React Functional Components & Hook States (useState, useEffect)</span><span class="toc-dots"></span><span>Page 3</span></div>
+    <div class="toc-item"><span>2. Global State Management: Why Zustand Over Redux?</span><span class="toc-dots"></span><span>Page 5</span></div>
+    <div class="toc-item"><span>3. Frontend-to-Backend API Architecture (Axios, Interceptors, Try/Catch)</span><span class="toc-dots"></span><span>Page 7</span></div>
+    <div class="toc-item"><span>4. Client-Side Routing: React Router DOM & Protected Route Guards</span><span class="toc-dots"></span><span>Page 9</span></div>
+    <div class="toc-item"><span>5. Express Backend Architecture: MVC Controllers & HTTP Status Codes</span><span class="toc-dots"></span><span>Page 11</span></div>
+    <div class="toc-item"><span>6. The Complete End-to-End Login Workflow (Step-by-Step A to Z)</span><span class="toc-dots"></span><span>Page 13</span></div>
+    <div class="toc-item"><span>7. JSON Web Tokens (JWT) & Authentication Security Deep-Dive</span><span class="toc-dots"></span><span>Page 15</span></div>
+    <div class="toc-item"><span>8. Critical Viva Question: "Will ReliefLink Work Without Express?"</span><span class="toc-dots"></span><span>Page 17</span></div>
+    <div class="toc-item"><span>9. Geospatial Telemetry, 3D WebGL Earth & Matching Algorithms</span><span class="toc-dots"></span><span>Page 19</span></div>
+    <div class="toc-item"><span>10. Relief Camp Logistics, Stock Auto-Deductions & Smart Donations</span><span class="toc-dots"></span><span>Page 21</span></div>
+    <div class="toc-item"><span>11. Master Screen Inventory & Core System User Flows</span><span class="toc-dots"></span><span>Page 23</span></div>
+    <div class="toc-item"><span>12. Rapid Revision: Top 25 Viva Questions & Direct Answers</span><span class="toc-dots"></span><span>Page 25</span></div>
+  </div>
+
+  <div class="callout info">
+    <div class="callout-title">💡 How to Use This Handbook</div>
+    This document covers the <strong>exact line-by-line codebase</strong> of ReliefLink. Every code snippet in this manual exists directly in the project files (<code>frontend/src/</code> and <code>backend/</code>). Use this manual to explain your code with complete technical authority during external examinations and viva reviews.
+  </div>
+</div>
+
+<!-- CHAPTER 1 -->
+<div class="page-break">
+  <h1>Chapter 1: React Functional Components & Hook States</h1>
+  
+  <h2>1.1 Why Functional Components Instead of Class Components?</h2>
+  <p>In modern React (React 18.3+), all components in <strong>ReliefLink</strong> are authored as <strong>Functional Components</strong> using JavaScript functions that return JSX (JavaScript XML). We eliminated legacy Class components for the following reasons:</p>
+  
+  <table>
+    <tr>
+      <th>Aspect</th>
+      <th>Legacy Class Components</th>
+      <th>Modern Functional Components (ReliefLink)</th>
+    </tr>
+    <tr>
+      <td><strong>State Syntax</strong></td>
+      <td>Requires <code>this.state</code> and <code>this.setState()</code></td>
+      <td>Clean <code>useState()</code> hook with explicit setters</td>
+    </tr>
+    <tr>
+      <td><strong>Lifecycle Logic</strong></td>
+      <td>Fragmented across <code>componentDidMount</code>, <code>componentDidUpdate</code>, <code>componentWillUnmount</code></td>
+      <td>Unified cleanly within a single <code>useEffect()</code> hook with dependency control</td>
+    </tr>
+    <tr>
+      <td><strong>Memory & Bundle</strong></td>
+      <td>Heavier prototype chain; complex <code>this</code> binding</td>
+      <td>Lightweight closures; faster minification and smaller bundle size</td>
+    </tr>
+    <tr>
+      <td><strong>Reusability</strong></td>
+      <td>Requires Higher-Order Components (HOC) or Render Props</td>
+      <td>Simple Custom Hooks (e.g., <code>useAuthStore()</code>, <code>useLocation()</code>)</td>
+    </tr>
+  </table>
+
+  <h2>1.2 Deep-Dive: <code>useState</code> Hook</h2>
+  <p><code>useState</code> is the primary hook used to store and update local, component-scoped data that triggers a UI re-render whenever modified.</p>
+  
+  <p><strong>Code Example from ReliefLink (<code>frontend/src/pages/auth/LoginPage.jsx</code>):</strong></p>
+  <pre><code><span class="token-comment">// Declare state variables with initial default values</span>
+<span class="token-keyword">const</span> [email, setEmail] = <span class="token-func">useState</span>(<span class="token-str">''</span>);
+<span class="token-keyword">const</span> [password, setPassword] = <span class="token-func">useState</span>(<span class="token-str">''</span>);
+<span class="token-keyword">const</span> [showPassword, setShowPassword] = <span class="token-func">useState</span>(<span class="token-keyword">false</span>);
+<span class="token-keyword">const</span> [responderLoading, setResponderLoading] = <span class="token-func">useState</span>(<span class="token-keyword">false</span>);
+
+<span class="token-comment">// When user types in the input box:</span>
+&lt;<span class="token-func">input</span> 
+  type=<span class="token-str">"email"</span> 
+  value={email} 
+  onChange={(e) =&gt; <span class="token-func">setEmail</span>(e.target.value)} 
+/&gt;</code></pre>
+
+  <p><strong>How it works internally:</strong></p>
+  <ul>
+    <li><code>email</code> is the current state snapshot.</li>
+    <li><code>setEmail</code> is the dispatcher function. Calling <code>setEmail(newValue)</code> schedules a state update and enqueues a re-render of the component with the new value.</li>
+    <li>React compares virtual DOM trees (reconciliation) and updates only the modified DOM node in the browser.</li>
+  </ul>
+
+  <h2>1.3 Deep-Dive: <code>useEffect</code> Hook</h2>
+  <p><code>useEffect</code> allows functional components to perform side-effects, such as data fetching, subscribing to WebSocket events, or reading coordinates on page mount.</p>
+
+  <p><strong>The Anatomy of <code>useEffect</code>:</strong></p>
+  <pre><code><span class="token-func">useEffect</span>(() =&gt; {
+  <span class="token-comment">// 1. Code executed on mount or dependency change</span>
+  
+  <span class="token-keyword">return</span> () =&gt; {
+    <span class="token-comment">// 2. Optional cleanup function executed before re-running or on unmount</span>
+  };
+}, [dependencies]); <span class="token-comment">// 3. Dependency Array</span></code></pre>
+
+  <p><strong>Real Code from ReliefLink (<code>frontend/src/App.jsx</code>):</strong></p>
+  <pre><code><span class="token-func">useEffect</span>(() =&gt; {
+  <span class="token-keyword">if</span> (!isAuthenticated) <span class="token-keyword">return</span>;
+
+  <span class="token-comment">// Connect to WebSocket channel</span>
+  <span class="token-keyword">const</span> socket = <span class="token-func">io</span>(SOCKET_URL, { transports: [<span class="token-str">'websocket'</span>, <span class="token-str">'polling'</span>] });
+
+  socket.<span class="token-func">on</span>(<span class="token-str">'sos:new'</span>, (data) =&gt; {
+    <span class="token-func">addAlert</span>(data); <span class="token-comment">// update global alert state</span>
+  });
+
+  <span class="token-comment">// Cleanup function: disconnect socket when user logs out or leaves</span>
+  <span class="token-keyword">return</span> () =&gt; {
+    socket.<span class="token-func">disconnect</span>();
+  };
+}, [isAuthenticated]); <span class="token-comment">// Re-runs ONLY when auth status changes!</span></code></pre>
+
+  <div class="callout">
+    <div class="callout-title">Dependency Array Rules (Viva Favorite!):</div>
+    • <strong>No dependency array:</strong> Runs after <em>every single render</em> (risk of infinite loops).<br>
+    • <strong>Empty array <code>[]</code>:</strong> Runs <em>once</em> when the component first mounts (like <code>componentDidMount</code>).<br>
+    • <strong>Array with values <code>[isAuthenticated]</code>:</strong> Runs only when the specified variables change.<br>
+    • <strong>Return callback:</strong> Executes when component unmounts to prevent memory leaks.
+  </div>
+</div>
+
+<!-- CHAPTER 2 -->
+<div class="page-break">
+  <h1>Chapter 2: State Management — Why Zustand Over Redux?</h1>
+  
+  <h2>2.1 The Need for Global State Management</h2>
+  <p>In large-scale applications like ReliefLink, multiple independent pages (e.g., <code>App.jsx</code>, <code>Navbar.jsx</code>, <code>SOSPage.jsx</code>, <code>NearbyRequestsPage.jsx</code>) all need to know: <em>Who is the logged-in user? What is their role? What is their JWT token?</em></p>
+  <p>Without global state management, we would have to pass props down 10 levels of components (known as <strong>Props Drilling</strong>), which is error-prone and unmaintainable.</p>
+
+  <h2>2.2 Why We Chose Zustand for ReliefLink</h2>
+  <table>
+    <tr>
+      <th>Comparison Criteria</th>
+      <th>Redux / Redux Toolkit</th>
+      <th>Zustand (ReliefLink Choice)</th>
+    </tr>
+    <tr>
+      <td><strong>Library Bundle Size</strong></td>
+      <td>~15 KB to 25 KB + dependencies</td>
+      <td><strong>~1.5 KB (10x lighter!)</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Boilerplate Code</strong></td>
+      <td>High: Actions, Reducers, Dispatch, Slices, Thunks, Providers</td>
+      <td><strong>Zero boilerplate: Just one <code>create()</code> function</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Context Wrapper</strong></td>
+      <td>Requires wrapping <code>&lt;Provider store={store}&gt;</code> around App</td>
+      <td><strong>No provider required! Can be used anywhere (even outside React)</strong></td>
+    </tr>
+    <tr>
+      <td><strong>LocalStorage Sync</strong></td>
+      <td>Requires <code>redux-persist</code> plugin and complex config</td>
+      <td><strong>Built-in <code>persist</code> middleware works out of the box</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Re-render Performance</strong></td>
+      <td>Can trigger unnecessary tree renders without memoized selectors</td>
+      <td><strong>Strict atomic state subscriptions</strong></td>
+    </tr>
+  </table>
+
+  <h2>2.3 Line-by-Line Code Breakdown: <code>authStore.js</code></h2>
+  <p>Below is the exact code from <code>frontend/src/store/authStore.js</code>:</p>
+
+  <pre><code><span class="token-keyword">import</span> { create } <span class="token-keyword">from</span> <span class="token-str">'zustand'</span>;
+<span class="token-keyword">import</span> { persist } <span class="token-keyword">from</span> <span class="token-str">'zustand/middleware'</span>;
+
+<span class="token-keyword">export const</span> useAuthStore = <span class="token-func">create</span>(
+  <span class="token-func">persist</span>(
+    (set, get) =&gt; ({
+      <span class="token-comment">// State properties</span>
+      user: <span class="token-keyword">null</span>,
+      token: <span class="token-keyword">null</span>,
+      isAuthenticated: <span class="token-keyword">false</span>,
+
+      <span class="token-comment">// Actions</span>
+      setAuth: (user, token) =&gt;
+        <span class="token-func">set</span>({ user, token, isAuthenticated: <span class="token-keyword">true</span> }),
+
+      updateUser: (updatedUser) =&gt;
+        <span class="token-func">set</span>({ user: { ...get().user, ...updatedUser } }),
+
+      logout: () =&gt;
+        <span class="token-func">set</span>({ user: <span class="token-keyword">null</span>, token: <span class="token-keyword">null</span>, isAuthenticated: <span class="token-keyword">false</span> }),
+    }),
+    {
+      name: <span class="token-str">'relieflink-auth'</span>, <span class="token-comment">// Key in localStorage</span>
+      partialize: (state) =&gt; ({
+        user: state.user,
+        token: state.token,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    }
+  )
+);</code></pre>
+
+  <div class="callout info">
+    <div class="callout-title">Key Elements to Explain to Examiners:</div>
+    1. <strong><code>create()</code>:</strong> Initializes the store and returns a React hook (<code>useAuthStore</code>).<br>
+    2. <strong><code>persist()</code>:</strong> Middleware that automatically serializes state into browser <code>localStorage</code> under the key <code>relieflink-auth</code>.<br>
+    3. <strong><code>set()</code>:</strong> Merges new updates into the store and notifies subscribed components.<br>
+    4. <strong><code>get()</code>:</strong> Accesses the current snapshot of store values without causing a re-render.
+  </div>
+</div>
+
+<!-- CHAPTER 3 -->
+<div class="page-break">
+  <h1>Chapter 3: Frontend-to-Backend API Connectivity</h1>
+
+  <h2>3.1 The Communication Pipeline</h2>
+  <p>The client (React) runs in the user's browser, while the server (Express) runs in Node.js. They communicate using <strong>JSON over HTTP REST APIs</strong> and <strong>WebSockets</strong>.</p>
+  <p>To handle all HTTP calls cleanly, we created a centralized Axios instance in <code>frontend/src/api/index.js</code>.</p>
+
+  <h2>3.2 Axios Interceptors: Request & Response Guards</h2>
+  <pre><code><span class="token-keyword">import</span> axios <span class="token-keyword">from</span> <span class="token-str">'axios'</span>;
+<span class="token-keyword">import</span> { useAuthStore } <span class="token-keyword">from</span> <span class="token-str">'../store/authStore'</span>;
+
+<span class="token-keyword">const</span> api = axios.<span class="token-func">create</span>({
+  baseURL: import.meta.env.VITE_API_URL || <span class="token-str">'/api'</span>,
+  headers: { <span class="token-str">'Content-Type'</span>: <span class="token-str">'application/json'</span> },
+  timeout: 15000, <span class="token-comment">// 15-second timeout for disaster field networks</span>
+});
+
+<span class="token-comment">// 1. REQUEST INTERCEPTOR: Automatically attaches Bearer Token</span>
+api.interceptors.request.<span class="token-func">use</span>(
+  (config) =&gt; {
+    <span class="token-keyword">const</span> token = useAuthStore.<span class="token-func">getState</span>().token;
+    <span class="token-keyword">if</span> (token) {
+      config.headers.Authorization = <span class="token-str">`Bearer ${token}`</span>;
+    }
+    <span class="token-keyword">return</span> config;
+  },
+  (error) =&gt; Promise.<span class="token-func">reject</span>(error)
+);
+
+<span class="token-comment">// 2. RESPONSE INTERCEPTOR: Handles 401 Unauthorized globally</span>
+api.interceptors.response.<span class="token-func">use</span>(
+  (response) =&gt; response,
+  (error) =&gt; {
+    <span class="token-keyword">if</span> (error.response?.status === 401) {
+      <span class="token-comment">// Token expired or invalid -&gt; auto logout and redirect</span>
+      useAuthStore.<span class="token-func">getState</span>().<span class="token-func">logout</span>();
+      window.location.href = <span class="token-str">'/login'</span>;
+    }
+    <span class="token-keyword">return</span> Promise.<span class="token-func">reject</span>(error);
+  }
+);</code></pre>
+
+  <h2>3.3 The Frontend <code>try...catch</code> Pattern</h2>
+  <p>Whenever an API call is executed in a React component, we wrap it in a strict <code>try...catch...finally</code> block:</p>
+  <pre><code><span class="token-keyword">const</span> handleResponderLogin = <span class="token-keyword">async</span> (e) =&gt; {
+  e.<span class="token-func">preventDefault</span>();
+  <span class="token-func">setResponderLoading</span>(<span class="token-keyword">true</span>); <span class="token-comment">// 1. Set Loading UI spinner</span>
+
+  <span class="token-keyword">try</span> {
+    <span class="token-comment">// 2. Await asynchronous API network promise</span>
+    <span class="token-keyword">const</span> res = <span class="token-keyword">await</span> authAPI.<span class="token-func">login</span>(email, password);
+    
+    <span class="token-comment">// 3. Success handling: update global state &amp; notify user</span>
+    <span class="token-func">setAuth</span>(res.data.user, res.data.token);
+    toast.<span class="token-func">success</span>(<span class="token-str">`Welcome back, ${res.data.user.name}!`</span>);
+    <span class="token-func">navigate</span>(<span class="token-str">'/dashboard'</span>);
+  } <span class="token-keyword">catch</span> (err) {
+    <span class="token-comment">// 4. Error handling: extract backend validation error message</span>
+    <span class="token-keyword">const</span> errorMsg = err.response?.data?.message || <span class="token-str">'Login failed. Check credentials.'</span>;
+    toast.<span class="token-func">error</span>(errorMsg);
+  } <span class="token-keyword">finally</span> {
+    <span class="token-comment">// 5. Always executed: reset loading spinner</span>
+    <span class="token-func">setResponderLoading</span>(<span class="token-keyword">false</span>);
+  }
+};</code></pre>
+</div>
+
+<!-- CHAPTER 4 -->
+<div class="page-break">
+  <h1>Chapter 4: React Router DOM & Route Security Guards</h1>
+
+  <h2>4.1 Single Page Application (SPA) Routing</h2>
+  <p>In traditional multi-page web applications, clicking a link requests a new HTML document from the server, causing the browser to flicker and reload. In <strong>ReliefLink</strong>, we use <code>react-router-dom</code> (v6) to implement <strong>Single Page Application (SPA) Routing</strong>.</p>
+  <p>The browser downloads the JavaScript bundle once. When navigating between <code>/sos</code> and <code>/volunteer</code>, React Router dynamically mounts and unmounts components without refreshing the page.</p>
+
+  <h2>4.2 Core React Router Hooks & Components</h2>
+  <ul>
+    <li><code>BrowserRouter</code>: Wraps the entire application and synchronizes the UI with the browser's URL using the HTML5 History API (<code>pushState</code>, <code>replaceState</code>).</li>
+    <li><code>Routes</code> & <code>Route</code>: Defines path-to-component mappings (e.g., <code>&lt;Route path="/login" element={&lt;LoginPage /&gt;} /&gt;</code>).</li>
+    <li><code>useNavigate()</code>: A hook providing programmatic navigation (e.g., <code>navigate('/volunteer')</code> or <code>navigate(-1)</code> for back).</li>
+    <li><code>useLocation()</code>: A hook providing details about the current URL and state passed during navigation (e.g., <code>location.state?.from</code>).</li>
+  </ul>
+
+  <h2>4.3 Protected Route & Role Guard Architecture</h2>
+  <p>To prevent unauthorized access (e.g., preventing a regular citizen from accessing the NGO Camp Inventory dashboard), we implemented a custom higher-order wrapper component called <code>ProtectedRoute</code> in <code>frontend/src/App.jsx</code>:</p>
+
+  <pre><code><span class="token-keyword">function</span> <span class="token-func">ProtectedRoute</span>({ children, allowedRoles }) {
+  <span class="token-keyword">const</span> { isAuthenticated, user } = <span class="token-func">useAuthStore</span>();
+  <span class="token-keyword">const</span> location = <span class="token-func">useLocation</span>();
+
+  <span class="token-comment">// 1. Check if user is logged in</span>
+  <span class="token-keyword">if</span> (!isAuthenticated) {
+    <span class="token-comment">// Redirect to login and remember previous page</span>
+    <span class="token-keyword">return</span> &lt;<span class="token-func">Navigate</span> to=<span class="token-str">"/login"</span> state={{ from: location }} replace /&gt;;
+  }
+
+  <span class="token-comment">// 2. Check if user possesses the required role</span>
+  <span class="token-keyword">if</span> (allowedRoles &amp;&amp; !allowedRoles.<span class="token-func">includes</span>(user?.role)) {
+    <span class="token-comment">// Redirect user to their own authorized portal</span>
+    <span class="token-keyword">return</span> &lt;<span class="token-func">Navigate</span> to={<span class="token-func">getRoleHome</span>(user?.role)} replace /&gt;;
+  }
+
+  <span class="token-comment">// 3. User is authenticated and authorized -&gt; Render Protected Page</span>
+  <span class="token-keyword">return</span> children;
+}</code></pre>
+
+  <div class="callout warning">
+    <div class="callout-title">Route Guard Usage in ReliefLink:</div>
+    <code>&lt;Route path="/ngo/inventory" element={&lt;ProtectedRoute allowedRoles={['ngo', 'admin']}&gt;&lt;InventoryPage /&gt;&lt;/ProtectedRoute&gt;} /&gt;</code><br>
+    If a user with role <code>volunteer</code> tries to visit <code>/ngo/inventory</code>, the guard intercepts the request and safely reroutes them to <code>/volunteer</code>.
+  </div>
+</div>
+
+<!-- CHAPTER 5 -->
+<div class="page-break">
+  <h1>Chapter 5: Express Backend & MVC Controllers</h1>
+
+  <h2>5.1 Model-View-Controller (MVC) Architecture</h2>
+  <p>ReliefLink's backend adheres strictly to the <strong>MVC Architecture</strong>:</p>
+  <ul>
+    <li><strong>Model (<code>backend/models/</code>):</strong> Defines Mongoose data schemas, field types, validation, and database indexes (e.g., <code>User.js</code>, <code>SosRequest.js</code>).</li>
+    <li><strong>View (<code>frontend/src/</code>):</strong> The React user interface that renders UI and collects user inputs.</li>
+    <li><strong>Controller (<code>backend/controllers/</code>):</strong> Contains the core business logic, database queries, and response dispatching.</li>
+    <li><strong>Route (<code>backend/routes/</code>):</strong> Maps incoming HTTP URLs and methods to specific controller functions.</li>
+  </ul>
+
+  <h2>5.2 Anatomy of an Express Controller Function</h2>
+  <p>Every controller function accepts two fundamental parameters: <code>req</code> (Request Object) and <code>res</code> (Response Object):</p>
+  <ul>
+    <li><code>req.body</code>: Contains JSON data sent via POST/PUT from the frontend.</li>
+    <li><code>req.params</code>: Route parameters defined with colons (e.g., <code>/api/sos/:id</code> &rarr; <code>req.params.id</code>).</li>
+    <li><code>req.query</code>: URL query parameters (e.g., <code>/api/camps?district=Ernakulam</code> &rarr; <code>req.query.district</code>).</li>
+    <li><code>req.user</code>: Injected by the <code>protect</code> middleware containing verified user data from the JWT.</li>
+    <li><code>res.status(code).json(payload)</code>: Dispatches the HTTP status code and JSON payload back to client.</li>
+  </ul>
+
+  <h2>5.3 Real Controller Code: <code>authController.js</code></h2>
+  <pre><code><span class="token-comment">// @desc   Login user with email/password</span>
+<span class="token-comment">// @route  POST /api/auth/login</span>
+<span class="token-keyword">const</span> login = <span class="token-keyword">async</span> (req, res) =&gt; {
+  <span class="token-keyword">try</span> {
+    <span class="token-keyword">const</span> { email, password } = req.body;
+
+    <span class="token-comment">// 1. Validation</span>
+    <span class="token-keyword">if</span> (!email || !password) {
+      <span class="token-keyword">return</span> res.<span class="token-func">status</span>(400).<span class="token-func">json</span>({ success: <span class="token-keyword">false</span>, message: <span class="token-str">'Email and password required'</span> });
+    }
+
+    <span class="token-comment">// 2. Query MongoDB with explicit password selection</span>
+    <span class="token-keyword">const</span> user = <span class="token-keyword">await</span> User.<span class="token-func">findOne</span>({ email }).<span class="token-func">select</span>(<span class="token-str">'+password'</span>);
+    
+    <span class="token-comment">// 3. Bcrypt Password Verification</span>
+    <span class="token-keyword">if</span> (!user || !(await user.<span class="token-func">comparePassword</span>(password))) {
+      <span class="token-keyword">return</span> res.<span class="token-func">status</span>(401).<span class="token-func">json</span>({ success: <span class="token-keyword">false</span>, message: <span class="token-str">'Invalid email or password'</span> });
+    }
+
+    <span class="token-comment">// 4. Issue JWT Token and Send Response</span>
+    <span class="token-keyword">const</span> token = <span class="token-func">generateToken</span>(user._id);
+    res.<span class="token-func">status</span>(200).<span class="token-func">json</span>({
+      success: <span class="token-keyword">true</span>,
+      token,
+      user: { _id: user._id, name: user.name, email: user.email, role: user.role }
+    });
+  } <span class="token-keyword">catch</span> (error) {
+    <span class="token-comment">// 5. Prevent Node.js server crash on unhandled exceptions</span>
+    res.<span class="token-func">status</span>(500).<span class="token-func">json</span>({ success: <span class="token-keyword">false</span>, message: error.message });
+  }
+};</code></pre>
+
+  <h2>5.4 HTTP Status Codes Reference Table</h2>
+  <table>
+    <tr><th>Status Code</th><th>Meaning</th><th>When Used in ReliefLink</th></tr>
+    <tr><td><strong>200 OK</strong></td><td>Success</td><td>Successful login, fetching camps, fetching SOS records</td></tr>
+    <tr><td><strong>201 Created</strong></td><td>Resource Created</td><td>New SOS beacon created, user registered, donation recorded</td></tr>
+    <tr><td><strong>400 Bad Request</strong></td><td>Client Validation Error</td><td>Missing required phone/email, invalid OTP length</td></tr>
+    <tr><td><strong>401 Unauthorized</strong></td><td>Authentication Failure</td><td>Incorrect password, expired JWT token, missing Bearer header</td></tr>
+    <tr><td><strong>403 Forbidden</strong></td><td>Authorization Failure</td><td>Volunteer trying to approve NGO camp inventory dispatch</td></tr>
+    <tr><td><strong>404 Not Found</strong></td><td>Resource Missing</td><td>Camp ID or SOS Request ID does not exist in MongoDB</td></tr>
+    <tr><td><strong>500 Server Error</strong></td><td>Unhandled Server Bug</td><td>Database connection dropped, unexpected code exception</td></tr>
+  </table>
+</div>
+
+<!-- CHAPTER 6 -->
+<div class="page-break">
+  <h1>Chapter 6: The Complete End-to-End Login Workflow</h1>
+
+  <h2>6.1 Step-by-Step Execution Journey (A to Z)</h2>
+  <p>Here is the exact lifecycle of what happens when a user logs into ReliefLink, from the moment they click the button until they see their dashboard:</p>
+
+  <div class="workflow-step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <div class="step-title">User Input Capture (Frontend)</div>
+      <p class="step-desc">The user types their email and password into <code>LoginPage.jsx</code>. Each keystroke triggers <code>setEmail()</code> or <code>setPassword()</code> in React's <code>useState</code> hook.</p>
+    </div>
+  </div>
+
+  <div class="workflow-step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <div class="step-title">Client-Side Validation & Loading State</div>
+      <p class="step-desc">The user submits the form. <code>handleResponderLogin()</code> runs regex checks on the email and verifies password length &ge; 6. It triggers <code>setResponderLoading(true)</code> to display a spinner.</p>
+    </div>
+  </div>
+
+  <div class="workflow-step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <div class="step-title">Axios HTTP POST Request Dispatch</div>
+      <p class="step-desc">Axios sends an asynchronous HTTP POST request to <code>http://localhost:5000/api/auth/login</code> containing <code>{ email, password }</code> in the request body.</p>
+    </div>
+  </div>
+
+  <div class="workflow-step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <div class="step-title">Express Route & Controller Execution</div>
+      <p class="step-desc">The request arrives at the backend. <code>routes/auth.js</code> matches <code>/login</code> and calls <code>authController.login(req, res)</code>.</p>
+    </div>
+  </div>
+
+  <div class="workflow-step">
+    <div class="step-num">5</div>
+    <div class="step-content">
+      <div class="step-title">MongoDB Query & Bcrypt Verification</div>
+      <p class="step-desc">Mongoose executes <code>User.findOne({ email }).select('+password')</code>. If found, it calls <code>bcrypt.compare(enteredPassword, hashedPassword)</code>. The salt and hash are mathematically evaluated.</p>
+    </div>
+  </div>
+
+  <div class="workflow-step">
+    <div class="step-num">6</div>
+    <div class="step-content">
+      <div class="step-title">Cryptographic JWT Token Generation</div>
+      <p class="step-desc">If password matches, the server signs a JSON Web Token using <code>jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' })</code>.</p>
+    </div>
+  </div>
+
+  <div class="workflow-step">
+    <div class="step-num">7</div>
+    <div class="step-content">
+      <div class="step-title">HTTP 200 JSON Response</div>
+      <p class="step-desc">The backend responds with HTTP status 200: <code>{ success: true, token: "ey...", user: { _id, name, role } }</code>.</p>
+    </div>
+  </div>
+
+  <div class="workflow-step">
+    <div class="step-num">8</div>
+    <div class="step-content">
+      <div class="step-title">Zustand Store & LocalStorage Persistence</div>
+      <p class="step-desc">The frontend receives the response. It calls <code>setAuth(res.data.user, res.data.token)</code>. Zustand's <code>persist</code> middleware automatically writes the credentials into <code>localStorage['relieflink-auth']</code>.</p>
+    </div>
+  </div>
+
+  <div class="workflow-step">
+    <div class="step-num">9</div>
+    <div class="step-content">
+      <div class="step-title">Role-Based Programmatic Navigation</div>
+      <p class="step-desc">The client calls <code>navigate('/volunteer')</code> or <code>navigate('/ngo')</code> based on <code>user.role</code>. A green success toast appears.</p>
+    </div>
+  </div>
+
+  <div class="workflow-step">
+    <div class="step-num">10</div>
+    <div class="step-content">
+      <div class="step-title">Subsequent Authorized API Calls</div>
+      <p class="step-desc">For every subsequent API call, the Axios Request Interceptor extracts the token from Zustand and injects <code>Authorization: Bearer &lt;token&gt;</code> into headers automatically.</p>
+    </div>
+  </div>
+</div>
+
+<!-- CHAPTER 7 -->
+<div class="page-break">
+  <h1>Chapter 7: JSON Web Tokens (JWT) & Security Deep-Dive</h1>
+
+  <h2>7.1 What is a JSON Web Token (JWT)?</h2>
+  <p>A JSON Web Token is a compact, URL-safe means of representing claims to be transferred between two parties. A JWT consists of three parts separated by dots (<code>.</code>):</p>
+  <pre><code><span class="token-comment">// Format: Header.Payload.Signature</span>
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZGUxMmZh...iwiZXhwIjoxNzI2...
+.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</code></pre>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">1. Header (Algorithm &amp; Token Type)</div>
+      Specifies the cryptographic algorithm used to sign the token (e.g., <code>HMAC SHA256</code> or <code>RSA</code>) and token type (<code>JWT</code>).
+    </div>
+    <div class="card">
+      <div class="card-title">2. Payload (Claims &amp; Data)</div>
+      Contains session data such as User ID (<code>{ id: "66de..." }</code>), issuance time (<code>iat</code>), and expiration timestamp (<code>exp</code>).
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 10px;">
+    <div class="card-title">3. Signature (Cryptographic Tamper Protection)</div>
+    Calculated by hashing the encoded Header, encoded Payload, and the server's private <code>JWT_SECRET</code>:
+    <pre><code>HMACSHA256(
+  base64UrlEncode(header) + "." + base64UrlEncode(payload),
+  process.env.JWT_SECRET
+)</code></pre>
+    <em>If an attacker alters the user role in the payload, the signature no longer matches, and the backend instantly rejects the request!</em>
+  </div>
+
+  <h2>7.2 Why Stateless JWT Over Server Sessions?</h2>
+  <table>
+    <tr><th>Feature</th><th>Server-Side Sessions (Express-Session)</th><th>JSON Web Tokens (ReliefLink)</th></tr>
+    <tr><td><strong>Storage</strong></td><td>Stored in Server RAM or Redis database</td><td><strong>Stored in Client (Zero server memory overhead)</strong></td></tr>
+    <tr><td><strong>Scalability</strong></td><td>Difficult to scale across multiple servers without centralized session store</td><td><strong>Horizontally scalable: any server with JWT_SECRET can verify</strong></td></tr>
+    <tr><td><strong>DB Queries</strong></td><td>Requires database query on every single request to validate session ID</td><td><strong>Zero DB query needed for signature verification</strong></td></tr>
+  </table>
+
+  <h2>7.3 Authentication Middleware Code: <code>middleware/auth.js</code></h2>
+  <pre><code><span class="token-keyword">const</span> protect = <span class="token-keyword">async</span> (req, res, next) =&gt; {
+  <span class="token-keyword">try</span> {
+    <span class="token-keyword">let</span> token;
+    <span class="token-keyword">if</span> (req.headers.authorization?.<span class="token-func">startsWith</span>(<span class="token-str">'Bearer'</span>)) {
+      token = req.headers.authorization.<span class="token-func">split</span>(<span class="token-str">' '</span>)[1];
+    }
+    <span class="token-keyword">if</span> (!token) <span class="token-keyword">return</span> res.<span class="token-func">status</span>(401).<span class="token-func">json</span>({ message: <span class="token-str">'Not authorized, no token'</span> });
+
+    <span class="token-comment">// Cryptographically verify signature</span>
+    <span class="token-keyword">const</span> decoded = jwt.<span class="token-func">verify</span>(token, process.env.JWT_SECRET);
+    
+    <span class="token-comment">// Attach verified user object to Express request</span>
+    req.user = <span class="token-keyword">await</span> User.<span class="token-func">findById</span>(decoded.id).<span class="token-func">select</span>(<span class="token-str">'-password'</span>);
+    <span class="token-func">next</span>(); <span class="token-comment">// Proceed to controller</span>
+  } <span class="token-keyword">catch</span> (error) {
+    <span class="token-keyword">return</span> res.<span class="token-func">status</span>(401).<span class="token-func">json</span>({ message: <span class="token-str">'Token verification failed'</span> });
+  }
+};</code></pre>
+</div>
+
+<!-- CHAPTER 8 -->
+<div class="page-break">
+  <h1>Chapter 8: Critical Viva Question: "Will ReliefLink Work Without Express?"</h1>
+
+  <div class="callout warning">
+    <div class="callout-title">The Exact Question Asked by Examiners:</div>
+    <em>"Express illel ith work aavumo? If the Express backend server is turned off, will your project function?"</em>
+  </div>
+
+  <h2>8.1 The Direct Answer:</h2>
+  <p><strong>"The Frontend User Interface will load visually in the browser, BUT none of the core functional features will work."</strong></p>
+
+  <h2>8.2 Detailed Technical Justification:</h2>
+  <p>To impress the examiner, explain the distinct boundaries between Client-Side (React) and Server-Side (Node/Express):</p>
+
+  <table>
+    <tr>
+      <th>Project Capability</th>
+      <th>Can React Do It Alone?</th>
+      <th>Why Express is Mandatory</th>
+    </tr>
+    <tr>
+      <td><strong>Visual UI &amp; Navigation</strong></td>
+      <td><strong style="color:green;">YES</strong></td>
+      <td>React compiles to static HTML, CSS, and JS. The browser can render the buttons, text, maps, and 3D globe.</td>
+    </tr>
+    <tr>
+      <td><strong>MongoDB Database Connection</strong></td>
+      <td><strong style="color:red;">NO</strong></td>
+      <td>Browsers cannot open direct TCP socket connections to MongoDB Atlas. Doing so would expose database credentials publicly, a fatal security flaw.</td>
+    </tr>
+    <tr>
+      <td><strong>Password Hashing (Bcrypt)</strong></td>
+      <td><strong style="color:red;">NO</strong></td>
+      <td>Bcrypt must run on a secure server environment. If run on the client, users could intercept and tamper with hashes.</td>
+    </tr>
+    <tr>
+      <td><strong>Issuing Cryptographic JWTs</strong></td>
+      <td><strong style="color:red;">NO</strong></td>
+      <td>JWT requires signing with <code>process.env.JWT_SECRET</code>. Storing this secret key on the frontend would allow anyone to forge admin tokens.</td>
+    </tr>
+    <tr>
+      <td><strong>Real-Time WebSocket Dispatch</strong></td>
+      <td><strong style="color:red;">NO</strong></td>
+      <td>Socket.io requires a central server hub to receive a victim's SOS beacon and broadcast it to all active volunteers.</td>
+    </tr>
+  </table>
+
+  <h2>8.3 What Exactly Happens When Express is Off?</h2>
+  <ul>
+    <li>Pressing <strong>"Login"</strong> &rarr; Axios throws <code>net::ERR_CONNECTION_REFUSED</code> (Port 5000 is unreachable). The catch block triggers <code>toast.error('Network Error')</code>.</li>
+    <li>Pressing <strong>"SOS Broadcast"</strong> &rarr; Coordinates are captured by browser GPS, but the POST request fails. No beacon is saved to MongoDB.</li>
+    <li>Opening <strong>"Camp Finder"</strong> &rarr; Returns an empty map because the GET request to <code>/api/camps</code> cannot fetch the shelters.</li>
+  </ul>
+</div>
+
+<!-- CHAPTER 9 -->
+<div class="page-break">
+  <h1>Chapter 9: Geospatial Telemetry & Matching Algorithms</h1>
+
+  <h2>9.1 MongoDB <code>2dsphere</code> Geospatial Indexing</h2>
+  <p>Standard SQL databases perform slow Pythagorean calculations across latitude/longitude columns. ReliefLink uses MongoDB's native <strong>2dsphere indexing</strong>, which models geometry on an earth-like sphere.</p>
+
+  <p><strong>Mongoose Schema Definition (<code>backend/models/SosRequest.js</code>):</strong></p>
+  <pre><code><span class="token-keyword">const</span> sosSchema = <span class="token-keyword">new</span> mongoose.<span class="token-func">Schema</span>({
+  victimId: { type: mongoose.Schema.Types.ObjectId, ref: <span class="token-str">'User'</span> },
+  location: {
+    type: { type: String, enum: [<span class="token-str">'Point'</span>], default: <span class="token-str">'Point'</span> },
+    coordinates: { type: [Number], required: <span class="token-keyword">true</span> } <span class="token-comment">// [longitude, latitude]</span>
+  },
+  urgency: { type: String, enum: [<span class="token-str">'critical'</span>, <span class="token-str">'high'</span>, <span class="token-str">'medium'</span>], default: <span class="token-str">'high'</span> },
+  status: { type: String, enum: [<span class="token-str">'pending'</span>, <span class="token-str">'claimed'</span>, <span class="token-str">'resolved'</span>], default: <span class="token-str">'pending'</span> }
+});
+
+<span class="token-comment">// CRITICAL: Create 2dsphere index for radius proximity calculations</span>
+sosSchema.<span class="token-func">index</span>({ location: <span class="token-str">'2dsphere'</span> });</code></pre>
+
+  <h2>9.2 The Haversine Great-Circle Distance Formula</h2>
+  <p>To calculate the spherical distance between a volunteer's current GPS position $(\phi_1, \lambda_1)$ and a victim's distress pin $(\phi_2, \lambda_2)$, we implemented the <strong>Haversine Formula</strong> in JavaScript:</p>
+
+  <pre><code><span class="token-keyword">function</span> <span class="token-func">calculateDistance</span>(lat1, lon1, lat2, lon2) {
+  <span class="token-keyword">const</span> R = 6371; <span class="token-comment">// Earth's radius in kilometers</span>
+  <span class="token-keyword">const</span> dLat = (lat2 - lat1) * (Math.PI / 180);
+  <span class="token-keyword">const</span> dLon = (lon2 - lon1) * (Math.PI / 180);
+
+  <span class="token-keyword">const</span> a =
+    Math.<span class="token-func">sin</span>(dLat / 2) * Math.<span class="token-func">sin</span>(dLat / 2) +
+    Math.<span class="token-func">cos</span>(lat1 * (Math.PI / 180)) *
+    Math.<span class="token-func">cos</span>(lat2 * (Math.PI / 180)) *
+    Math.<span class="token-func">sin</span>(dLon / 2) * Math.<span class="token-func">sin</span>(dLon / 2);
+
+  <span class="token-keyword">const</span> c = 2 * Math.<span class="token-func">atan2</span>(Math.<span class="token-func">sqrt</span>(a), Math.<span class="token-func">sqrt</span>(1 - a));
+  <span class="token-keyword">return</span> R * c; <span class="token-comment">// Distance in km</span>
+}</code></pre>
+
+  <div class="callout info">
+    <div class="callout-title">Why Haversine Over Google Maps Distance Matrix API?</div>
+    1. <strong>Zero Latency:</strong> Computes locally in RAM in O(1) time (&lt;0.1 ms).<br>
+    2. <strong>Zero Cost:</strong> No commercial API billing per query.<br>
+    3. <strong>Disaster Reality:</strong> Road-network algorithms fail when bridges and highways are flooded. Great-circle distance gives true spatial proximity for rescue boats and aerial drones.
+  </div>
+</div>
+
+<!-- CHAPTER 10 -->
+<div class="page-break">
+  <h1>Chapter 10: Camp Logistics & Smart Donation Routing</h1>
+
+  <h2>10.1 Live Camp Inventory & Auto-Deductions</h2>
+  <p>Each relief camp manages essential humanitarian categories in MongoDB: <em>Drinking Water, Food Rations, Medical Kits, Baby Food, and Blankets</em>.</p>
+  <ul>
+    <li><strong>Automatic Stock Deduction:</strong> When an NGO administrator approves an aid delivery to a volunteer, the system executes an atomic decrement on MongoDB:
+      <pre><code><span class="token-keyword">await</span> Inventory.<span class="token-func">findOneAndUpdate</span>(
+  { campId, itemName: <span class="token-str">'Drinking Water'</span> },
+  { $inc: { quantity: -requestedAmount } }
+);</code></pre>
+    </li>
+    <li><strong>Low-Stock Threshold Alert:</strong> When <code>quantity &lt; minThreshold</code>, the backend flags the inventory status as <code>'critical'</code> and fires a WebSocket alert.</li>
+  </ul>
+
+  <h2>10.2 The Smart Donation Allocation Algorithm</h2>
+  <p>Public donors typically send money and supplies to famous urban relief camps, leaving remote interior camps starving. ReliefLink's <strong>Smart Allocation Algorithm</strong> calculates an <strong>Urgency Score ($U$)</strong> for every camp:</p>
+
+  <div class="card" style="text-align: center; padding: 18px; font-size: 15px; font-weight: 700; background: #f8fafc;">
+    $$U = \left(rac{	ext{Current Occupancy}}{	ext{Total Capacity}}ight) 	imes \left(1 + rac{	ext{Ration Deficit}}{	ext{Total Safety Buffer}}ight)$$
+  </div>
+
+  <p>When a donor chooses <em>"General Allocation"</em> on the public donation page, the platform auto-routes their contribution to the camp with the highest $U$ score, ensuring life-saving equity across all disaster zones.</p>
+
+  <h2>10.3 Mock Payment Gateway Simulation</h2>
+  <p>In <code>frontend/src/components/MockPaymentGateway.jsx</code>, we built a client-side payment simulator that replicates actual payment gateway protocols (UPI QR, Credit/Debit card validation, simulated transaction latency, and instantaneous verified receipt generation).</p>
+</div>
+
+<!-- CHAPTER 11 -->
+<div class="page-break">
+  <h1>Chapter 11: Master Screen Inventory & Core System Flows</h1>
+
+  <h2>11.1 Key Screen Breakdown</h2>
+  <table>
+    <tr><th>Screen / Route</th><th>Target User Role</th><th>Primary Capabilities</th></tr>
+    <tr>
+      <td><strong>Landing Page (<code>/</code>)</strong></td>
+      <td>Public / All</td>
+      <td>Interactive 3D WebGL Earth globe, live crisis summary statistics, instant emergency helpline speed-dialers.</td>
+    </tr>
+    <tr>
+      <td><strong>Auth Page (<code>/login</code>, <code>/register</code>)</strong></td>
+      <td>All Stakeholders</td>
+      <td>Phone OTP login tab for affected victims; Email/Password tab for volunteers and NGO admins; Demo role auto-fill.</td>
+    </tr>
+    <tr>
+      <td><strong>Affected Dashboard (<code>/dashboard</code>)</strong></td>
+      <td>Affected Citizens</td>
+      <td>1-Click Red SOS Broadcaster with auto-GPS lock, relief supply request forms, safety status timeline updater.</td>
+    </tr>
+    <tr>
+      <td><strong>Global Safety Map (<code>/map</code>)</strong></td>
+      <td>All / Coordinators</td>
+      <td>Interactive Esri satellite basemap with color-coded distress beacons, active shelters, and citizen condition pins.</td>
+    </tr>
+    <tr>
+      <td><strong>Volunteer Terminal (<code>/volunteer</code>)</strong></td>
+      <td>Volunteers</td>
+      <td>Proximity radar with 5km–50km radius slider, skill badges filter, 1-click rescue task claiming, navigation coordinates.</td>
+    </tr>
+    <tr>
+      <td><strong>Camp Management (<code>/ngo</code>)</strong></td>
+      <td>NGO / Admins</td>
+      <td>Camp capacity vs bed occupancy counters, warehouse stock tracking with threshold alerts, victim aid request approval.</td>
+    </tr>
+    <tr>
+      <td><strong>Public Donation Portal (<code>/donate</code>)</strong></td>
+      <td>Public Donors</td>
+      <td>Monetary giving via simulated UPI/Cards, physical goods drop-off pledge creator, Smart Camp auto-routing algorithm.</td>
+    </tr>
+  </table>
+</div>
+
+<!-- CHAPTER 12 -->
+<div class="page-break">
+  <h1>Chapter 12: Top 25 Viva Questions & Rapid Answers</h1>
+
+  <div style="font-size: 12.5px;">
+    <p><strong>Q1: What is a React Hook?</strong><br>
+    <em>A: Functions introduced in React 16.8 that allow functional components to use state and lifecycle methods without writing classes.</em></p>
+
+    <p><strong>Q2: Can we call hooks inside loops or conditions?</strong><br>
+    <em>A: No! Hooks must always be called at the top level of a React component to maintain call order across renders.</em></p>
+
+    <p><strong>Q3: What is the purpose of Zustand's <code>persist</code> middleware?</strong><br>
+    <em>A: It automatically synchronizes store state with <code>localStorage</code>, so the user stays logged in after page refresh.</em></p>
+
+    <p><strong>Q4: Why does GeoJSON require <code>[longitude, latitude]</code> order?</strong><br>
+    <em>A: Because in Cartesian geometry, X comes before Y. Longitude is horizontal (X), Latitude is vertical (Y).</em></p>
+
+    <p><strong>Q5: What is CORS?</strong><br>
+    <em>A: Cross-Origin Resource Sharing. A browser security mechanism that blocks requests from different origins (e.g., React on port 5173 calling Express on port 5000) unless allowed via the <code>cors</code> middleware.</em></p>
+
+    <p><strong>Q6: How are passwords encrypted in ReliefLink?</strong><br>
+    <em>A: They are not encrypted (reversible); they are one-way <strong>hashed and salted</strong> using <code>bcryptjs</code> with 10 salt rounds.</em></p>
+
+    <p><strong>Q7: What is the difference between <code>res.send()</code> and <code>res.json()</code>?</strong><br>
+    <em>A: <code>res.json()</code> explicitly sets the <code>Content-Type: application/json</code> header and formats JavaScript objects into JSON strings.</em></p>
+
+    <p><strong>Q8: What is the Haversine formula used for?</strong><br>
+    <em>A: To calculate the shortest great-circle distance between two GPS coordinate points on a spherical Earth.</em></p>
+
+    <p><strong>Q9: How do you prevent race conditions when two volunteers accept the same SOS task?</strong><br>
+    <em>A: We use MongoDB atomic updates: <code>findOneAndUpdate({ _id: id, status: 'pending' }, { status: 'claimed' })</code>.</em></p>
+
+    <p><strong>Q10: What does the <code>next()</code> function do in Express middleware?</strong><br>
+    <em>A: It passes execution control to the next middleware or controller in the HTTP request processing pipeline.</em></p>
+  </div>
+
+  <div class="footer-tag">
+    ReliefLink Project Master Technical Handbook · Prepared for Vivek · Department of Computer Science &amp; Engineering
+  </div>
+</div>
+
+</body>
+</html>

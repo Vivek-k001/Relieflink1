@@ -8,8 +8,9 @@ import { alertAPI, campAPI } from '../../api';
 import {
   AlertTriangle, Package, MapPin, Users, Heart, Radio, Shield,
   Phone, ArrowRight, ArrowDown, CheckCircle, Navigation, Search,
-  HelpCircle, ChevronLeft, ChevronRight, BookOpen, Compass, X, LifeBuoy
+  HelpCircle, ChevronLeft, ChevronRight, BookOpen, Compass, X, LifeBuoy, Menu
 } from 'lucide-react';
+import './LandingPage.css';
 
 const EarthGlobe = React.lazy(() => import('../../components/globe/EarthGlobe'));
 const InteractiveMap = React.lazy(() => import('../../components/globe/InteractiveMap'));
@@ -152,6 +153,7 @@ export default function LandingPage() {
   const [mapView, setMapView] = useState(0); // 0 = Globe, 1 = Satellite Map
   const [donateNavHovered, setDonateNavHovered] = useState(false);
   const [donateHeroHovered, setDonateHeroHovered] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     getLocation();
@@ -239,45 +241,49 @@ export default function LandingPage() {
 
       {/* ── Dynamic Top Warning Banner ── */}
       {activeAlerts.length > 0 && (
-        <div style={{ background: activeAlerts[0].severity === 'info' ? 'linear-gradient(90deg, #2563EB, #1D4ED8)' : 'linear-gradient(90deg, #DC2626, #B91C1C)', padding: '0.65rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', fontSize: '0.875rem', fontWeight: 600, color: 'white', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
+        <div className="landing-alert-banner" style={{ background: activeAlerts[0].severity === 'info' ? 'linear-gradient(90deg, #2563EB, #1D4ED8)' : 'linear-gradient(90deg, #DC2626, #B91C1C)' }}>
           <span style={{ fontSize: '1rem', animation: 'pulse 1.5s infinite' }}>{activeAlerts[0].severity === 'info' ? '📰' : '🚨'}</span>
-          <span><strong>{activeAlerts[0].severity === 'info' ? 'LATEST NEWS:' : 'ACTIVE DISASTER WARNING:'}</strong> {activeAlerts[0].title} — {activeAlerts[0].affectedAreas?.join(', ') || (activeAlerts[0].severity === 'info' ? 'Update' : 'High Alert Area')}</span>
-          <button onClick={() => navigate('/alerts')} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 6, color: 'white', padding: '0.25rem 0.65rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>
+          <span className="landing-alert-text">
+            <strong>{activeAlerts[0].severity === 'info' ? 'LATEST NEWS:' : 'ACTIVE DISASTER WARNING:'}</strong> {activeAlerts[0].title} — {activeAlerts[0].affectedAreas?.join(', ') || (activeAlerts[0].severity === 'info' ? 'Update' : 'High Alert Area')}
+          </span>
+          <button onClick={() => navigate('/alerts')} className="landing-alert-btn">
             {activeAlerts[0].severity === 'info' ? 'Read More →' : 'View Alert →'}
           </button>
         </div>
       )}
 
       {/* ── Navigation Header ── */}
-      <header style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(3,7,18,0.88)', backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ width: '100%', padding: '0.65rem 1.75rem', minHeight: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.25rem', boxSizing: 'border-box' }}>
+      <header className="landing-header">
+        <div className="landing-header-inner">
 
-          {/* Left: Language Switcher on far left, then divider, then ReliefLink Logo & Title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}>
-            <LanguageSwitcher />
-
-            <div style={{ width: 1, height: 26, background: 'rgba(255,255,255,0.12)' }} />
-
+          {/* Left: ReliefLink Logo & Desktop Language Switcher */}
+          <div className="landing-nav-left">
             <div 
-              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
+              className="landing-logo-block"
               onClick={() => navigate('/')}
             >
               <div style={{ width: 38, height: 38, background: 'linear-gradient(135deg, #DC2626, #2563EB)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(220,38,38,0.25)', flexShrink: 0 }}>
                 <LifeBuoy size={22} color="white" />
               </div>
               <div style={{ whiteSpace: 'nowrap' }}>
-                <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: '1.25rem', background: 'linear-gradient(135deg, #FFFFFF 0%, #93C5FD 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'block', lineHeight: 1.15 }}>
+                <span className="landing-logo-title">
                   ReliefLink
                 </span>
-                <span style={{ display: 'block', fontSize: '0.62rem', color: '#64748B', letterSpacing: 1.1, fontWeight: 700, textTransform: 'uppercase', lineHeight: 1.15, marginTop: '2px' }}>
+                <span className="landing-logo-sub">
                   Disaster Rescue & Relief Network
                 </span>
               </div>
             </div>
+
+            <div className="desktop-br" style={{ width: 1, height: 26, background: 'rgba(255,255,255,0.12)' }} />
+
+            <div className="desktop-br">
+              <LanguageSwitcher />
+            </div>
           </div>
 
-          {/* Right: Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'nowrap', flexShrink: 0 }}>
+          {/* Right Actions: Desktop Layout */}
+          <div className="landing-nav-actions-desktop">
             {lat && lng && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.25)', borderRadius: 20, padding: '0 0.65rem', height: 38, fontSize: '0.75rem', color: '#93C5FD', fontWeight: 600, whiteSpace: 'nowrap', boxSizing: 'border-box' }}>
                 <span>{locationName || `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`}</span>
@@ -314,12 +320,12 @@ export default function LandingPage() {
                 alignItems: 'center', 
                 gap: '0.4rem', 
                 padding: '0 0.95rem', 
-                height: 38,
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                borderRadius: 10,
-                whiteSpace: 'nowrap',
-                flexShrink: 0
+                height: 38, 
+                fontSize: '0.82rem', 
+                fontWeight: 700, 
+                borderRadius: 10, 
+                whiteSpace: 'nowrap', 
+                flexShrink: 0 
               }}
             >
               <LifeBuoy size={15} /> 
@@ -334,16 +340,16 @@ export default function LandingPage() {
                 borderRadius: 10, 
                 color: '#4ADE80', 
                 padding: '0 0.95rem', 
-                height: 38,
+                height: 38, 
                 fontSize: '0.82rem', 
                 fontWeight: 700, 
                 cursor: 'pointer', 
                 display: 'inline-flex', 
                 alignItems: 'center', 
-                gap: '0.45rem',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                transition: 'all 0.2s'
+                gap: '0.45rem', 
+                whiteSpace: 'nowrap', 
+                flexShrink: 0, 
+                transition: 'all 0.2s' 
               }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.2)'; e.currentTarget.style.borderColor = 'rgba(34,197,94,0.6)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.12)'; e.currentTarget.style.borderColor = 'rgba(34,197,94,0.35)'; }}
@@ -367,17 +373,17 @@ export default function LandingPage() {
                 borderRadius: 10, 
                 color: 'white', 
                 padding: '0 0.95rem', 
-                height: 38,
+                height: 38, 
                 fontSize: '0.82rem', 
                 fontWeight: 700, 
                 cursor: 'pointer', 
                 boxShadow: donateNavHovered 
                   ? '0 4px 16px rgba(16,185,129,0.5)' 
-                  : '0 2px 10px rgba(16,185,129,0.25)',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                transform: donateNavHovered ? 'translateY(-1px)' : 'none',
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                  : '0 2px 10px rgba(16,185,129,0.25)', 
+                whiteSpace: 'nowrap', 
+                flexShrink: 0, 
+                transform: donateNavHovered ? 'translateY(-1px)' : 'none', 
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)' 
               }}
             >
               <Heart 
@@ -391,14 +397,7 @@ export default function LandingPage() {
               /> 
               <span>Donate Now</span>
               {donateNavHovered && (
-                <span 
-                  style={{ 
-                    display: 'inline-block', 
-                    fontSize: '0.9rem',
-                    animation: 'popIn 0.25s ease-out, heartBeat 0.8s infinite alternate ease-in-out',
-                    lineHeight: 1
-                  }}
-                >
+                <span style={{ display: 'inline-block', fontSize: '0.9rem', animation: 'popIn 0.25s ease-out, heartBeat 0.8s infinite alternate ease-in-out', lineHeight: 1 }}>
                   💖
                 </span>
               )}
@@ -410,20 +409,20 @@ export default function LandingPage() {
               style={{ 
                 background: 'linear-gradient(135deg, #2563EB, #1D4ED8)', 
                 padding: '0 0.95rem', 
-                height: 38,
+                height: 38, 
                 fontSize: '0.84rem', 
-                fontWeight: 700,
+                fontWeight: 700, 
                 borderRadius: 10, 
                 border: 'none', 
                 color: 'white', 
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                boxShadow: '0 2px 10px rgba(37,99,235,0.25)',
-                transition: 'all 0.2s'
+                cursor: 'pointer', 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '0.35rem', 
+                whiteSpace: 'nowrap', 
+                flexShrink: 0, 
+                boxShadow: '0 2px 10px rgba(37,99,235,0.25)', 
+                transition: 'all 0.2s' 
               }}
               onMouseEnter={e => e.currentTarget.style.filter = 'brightness(1.1)'}
               onMouseLeave={e => e.currentTarget.style.filter = 'none'}
@@ -432,35 +431,149 @@ export default function LandingPage() {
               <span>→</span>
             </button>
           </div>
+
+          {/* Right Actions: Mobile Layout (Language Switcher, Login, Hamburger) */}
+          <div className="landing-nav-actions-mobile">
+            <LanguageSwitcher />
+
+            <button 
+              onClick={() => navigate('/login')} 
+              style={{ 
+                background: 'linear-gradient(135deg, #2563EB, #1D4ED8)', 
+                padding: '0 0.75rem', 
+                height: 36, 
+                fontSize: '0.8rem', 
+                fontWeight: 700, 
+                borderRadius: 8, 
+                border: 'none', 
+                color: 'white', 
+                cursor: 'pointer', 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '0.25rem', 
+                whiteSpace: 'nowrap', 
+                flexShrink: 0 
+              }}
+            >
+              <span>{t('nav.login', 'Login')}</span>
+            </button>
+
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle navigation menu"
+              style={{
+                background: mobileMenuOpen ? 'rgba(37,99,235,0.25)' : 'rgba(255,255,255,0.08)',
+                border: `1px solid ${mobileMenuOpen ? 'rgba(59,130,246,0.6)' : 'rgba(255,255,255,0.18)'}`,
+                borderRadius: 8,
+                width: 36,
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                cursor: 'pointer',
+                padding: 0,
+                flexShrink: 0
+              }}
+            >
+              {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Slide-Down Menu */}
+        {mobileMenuOpen && (
+          <div className="landing-mobile-menu open">
+            <button
+              onClick={() => { setMobileMenuOpen(false); setSosModalOpen(true); }}
+              className="landing-mobile-menu-item"
+              style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.25), rgba(185,28,28,0.35))', borderColor: 'rgba(239,68,68,0.5)', color: '#FCA5A5' }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <LifeBuoy size={18} color="#EF4444" />
+                <strong>Emergency SOS</strong>
+              </span>
+              <span style={{ fontSize: '0.75rem', background: '#DC2626', color: 'white', padding: '0.2rem 0.5rem', borderRadius: 6, fontWeight: 800 }}>1-Tap SOS</span>
+            </button>
+
+            <button
+              onClick={() => { setMobileMenuOpen(false); navigate('/donate'); }}
+              className="landing-mobile-menu-item"
+              style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.3))', borderColor: 'rgba(16,185,129,0.5)', color: '#6EE7B7' }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <Heart size={18} color="#10B981" fill="#10B981" />
+                <strong>Donate to Relief Operations</strong>
+              </span>
+              <span>💖</span>
+            </button>
+
+            <button
+              onClick={() => { setMobileMenuOpen(false); navigate('/safety'); }}
+              className="landing-mobile-menu-item"
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 8px #22C55E' }} />
+                Live Safety Map & Zones
+              </span>
+              <span>→</span>
+            </button>
+
+            <button
+              onClick={() => { setMobileMenuOpen(false); navigate('/register'); }}
+              className="landing-mobile-menu-item"
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span>🦺</span>
+                Register as Volunteer / NGO
+              </span>
+              <span>→</span>
+            </button>
+
+            {lat && lng && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.85rem', background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.25)', borderRadius: 10, fontSize: '0.8rem', color: '#93C5FD' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <Navigation size={13} color="#60A5FA" />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{locationName || `${lat.toFixed(2)}°, ${lng.toFixed(2)}°`}</span>
+                </div>
+                <button
+                  onClick={handleTriggerGeo}
+                  style={{ background: 'rgba(37,99,235,0.3)', border: 'none', borderRadius: 6, color: 'white', padding: '0.2rem 0.5rem', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Refresh GPS
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </header>
 
       {/* ── Hero Section ── */}
-      <section style={{ position: 'relative', padding: '4rem 1.5rem 2rem', background: 'radial-gradient(ellipse at 50% 0%, rgba(37,99,235,0.15) 0%, rgba(3,7,18,0) 70%)' }}>
+      <section className="landing-hero-section">
         <div style={{ maxWidth: 1240, margin: '0 auto' }}>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 480px', gap: '3rem', alignItems: 'center' }}>
+          <div className="landing-hero-grid">
 
             {/* Left Content */}
             <div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 20, padding: '0.4rem 1rem', fontSize: '0.8125rem', color: '#FCA5A5', fontWeight: 700, marginBottom: '1.25rem' }}>
-                <Radio size={14} className="pulse" /> Live Disaster Response Coordination System
+              <div className="landing-live-badge">
+                <Radio size={14} className="pulse" /> <span>Live Disaster Response Coordination System</span>
               </div>
 
-              <h1 style={{ fontSize: '3rem', fontFamily: 'Outfit, sans-serif', fontWeight: 800, lineHeight: 1.15, marginBottom: '1.25rem', background: 'linear-gradient(180deg, #FFFFFF 0%, #CBD5E1 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                Connecting Victims,<br />
-                <span style={{ background: 'linear-gradient(135deg, #60A5FA 0%, #3B82F6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <h1 className="landing-hero-title">
+                Connecting Victims,<br className="desktop-br" />
+                <span className="landing-hero-highlight">
                   Volunteers & Relief Centers
-                </span><br />
+                </span>{' '}<br className="desktop-br" />
                 in Real-Time.
               </h1>
 
-              <p style={{ fontSize: '1.0625rem', color: '#94A3B8', lineHeight: 1.7, marginBottom: '2rem', maxWidth: 560 }}>
+              <p className="landing-hero-desc">
                 When disasters strike, every second counts. ReliefLink matches high-priority SOS emergency signals with nearby volunteers and relief camps using live GPS mapping.
               </p>
 
               {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
+              <div className="landing-hero-actions">
                 <button
                   onClick={() => setSosModalOpen(true)}
                   style={{
@@ -538,7 +651,7 @@ export default function LandingPage() {
               </div>
 
               {/* Quick Role Badges */}
-              <div style={{ display: 'flex', gap: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              <div className="landing-role-badges">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#94A3B8' }}>
                   <LifeBuoy size={18} color="#EF4444" /> <strong>User:</strong> OTP SOS Access
                 </div>
@@ -552,18 +665,11 @@ export default function LandingPage() {
             </div>
 
             {/* Right: Clean Fixed 3D Earth Container without Floating Overflows */}
-            <div style={{ position: 'relative' }}>
-              <div style={{
-                background: 'radial-gradient(circle at center, rgba(37,99,235,0.12) 0%, rgba(15,23,42,0.8) 100%)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 24,
-                padding: '0.75rem',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-                position: 'relative'
-              }}>
+            <div className="landing-map-wrapper">
+              <div className="landing-map-card">
                 {/* Map Toggle Controls */}
-                <div style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', zIndex: 1000, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <div style={{ background: 'rgba(15,23,42,0.8)', padding: '0.3rem 0.6rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 700, color: '#94A3B8', backdropFilter: 'blur(4px)' }}>
+                <div style={{ position: 'absolute', top: '1.25rem', left: '1.25rem', zIndex: 1000, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <div style={{ background: 'rgba(15,23,42,0.85)', padding: '0.3rem 0.6rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 700, color: '#94A3B8', backdropFilter: 'blur(4px)' }}>
                     {mapView === 0 ? '3D Globe' : 'Satellite Map'}
                   </div>
                   <button
@@ -599,18 +705,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section style={{ padding: '2.5rem 1.5rem', background: 'rgba(15,23,42,0.4)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '2rem', alignItems: 'start' }}>
+      {/* ── Radar & Bulletins ── */}
+      <section className="landing-radar-section">
+        <div className="landing-radar-grid">
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#60A5FA', textTransform: 'uppercase', letterSpacing: 1, marginBottom: '0.5rem' }}>Live GPS Environmental Radar</div>
             <h3 style={{ fontSize: '1.25rem', fontFamily: 'Outfit,sans-serif', color: 'white', marginBottom: '1rem' }}>Local Weather & Hazard Radar</h3>
             <WeatherWidget />
           </div>
-          {/* <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#60A5FA', textTransform: 'uppercase', letterSpacing: 1, marginBottom: '0.5rem' }}>Live Breaking News Engine</div>
-            <h3 style={{ fontSize: '1.25rem', fontFamily: 'Outfit,sans-serif', color: 'white', marginBottom: '1rem' }}>UN ReliefWeb & Google News</h3>
-            <DisasterNews limit={3} />
-          </div> */}
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#F87171', textTransform: 'uppercase', letterSpacing: 1, marginBottom: '0.5rem' }}>Official Government Bulletins</div>
             <h3 style={{ fontSize: '1.25rem', fontFamily: 'Outfit,sans-serif', color: 'white', marginBottom: '1rem' }}>IMD District Warnings (Kerala)</h3>
@@ -626,17 +728,17 @@ export default function LandingPage() {
       </section>
 
       {/* ── NEW FEATURE 1: Interactive Emergency Helpline Directory ── */}
-      <section style={{ padding: '3.5rem 1.5rem', background: '#030712' }}>
+      <section className="landing-helpline-section">
         <div style={{ maxWidth: 1240, margin: '0 auto' }}>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <div className="landing-helpline-header">
             <div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#FCA5A5', textTransform: 'uppercase', letterSpacing: 1, marginBottom: '0.5rem' }}>Emergency Directory</div>
               <h2 style={{ fontSize: '1.75rem', fontFamily: 'Outfit, sans-serif', color: 'white', margin: 0 }}>📞 Instant Emergency Toll-Free Numbers</h2>
             </div>
 
             {/* Search input */}
-            <div style={{ position: 'relative', width: 320 }}>
+            <div className="landing-helpline-search-box" style={{ position: 'relative', width: 320 }}>
               <Search size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#64748B' }} />
               <input
                 type="text"
@@ -646,13 +748,14 @@ export default function LandingPage() {
                 style={{
                   width: '100%', padding: '0.6rem 1rem 0.6rem 2.5rem',
                   borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)',
-                  background: 'rgba(15,23,42,0.8)', color: 'white', fontSize: '0.875rem', outline: 'none'
+                  background: 'rgba(15,23,42,0.8)', color: 'white', fontSize: '0.875rem', outline: 'none',
+                  boxSizing: 'border-box'
                 }}
               />
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '1.25rem' }}>
+          <div className="landing-helpline-grid">
             {filteredCountries => null}
             {filteredHelplines.map((h) => (
               <div key={h.service} style={{
@@ -684,7 +787,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── NEW FEATURE 2: Interactive Survival & Preparedness Guide ── */}
-      <section style={{ padding: '3.5rem 1.5rem', background: 'rgba(15,23,42,0.5)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <section className="landing-guide-section">
         <div style={{ maxWidth: 1240, margin: '0 auto' }}>
 
           <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 2.5rem' }}>
@@ -714,7 +817,7 @@ export default function LandingPage() {
           </div>
 
           {/* Active Guide Content */}
-          <div style={{ background: 'rgba(15,23,42,0.8)', border: `1.5px solid ${activeGuide.color}40`, borderRadius: 20, padding: '2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+          <div className="landing-guide-content" style={{ border: `1.5px solid ${activeGuide.color}40` }}>
             <div>
               <h3 style={{ color: '#4ADE80', fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <CheckCircle size={20} /> What You MUST Do (DOs)
@@ -747,8 +850,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.08)', padding: '2.5rem 1.5rem', background: '#020617', textAlign: 'center', color: '#64748B', fontSize: '0.875rem' }}>
-        <div style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+      <footer className="landing-footer">
+        <div className="landing-footer-inner">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'white', fontWeight: 700 }}>
             <LifeBuoy size={18} color="#EF4444" /> <span>ReliefLink</span> — <span>Disaster Relief Network</span>
           </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Heart, Package, ChevronRight, Loader2, ArrowLeft, ShieldCheck, CheckCircle, MapPin, Phone, Users, ExternalLink, X, Navigation, Building2, Target } from 'lucide-react';
+import { Heart, Package, ChevronRight, Loader2, ArrowLeft, ShieldCheck, CheckCircle, MapPin, Phone, Users, ExternalLink, X, Navigation, Building2, Target, Radio, RefreshCw } from 'lucide-react';
 import { campAPI, donationAPI } from '../api';
 import { useLocationStore } from '../store/locationStore';
 import MockPaymentGateway from '../components/MockPaymentGateway';
@@ -104,7 +104,7 @@ function calculateDistanceKm(lat1, lon1, lat2, lon2) {
 
 export default function PublicDonatePage() {
   const navigate = useNavigate();
-  const { lat: userLat, lng: userLng, getLocation } = useLocationStore();
+  const { lat: userLat, lng: userLng, source: locationSource, loading: locationLoading, getLocation } = useLocationStore();
   const [loading, setLoading] = useState(true);
   const [camps, setCamps] = useState([]);
   
@@ -262,7 +262,7 @@ export default function PublicDonatePage() {
     }
   };
 
-  const submitDonation = async () => {
+  const submitDonation = async (paymentDetails) => {
     setIsSubmitting(true);
     try {
       const isGeneral = selectedCamp === 'general';
@@ -286,6 +286,8 @@ export default function PublicDonatePage() {
         unit: it.unit || 'pieces'
       }));
 
+      const detectedMethod = paymentDetails?.method || (type === 'monetary' ? 'upi' : undefined);
+
       const payload = {
         ngoId: actualCamp?.managedBy?._id || actualCamp?.managedBy,
         campId: actualCamp?._id,
@@ -293,6 +295,7 @@ export default function PublicDonatePage() {
         notes,
         donorName,
         donorPhone,
+        paymentMethod: detectedMethod,
         ...(type === 'monetary' ? { amount: Number(amount) } : { items: formattedItems })
       };
       
@@ -442,7 +445,7 @@ export default function PublicDonatePage() {
                   <input 
                     type="text" 
                     value={donorName} 
-                    onChange={(e) => setDonorName(e.target.value)}
+                    onChange={(e) => setDonorName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))}
                     placeholder="Enter your full name"
                     style={{ width: '100%', background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 12, padding: '1rem', color: '#0F172A', outline: 'none', fontSize: '1.05rem', fontWeight: 500, transition: 'border-color 0.2s' }}
                     onFocus={e => e.target.style.borderColor = '#2563EB'}
@@ -468,11 +471,29 @@ export default function PublicDonatePage() {
                   <label style={{ fontSize: '0.95rem', fontWeight: 700, color: '#334155' }}>
                     Select Relief Camp to Support *
                   </label>
-                  {userLat && (
-                    <span style={{ fontSize: '0.75rem', color: '#059669', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '0.2rem 0.6rem', borderRadius: 20, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                  {locationLoading ? (
+                    <span style={{ fontSize: '0.75rem', color: '#64748B', background: '#F1F5F9', border: '1px solid #CBD5E1', padding: '0.2rem 0.65rem', borderRadius: 20, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <RefreshCw size={11} style={{ animation: 'spin 1s linear infinite' }} /> Detecting Location...
+                    </span>
+                  ) : locationSource === 'gps' ? (
+                    <span style={{ fontSize: '0.75rem', color: '#059669', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '0.2rem 0.65rem', borderRadius: 20, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10B981', display: 'inline-block' }}></span>
                       📍 GPS Active • Proximity Enabled
                     </span>
-                  )}
+                  ) : locationSource === 'ip' ? (
+                    <span style={{ fontSize: '0.75rem', color: '#2563EB', background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '0.2rem 0.65rem', borderRadius: 20, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Radio size={12} />
+                      📡 Mobile Tower Geolocation • Proximity Enabled
+                    </span>
+                  ) : locationSource === 'manual' ? (
+                    <span style={{ fontSize: '0.75rem', color: '#7C3AED', background: '#F5F3FF', border: '1px solid #DDD6FE', padding: '0.2rem 0.65rem', borderRadius: 20, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      📌 Pin Selected • Proximity Enabled
+                    </span>
+                  ) : userLat ? (
+                    <span style={{ fontSize: '0.75rem', color: '#D97706', background: '#FFFBEB', border: '1px solid #FDE68A', padding: '0.2rem 0.65rem', borderRadius: 20, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      🗺️ Regional Mode • Proximity Enabled
+                    </span>
+                  ) : null}
                 </div>
                 <select 
                   value={selectedCamp} 
@@ -497,7 +518,7 @@ export default function PublicDonatePage() {
                   <div style={{ marginTop: '0.65rem', background: '#EFF6FF', border: '1px solid #BFDBFE', padding: '0.75rem 1rem', borderRadius: 10, fontSize: '0.825rem', color: '#1E40AF', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Target size={16} color="#2563EB" style={{ flexShrink: 0 }} />
                     <span>
-                      <strong>Smart Geo-Routing:</strong> We will automatically assign your donation to the highest-urgency relief center operating in your region ({userLat ? 'within your local district' : 'based on live capacity'}).
+                      <strong>Smart Geo-Routing:</strong> We will automatically assign your donation to the highest-urgency relief center operating in your region ({locationSource === 'gps' ? 'within your local district via GPS' : locationSource === 'ip' ? 'within your region via Mobile Tower Geolocation' : userLat ? 'within your local region' : 'based on live capacity'}).
                     </span>
                   </div>
                 ) : (
@@ -792,7 +813,7 @@ export default function PublicDonatePage() {
             <div style={{ display: 'flex', gap: '1.25rem' }}>
               <button onClick={() => setStep(1)} style={{ flex: 1, padding: '1.25rem', background: '#F1F5F9', border: 'none', borderRadius: 14, color: '#475569', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = '#E2E8F0'} onMouseLeave={e => e.currentTarget.style.background = '#F1F5F9'}>Back</button>
               <button onClick={handleNextStep} style={{ flex: 2, padding: '1.25rem', background: type === 'monetary' ? '#10B981' : '#2563EB', border: 'none', borderRadius: 14, color: 'white', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', transition: 'all 0.2s', boxShadow: type === 'monetary' ? '0 10px 15px -3px rgba(16,185,129,0.3)' : '0 10px 15px -3px rgba(37,99,235,0.3)' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = ''}>
-                {type === 'monetary' ? 'Proceed to Payment' : 'Confirm Donation'} <ChevronRight size={20} />
+                {type === 'monetary' ? 'Proceed to Payment' : 'Confirm Donation Pledge'} <ChevronRight size={20} />
               </button>
             </div>
           </div>
@@ -814,24 +835,30 @@ export default function PublicDonatePage() {
             </div>
             
             <h3 className="success-title" style={{ fontSize: '2.5rem', marginBottom: '0.25rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#0F172A', letterSpacing: '-0.5px' }}>
-              {type === 'monetary' ? 'Payment Successful!' : 'Donation Received!'}
+              {type === 'monetary' ? 'Payment Successful!' : 'Donation Pledged!'}
             </h3>
             
-            {type === 'monetary' && (
+            {type === 'monetary' ? (
               <div className="success-amount" style={{ fontSize: '2rem', fontWeight: 800, color: '#10B981', marginBottom: '1rem' }}>
                 ₹{amount}
               </div>
+            ) : (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: '#FEF3C7', color: '#B45309', border: '1px solid #FCD34D', padding: '0.35rem 0.95rem', borderRadius: 20, fontSize: '0.825rem', fontWeight: 700, margin: '0.5rem auto 1rem' }}>
+                📦 Supply Pledge Registered • Awaiting Camp Drop-Off
+              </div>
             )}
 
-            <p className="success-text" style={{ color: '#475569', fontSize: '1.05rem', marginBottom: '1.75rem', maxWidth: 500, margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
-              Thank you from the bottom of our hearts. Your kindness brings immediate hope, food, medical aid, and shelter to those affected.
+            <p className="success-text" style={{ color: '#475569', fontSize: '1.025rem', marginBottom: '1.75rem', maxWidth: 540, margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
+              {type === 'monetary' 
+                ? 'Thank you from the bottom of our hearts. Your kindness brings immediate hope, food, medical aid, and shelter to those affected.'
+                : 'Thank you from the bottom of our hearts! Please drop off your supplies at the designated camp address shown below. Once verified at the camp intake desk, NGO coordinators will add them directly to live inventory.'}
             </p>
             
             {/* Relief Camp Card with Live Map action */}
             <div className="success-badge" style={{ background: '#F8FAFC', border: '1.5px solid #E2E8F0', padding: '1.5rem', borderRadius: 18, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem', boxShadow: '0 4px 15px rgba(0, 0, 0, 0.03)', width: '100%', boxSizing: 'border-box' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                  🎁 DESTINATION OF YOUR GIFT
+                  {type === 'monetary' ? '🎁 DESTINATION OF YOUR GIFT' : '📍 DESIGNATED CAMP DROP-OFF POINT'}
                 </span>
                 <span style={{ background: '#DCFCE7', color: '#166534', padding: '0.25rem 0.65rem', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
                   🟢 {finalCamp?.status?.toUpperCase() || 'ACTIVE RELIEF CAMP'}
@@ -859,7 +886,7 @@ export default function PublicDonatePage() {
                   </div>
                 )}
 
-                {/* View Camp Map & Details Trigger Button */}
+                {/* Camp Map & Info Trigger Button */}
                 <button
                   onClick={() => setShowCampModal(true)}
                   style={{
@@ -881,38 +908,16 @@ export default function PublicDonatePage() {
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(37,99,235,0.45)'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,99,235,0.3)'; }}
                 >
-                  <MapPin size={16} /> View All Relief Centers & Live Map →
+                  <MapPin size={16} /> Camp Map & Info
                 </button>
               </div>
             
             {/* Success Action Buttons */}
-            <div className="success-btn" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button 
-                onClick={() => setShowCampModal(true)}
-                style={{
-                  padding: '0.95rem 1.75rem',
-                  background: '#F1F5F9',
-                  border: '1.5px solid #CBD5E1',
-                  borderRadius: 14,
-                  color: '#334155',
-                  fontWeight: 700,
-                  fontSize: '0.95rem',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = '#E2E8F0'}
-                onMouseLeave={e => e.currentTarget.style.background = '#F1F5F9'}
-              >
-                <MapPin size={17} color="#2563EB" /> Camp Map & Info
-              </button>
-
+            <div className="success-btn" style={{ display: 'flex', justifyContent: 'center' }}>
               <button 
                 onClick={() => navigate('/')}
                 style={{
-                  padding: '0.95rem 2.25rem',
+                  padding: '0.95rem 2.5rem',
                   background: '#2563EB',
                   border: 'none',
                   borderRadius: 14,
@@ -971,7 +976,7 @@ export default function PublicDonatePage() {
               <div style={{ background: '#0F172A', borderBottom: '1px solid #334155', color: '#94A3B8', padding: '0.45rem 1.25rem', fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: '#6EE7B7', fontWeight: 700 }}>
-                    🔵 You ({userLat ? 'GPS' : 'Local'})
+                    🔵 You ({locationSource === 'gps' ? 'GPS' : locationSource === 'ip' ? 'Cell Tower / Network' : userLat ? 'Regional' : 'Local'})
                   </span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', color: '#FCD34D', fontWeight: 700 }}>
                     🎯 Destination

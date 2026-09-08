@@ -22,6 +22,9 @@ const sendOTP = async (req, res) => {
     const otpExpires = new Date(Date.now() + parseInt(process.env.OTP_EXPIRY_MINUTES || 10) * 60 * 1000);
 
     let user = await User.findOne({ phone });
+    const isNewUser = !user || !user.name || user.name === 'User';
+    const existingName = (!isNewUser && user?.name) ? user.name : null;
+
     if (!user) {
       user = new User({ name: 'User', phone, role: 'affected', otp, otpExpires, isVerified: false });
     } else {
@@ -37,6 +40,8 @@ const sendOTP = async (req, res) => {
     res.json({
       success: true,
       message: 'OTP sent successfully',
+      isNewUser,
+      existingName,
       // Only expose OTP in development mode
       ...(process.env.NODE_ENV === 'development' && { devOtp: otp }),
     });
@@ -60,7 +65,11 @@ const verifyOTP = async (req, res) => {
     user.otp = undefined;
     user.otpExpires = undefined;
     user.isVerified = true;
-    if (name) user.name = name;
+
+    // Only set name for brand-new users; protect and preserve existing user profile names
+    if (name && (!user.name || user.name === 'User')) {
+      user.name = name.trim();
+    }
     await user.save();
 
     const token = generateToken(user._id);

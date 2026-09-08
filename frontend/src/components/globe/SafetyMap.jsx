@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, LayerGroup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap, LayersControl, LayerGroup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -11,21 +11,33 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+// Sleek 12px pulse beacon dot (replaces giant 28px circles so cities & neighbors aren't obscured)
 const safePersonIcon = L.divIcon({
-  html: '<div style="background:#22C55E;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;border:3px solid white;box-shadow:0 4px 12px rgba(34,197,94,0.4)">🟢</div>',
-  className: '', iconSize: [28, 28], iconAnchor: [14, 14],
+  html: `
+    <div style="position:relative;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <span style="position:absolute;width:20px;height:20px;border-radius:50%;background:rgba(34,197,94,0.4);animation:safeBeaconPulse 2s infinite ease-out;pointer-events:none;"></span>
+      <span style="position:relative;width:12px;height:12px;border-radius:50%;background:#22C55E;border:2px solid #FFFFFF;box-shadow:0 0 10px rgba(34,197,94,0.9),0 2px 5px rgba(0,0,0,0.5);transition:transform 0.15s ease;"></span>
+    </div>
+  `,
+  className: '',
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
 });
 
 const userPinIcon = L.divIcon({
   html: `
-    <div style="transform: translate(-50%, -100%); text-align: center; pointer-events: none; padding-bottom: 2px;">
-      <div style="font-size: 38px; line-height: 1; filter: drop-shadow(0 6px 14px rgba(220,38,38,0.8)); animation: pinBounce 1.2s infinite ease-in-out">📍</div>
-      <div style="background: linear-gradient(135deg, #DC2626, #991B1B); color: white; padding: 3px 10px; border-radius: 12px; font-weight: 800; font-size: 11px; white-space: nowrap; border: 1.5px solid rgba(255,255,255,0.8); box-shadow: 0 4px 14px rgba(220,38,38,0.6); margin-top: -5px;">
-        YOUR PIN
+    <div style="width:100px;height:56px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;pointer-events:none;">
+      <div style="display:flex;flex-direction:column;align-items:center;animation:pinFloat 1.2s infinite ease-in-out;">
+        <div style="font-size:30px;line-height:1;filter:drop-shadow(0 4px 10px rgba(220,38,38,0.7));">📍</div>
+        <div style="background:linear-gradient(135deg,#DC2626,#991B1B);color:white;padding:2px 8px;border-radius:10px;font-weight:800;font-size:10px;white-space:nowrap;border:1.5px solid rgba(255,255,255,0.95);box-shadow:0 4px 12px rgba(220,38,38,0.5);margin-top:-2px;">
+          YOUR PIN
+        </div>
       </div>
     </div>
   `,
-  className: '', iconSize: [0, 0], iconAnchor: [0, 0],
+  className: '',
+  iconSize: [100, 56],
+  iconAnchor: [50, 56],
 });
 
 function MapUpdater({ center }) {
@@ -105,6 +117,9 @@ export default function SafetyMap({
                 }
               }}
             >
+              <Tooltip direction="top" offset={[0, -10]} opacity={0.95}>
+                <span style={{ fontWeight: 700, color: '#15803D', fontSize: '0.8rem' }}>🟢 {b.name} (Safe)</span>
+              </Tooltip>
               <Popup>
                 <div style={{ fontFamily: 'Inter,sans-serif', minWidth: 150 }}>
                   <strong style={{ color: '#16A34A', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>🟢 {b.name}</strong>

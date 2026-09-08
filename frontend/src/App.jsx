@@ -52,12 +52,10 @@ const ReliefApprovalsPage = lazy(() => import('./pages/ngo/ReliefApprovalsPage')
 const DonationsPage = lazy(() => import('./pages/ngo/DonationsPage'));
 const NGOReportsPage = lazy(() => import('./pages/ngo/ReportsPage'));
 
-// Lazy loaded Admin Pages
-const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
+// Operational Coordination Pages (Managed by NGO / Relief Center)
 const UserManagementPage = lazy(() => import('./pages/admin/UserManagementPage'));
 const AlertBroadcastPage = lazy(() => import('./pages/admin/AlertBroadcastPage'));
 const SOSManagementPage = lazy(() => import('./pages/admin/SOSManagementPage'));
-const SystemReportsPage = lazy(() => import('./pages/admin/SystemReportsPage'));
 
 // Use an empty string so Socket.IO automatically uses the current browser origin (localtunnel) and proxies it through Vite.
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || '';
@@ -78,7 +76,6 @@ function getRoleHome(role) {
     affected: '/dashboard',
     volunteer: '/volunteer',
     ngo: '/ngo',
-    admin: '/admin',
   };
   return map[role] || '/login';
 }
@@ -111,7 +108,7 @@ function App() {
     });
 
     socket.on('new_sos', (data) => {
-      if (user?.role === 'volunteer' || user?.role === 'admin') {
+      if (user?.role === 'volunteer' || user?.role === 'ngo') {
         addNotification({ title: '🆘 New SOS Request', message: data.message, type: 'sos' });
       }
     });
@@ -204,64 +201,55 @@ function App() {
               </ProtectedRoute>
             } />
 
-            {/* NGO Routes */}
+            {/* NGO / Relief Center Routes (The Central Operational & Coordination Hub) */}
             <Route path="/ngo" element={
               <ProtectedRoute allowedRoles={['ngo']}>
                 <NGODashboard />
               </ProtectedRoute>
             } />
+            <Route path="/ngo/sos" element={
+              <ProtectedRoute allowedRoles={['ngo']}>
+                <SOSManagementPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/ngo/alerts" element={
+              <ProtectedRoute allowedRoles={['ngo']}>
+                <AlertBroadcastPage />
+              </ProtectedRoute>
+            } />
             <Route path="/ngo/camps" element={
-              <ProtectedRoute allowedRoles={['ngo', 'admin']}>
+              <ProtectedRoute allowedRoles={['ngo']}>
                 <CampManagementPage />
               </ProtectedRoute>
             } />
             <Route path="/ngo/inventory" element={
-              <ProtectedRoute allowedRoles={['ngo', 'admin']}>
+              <ProtectedRoute allowedRoles={['ngo']}>
                 <InventoryPage />
               </ProtectedRoute>
             } />
             <Route path="/ngo/approvals" element={
-              <ProtectedRoute allowedRoles={['ngo', 'admin']}>
+              <ProtectedRoute allowedRoles={['ngo']}>
                 <ReliefApprovalsPage />
               </ProtectedRoute>
             } />
+            <Route path="/ngo/volunteers" element={
+              <ProtectedRoute allowedRoles={['ngo']}>
+                <UserManagementPage />
+              </ProtectedRoute>
+            } />
             <Route path="/ngo/donations" element={
-              <ProtectedRoute allowedRoles={['ngo', 'admin']}>
+              <ProtectedRoute allowedRoles={['ngo']}>
                 <DonationsPage />
               </ProtectedRoute>
             } />
             <Route path="/ngo/reports" element={
-              <ProtectedRoute allowedRoles={['ngo', 'admin']}>
+              <ProtectedRoute allowedRoles={['ngo']}>
                 <NGOReportsPage />
               </ProtectedRoute>
             } />
 
-            {/* Admin Routes */}
-            <Route path="/admin" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <UserManagementPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/alerts" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AlertBroadcastPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/sos" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <SOSManagementPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/reports" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <SystemReportsPage />
-              </ProtectedRoute>
-            } />
+            {/* Graceful legacy redirect: Any /admin route redirects to /ngo */}
+            <Route path="/admin/*" element={<Navigate to="/ngo" replace />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

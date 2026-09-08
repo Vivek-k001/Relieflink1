@@ -136,7 +136,7 @@ export default function MissingPersonsPage() {
                 <input
                   type="text"
                   placeholder="Search by name, location, or details..."
-                  className="input"
+                  className="form-control"
                   style={{ paddingLeft: '2.5rem', width: '100%' }}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -286,20 +286,41 @@ export default function MissingPersonsPage() {
 
         {/* Create Modal */}
         {showModal && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,234,42,0.1)', backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-            <div className="card" style={{ width: '100%', maxWidth: 550, maxHeight: '90vh', overflowY: 'auto' }}>
-              <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ margin: 0 }}>Report Missing Person</h3>
-                <button onClick={() => setShowModal(false)} className="btn-ghost" style={{ padding: '0.2rem' }}><X size={20} /></button>
+          <div className="modal-overlay" style={{ zIndex: 1000, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+            <div className="modal" style={{ width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto', borderRadius: 16, border: '1px solid #E2E8F0', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.3)' }}>
+              
+              {/* Modal Header */}
+              <div style={{ background: 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)', padding: '1.25rem 1.5rem', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h3 style={{ margin: 0, color: 'white', fontSize: '1.25rem', fontWeight: 700, fontFamily: 'Outfit, sans-serif', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    👨‍👩‍👧 Report Missing Person
+                  </h3>
+                  <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem', color: 'rgba(255, 255, 255, 0.8)' }}>
+                    Broadcast critical details to all relief camps, NGOs, and rescue search teams
+                  </p>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)} 
+                  style={{ background: 'rgba(255, 255, 255, 0.15)', border: 'none', color: 'white', borderRadius: 8, padding: '0.4rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+                >
+                  <X size={20} />
+                </button>
               </div>
 
               <form onSubmit={handleSubmit}>
-                <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div>
-                    <label className="label">Full Name *</label>
+                <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                  
+                  {/* Full Name */}
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontWeight: 600, color: '#1E293B', marginBottom: '0.375rem', display: 'block' }}>
+                      Full Name <span style={{ color: '#EF4444' }}>*</span>
+                    </label>
                     <input
                       type="text"
-                      className="input"
+                      className="form-control"
                       required
                       placeholder="e.g. Rahul Kumar"
                       value={formData.name}
@@ -307,21 +328,26 @@ export default function MissingPersonsPage() {
                     />
                   </div>
 
+                  {/* Age & Gender */}
                   <div className="grid-2" style={{ gap: '1rem' }}>
-                    <div>
-                      <label className="label">Age</label>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontWeight: 600, color: '#1E293B', marginBottom: '0.375rem', display: 'block' }}>
+                        Age
+                      </label>
                       <input
                         type="number"
-                        className="input"
+                        className="form-control"
                         placeholder="e.g. 34"
                         value={formData.age}
                         onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                       />
                     </div>
-                    <div>
-                      <label className="label">Gender</label>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontWeight: 600, color: '#1E293B', marginBottom: '0.375rem', display: 'block' }}>
+                        Gender
+                      </label>
                       <select
-                        className="input"
+                        className="form-control form-select"
                         value={formData.gender}
                         onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                       >
@@ -333,57 +359,60 @@ export default function MissingPersonsPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="label">Last Seen Location *</label>
+                  {/* Last Seen Location */}
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontWeight: 600, color: '#1E293B', marginBottom: '0.375rem', display: 'block' }}>
+                      Last Seen Location <span style={{ color: '#EF4444' }}>*</span>
+                    </label>
                     <input
                       type="text"
-                      className="input"
+                      className="form-control"
                       required
-                      placeholder="e.g. Wayanad Flood Relief Camp Zone 2"
+                      placeholder="e.g. Chooralmala Bridge / Wayanad Flood Zone 2"
                       value={formData.lastSeenLocation}
                       onChange={(e) => setFormData({ ...formData, lastSeenLocation: e.target.value })}
                     />
                   </div>
 
-                  <div>
-                    <label className="label">Photo URL (Optional)</label>
-                    <input
-                      type="url"
-                      className="input"
-                      placeholder="https://example.com/photo.jpg"
-                      value={formData.photoUrl}
-                      onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
-                    />
-                  </div>
 
-                  <div>
-                    <label className="label">Additional Description / Identification Features</label>
+                  {/* Description */}
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontWeight: 600, color: '#1E293B', marginBottom: '0.375rem', display: 'block' }}>
+                      Additional Description / Identification Features
+                    </label>
                     <textarea
-                      className="input"
-                      rows={2}
-                      placeholder="Height, clothes worn, medical conditions..."
+                      className="form-control"
+                      rows={3}
+                      placeholder="Height, clothes worn, scars, medical conditions, languages spoken..."
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     />
                   </div>
 
+                  {/* Contact Details */}
                   <div className="grid-2" style={{ gap: '1rem' }}>
-                    <div>
-                      <label className="label">Contact Person Name *</label>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontWeight: 600, color: '#1E293B', marginBottom: '0.375rem', display: 'block' }}>
+                        Contact Person Name <span style={{ color: '#EF4444' }}>*</span>
+                      </label>
                       <input
                         type="text"
-                        className="input"
+                        className="form-control"
                         required
+                        placeholder="Your name"
                         value={formData.contactName}
                         onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
                       />
                     </div>
-                    <div>
-                      <label className="label">Contact Phone *</label>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ fontWeight: 600, color: '#1E293B', marginBottom: '0.375rem', display: 'block' }}>
+                        Contact Phone <span style={{ color: '#EF4444' }}>*</span>
+                      </label>
                       <input
                         type="tel"
-                        className="input"
+                        className="form-control"
                         required
+                        placeholder="+91 9876543210"
                         value={formData.contactPhone}
                         onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
                       />
@@ -391,10 +420,23 @@ export default function MissingPersonsPage() {
                   </div>
                 </div>
 
-                <div className="card-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-                  <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost">Cancel</button>
-                  <button type="submit" disabled={submitting} className="btn btn-primary">
-                    {submitting ? 'Submitting...' : 'Submit Report'}
+                {/* Modal Footer */}
+                <div style={{ padding: '1rem 1.5rem', background: '#F8FAFC', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowModal(false)} 
+                    className="btn btn-secondary" 
+                    style={{ padding: '0.55rem 1.2rem', fontWeight: 600, borderRadius: 10, borderColor: '#CBD5E1', color: '#475569' }}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={submitting} 
+                    className="btn btn-primary" 
+                    style={{ padding: '0.55rem 1.5rem', fontWeight: 700, borderRadius: 10, background: 'linear-gradient(135deg, #1D4ED8, #2563EB)', boxShadow: '0 4px 14px rgba(37,99,235,0.3)' }}
+                  >
+                    {submitting ? 'Submitting Report...' : '📢 Submit Report'}
                   </button>
                 </div>
               </form>

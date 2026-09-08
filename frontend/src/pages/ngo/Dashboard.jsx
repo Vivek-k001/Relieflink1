@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
-import { campAPI, reliefAPI, inventoryAPI, donationAPI } from '../../api';
+import { campAPI, reliefAPI, inventoryAPI, donationAPI, sosAPI } from '../../api';
 import { useAuthStore } from '../../store/authStore';
-import { MapPin, Package, ClipboardList, Heart, BarChart3, AlertTriangle, Users } from 'lucide-react';
+import { MapPin, Package, ClipboardList, Heart, BarChart3, AlertTriangle, Users, ShieldAlert } from 'lucide-react';
 
 export default function NGODashboard() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ camps: 0, pendingRelief: 0, lowStock: 0, donations: 0 });
+  const [stats, setStats] = useState({ camps: 0, pendingRelief: 0, lowStock: 0, donations: 0, pendingSOS: 0 });
   const [pendingRelief, setPendingRelief] = useState([]);
   const [camps, setCamps] = useState([]);
 
@@ -17,19 +17,29 @@ export default function NGODashboard() {
       campAPI.getAll(),
       reliefAPI.getAll({ status: 'pending' }),
       donationAPI.getAll(),
-    ]).then(([c, r, d]) => {
+      sosAPI.getAll({ status: 'pending' }),
+    ]).then(([c, r, d, s]) => {
       setCamps(c.data.camps || []);
       setPendingRelief(r.data.list?.slice(0, 5) || []);
-      setStats({ camps: c.data.camps?.length || 0, pendingRelief: r.data.list?.length || 0, donations: d.data.donations?.length || 0, lowStock: 0 });
+      setStats({
+        camps: c.data.camps?.length || 0,
+        pendingRelief: r.data.list?.length || 0,
+        donations: d.data.donations?.length || 0,
+        pendingSOS: s.data.sosList?.length || 0,
+        lowStock: 0,
+      });
     }).catch(() => {});
   }, []);
 
   const QUICK_LINKS = [
+    { icon: <AlertTriangle size={20} />, label: 'SOS Triage', to: '/ngo/sos', color: '#DC2626', bg: '#FEF2F2', badge: stats.pendingSOS },
+    { icon: <ShieldAlert size={20} />, label: 'Broadcast Alert', to: '/ngo/alerts', color: '#7C3AED', bg: '#EDE9FE' },
     { icon: <MapPin size={20} />, label: 'My Camps', to: '/ngo/camps', color: '#2563EB', bg: '#EFF6FF' },
-    { icon: <Package size={20} />, label: 'Inventory', to: '/ngo/inventory', color: '#7C3AED', bg: '#EDE9FE' },
+    { icon: <Package size={20} />, label: 'Inventory', to: '/ngo/inventory', color: '#0284C7', bg: '#F0F9FF' },
     { icon: <ClipboardList size={20} />, label: 'Relief Approvals', to: '/ngo/approvals', color: '#D97706', bg: '#FFFBEB', badge: stats.pendingRelief },
-    { icon: <Heart size={20} />, label: 'Donations', to: '/ngo/donations', color: '#DC2626', bg: '#FEF2F2' },
-    { icon: <BarChart3 size={20} />, label: 'Reports', to: '/ngo/reports', color: '#059669', bg: '#ECFDF5' },
+    { icon: <Users size={20} />, label: 'Volunteers Directory', to: '/ngo/volunteers', color: '#059669', bg: '#ECFDF5' },
+    { icon: <Heart size={20} />, label: 'Donations', to: '/ngo/donations', color: '#E11D48', bg: '#FFF1F2' },
+    { icon: <BarChart3 size={20} />, label: 'Reports', to: '/ngo/reports', color: '#475569', bg: '#F1F5F9' },
   ];
 
   return (
@@ -37,20 +47,20 @@ export default function NGODashboard() {
       <Sidebar />
       <main className="main-content with-sidebar">
         <div style={{ background: 'linear-gradient(135deg, #059669, #047857)', padding: '1.75rem 2rem', color: 'white' }}>
-          <h1 style={{ color: 'white', fontFamily: 'Outfit,sans-serif', fontSize: '1.5rem' }}>🏥 NGO Dashboard</h1>
-          <p style={{ color: 'rgba(255,255,255,0.8)' }}>{user?.organizationName || user?.name} — Relief Operations Center</p>
+          <h1 style={{ color: 'white', fontFamily: 'Outfit,sans-serif', fontSize: '1.5rem' }}>🏥 NGO Operations & Command Hub</h1>
+          <p style={{ color: 'rgba(255,255,255,0.8)' }}>{user?.organizationName || user?.name} — Disaster Relief Center</p>
         </div>
 
         <div className="dashboard-main">
           {/* Stats */}
           <div className="grid-4" style={{ marginBottom: '1.5rem' }}>
             {[
-              { val: stats.camps, label: 'Active Camps', color: '#2563EB', bg: '#EFF6FF', icon: '🏕️' },
-              { val: stats.pendingRelief, label: 'Pending Approvals', color: '#D97706', bg: '#FFFBEB', icon: '📋' },
-              { val: stats.lowStock, label: 'Low Stock Items', color: '#DC2626', bg: '#FEF2F2', icon: '⚠️' },
-              { val: stats.donations, label: 'Total Donations', color: '#059669', bg: '#ECFDF5', icon: '💝' },
+              { val: stats.pendingSOS, label: 'Pending SOS', color: '#DC2626', bg: '#FEF2F2', icon: '🆘', to: '/ngo/sos' },
+              { val: stats.camps, label: 'Active Camps', color: '#2563EB', bg: '#EFF6FF', icon: '🏕️', to: '/ngo/camps' },
+              { val: stats.pendingRelief, label: 'Pending Relief', color: '#D97706', bg: '#FFFBEB', icon: '📋', to: '/ngo/approvals' },
+              { val: stats.donations, label: 'Total Donations', color: '#059669', bg: '#ECFDF5', icon: '💝', to: '/ngo/donations' },
             ].map(s => (
-              <div key={s.label} className="stat-card" style={{ borderTop: `3px solid ${s.color}` }}>
+              <div key={s.label} className="stat-card card-clickable" style={{ borderTop: `3px solid ${s.color}`, cursor: 'pointer' }} onClick={() => navigate(s.to)}>
                 <div className="stat-icon" style={{ background: s.bg }}><span style={{ fontSize: '1.375rem' }}>{s.icon}</span></div>
                 <div className="stat-value" style={{ color: s.color }}>{s.val}</div>
                 <div className="stat-label">{s.label}</div>

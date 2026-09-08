@@ -7,6 +7,6 @@ router.get('/', getAlerts); // Public - no auth needed for viewing alerts
 router.get('/imd-proxy', getImdProxy);
 router.get('/:id', getAlertById);
 router.post('/', protect, authorize('admin', 'ngo'), createAlert);
-router.put('/:id/deactivate', protect, authorize('admin'), deactivateAlert);
+router.put('/:id/deactivate', protect, authorize('admin', 'ngo'), deactivateAlert);
 
 module.exports = router;

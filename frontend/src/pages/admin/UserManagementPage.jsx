@@ -40,14 +40,14 @@ export default function UserManagementPage() {
     try { await adminAPI.deleteUser(id); toast.success('User deleted'); fetch(); } catch { toast.error('Failed'); }
   };
 
-  const ROLE_EMOJI = { admin: '⚙️', ngo: '🏥', volunteer: '🦺', affected: '🆘' };
+  const ROLE_EMOJI = { ngo: '🏥', volunteer: '🦺', affected: '🆘' };
 
   return (
     <div className="page-layout">
       <Sidebar />
       <main className="main-content with-sidebar">
         <div style={{ background: 'linear-gradient(135deg, #111827, #1F2937)', padding: '1.75rem 2rem', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div><h1 style={{ color: 'white', fontFamily: 'Outfit,sans-serif', fontSize: '1.5rem' }}>👥 User Management</h1><p style={{ color: 'rgba(255,255,255,0.6)' }}>{total} total users</p></div>
+          <div><h1 style={{ color: 'white', fontFamily: 'Outfit,sans-serif', fontSize: '1.5rem' }}>👥 Volunteers & Personnel Directory</h1><p style={{ color: 'rgba(255,255,255,0.6)' }}>{total} registered personnel & users</p></div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <button 
               onClick={() => navigate(-1)} 
@@ -62,14 +62,13 @@ export default function UserManagementPage() {
           <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
             <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
               <Search size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
-              <input className="form-control" style={{ paddingLeft: '2.5rem' }} placeholder="Search users..." value={search} onChange={e => setSearch(e.target.value)} />
+              <input className="form-control" style={{ paddingLeft: '2.5rem' }} placeholder="Search volunteers & users..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             <select className="form-control form-select" style={{ maxWidth: 160 }} value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
               <option value="">All Roles</option>
-              <option value="affected">Affected</option>
-              <option value="volunteer">Volunteer</option>
-              <option value="ngo">NGO</option>
-              <option value="admin">Admin</option>
+              <option value="volunteer">Volunteers</option>
+              <option value="affected">Affected Users</option>
+              <option value="ngo">NGO Coordinators</option>
             </select>
           </div>
 

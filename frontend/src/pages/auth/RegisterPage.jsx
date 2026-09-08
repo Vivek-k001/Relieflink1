@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { authAPI } from '../../api';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
@@ -10,10 +10,19 @@ const VOLUNTEER_SKILLS = ['First Aid', 'Swimming', 'Driving', 'Medical', 'Cookin
 export default function RegisterPage() {
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const queryRole = searchParams.get('role');
   const [step, setStep] = useState(1);
-  const [role, setRole] = useState('volunteer');
+  const [role, setRole] = useState(queryRole === 'ngo' ? 'ngo' : 'volunteer');
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '', phone: '', skills: [], vehicleType: '', organizationName: '' });
+
+  useEffect(() => {
+    const r = searchParams.get('role');
+    if (r === 'ngo' || r === 'volunteer') {
+      setRole(r);
+    }
+  }, [searchParams]);
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
   const toggleSkill = (s) => set('skills', form.skills.includes(s) ? form.skills.filter(x => x !== s) : [...form.skills, s]);

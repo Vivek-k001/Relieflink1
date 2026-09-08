@@ -32,24 +32,16 @@ const getNavConfig = (t) => ({
   ],
   ngo: [
     { to: '/ngo', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard') },
+    { to: '/ngo/sos', icon: AlertTriangle, label: t('nav.sosManagement', '🆘 SOS Management'), highlight: true },
+    { to: '/ngo/alerts', icon: ShieldAlert, label: t('nav.broadcastAlert', 'Broadcast Alert') },
     { to: '/safety', icon: Radio, label: t('nav.safetyMap', '🟢 Safety Map') },
-    { to: '/missing-persons', icon: UserCheck, label: t('nav.missingPersons', '👨‍👩‍👧 Missing Persons') },
     { to: '/ngo/camps', icon: MapPin, label: t('nav.myCamps', 'My Camps') },
     { to: '/ngo/inventory', icon: Package, label: t('nav.inventory', 'Inventory') },
     { to: '/ngo/approvals', icon: ClipboardList, label: t('nav.reliefApprovals', 'Relief Approvals') },
+    { to: '/ngo/volunteers', icon: Users, label: t('nav.volunteers', 'Volunteers Directory') },
+    { to: '/missing-persons', icon: UserCheck, label: t('nav.missingPersons', '👨‍👩‍👧 Missing Persons') },
     { to: '/ngo/donations', icon: Heart, label: t('nav.donations', 'Donations') },
     { to: '/ngo/reports', icon: BarChart3, label: t('nav.reports', 'Reports') },
-  ],
-  admin: [
-    { to: '/admin', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard') },
-    { to: '/safety', icon: Radio, label: t('nav.safetyMap', '🟢 Safety Map') },
-    { to: '/missing-persons', icon: UserCheck, label: t('nav.missingPersons', '👨‍👩‍👧 Missing Persons') },
-    { to: '/admin/users', icon: Users, label: t('nav.users', 'Users') },
-    { to: '/admin/alerts', icon: ShieldAlert, label: t('nav.broadcastAlert', 'Broadcast Alert') },
-    { to: '/admin/sos', icon: AlertTriangle, label: t('nav.sosManagement', 'SOS Management') },
-    { to: '/ngo/camps', icon: MapPin, label: t('nav.camps', 'Camps') },
-    { to: '/ngo/approvals', icon: ClipboardList, label: t('nav.requestRelief', 'Relief Requests') },
-    { to: '/admin/reports', icon: BarChart3, label: t('nav.systemReports', 'System Reports') },
   ],
 });
 

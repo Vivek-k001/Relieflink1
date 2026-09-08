@@ -16,7 +16,7 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
-      onSuccess();
+      onSuccess({ method });
     }, 2000);
   };
 
@@ -99,7 +99,19 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: 1 }}>
                   <div>
                     <div style={{ fontSize: '0.65rem', marginBottom: 4 }}>Cardholder</div>
-                    <div style={{ color: 'white', fontSize: '0.95rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 180 }}>{cardName || 'YOUR NAME'}</div>
+                    <div style={{ 
+                      color: 'white', 
+                      fontSize: cardName.length > 20 ? '0.72rem' : cardName.length > 14 ? '0.82rem' : '0.95rem', 
+                      fontWeight: 600, 
+                      whiteSpace: 'nowrap', 
+                      overflow: 'hidden', 
+                      textOverflow: 'ellipsis', 
+                      maxWidth: 220,
+                      letterSpacing: cardName.length > 16 ? '0.5px' : '1px',
+                      transition: 'font-size 0.2s ease'
+                    }}>
+                      {cardName || 'YOUR NAME'}
+                    </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '0.65rem', marginBottom: 4 }}>Expires</div>
@@ -127,8 +139,9 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem', fontWeight: 700 }}>Cardholder Name</label>
                 <input
                   type="text"
+                  maxLength={26}
                   value={cardName}
-                  onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                  onChange={(e) => setCardName(e.target.value.replace(/[^a-zA-Z\s]/g, '').toUpperCase())}
                   placeholder="JOHN DOE"
                   style={{ width: '100%', background: '#F8FAFC', border: '2px solid #E2E8F0', borderRadius: 10, padding: '1rem', color: '#0F172A', outline: 'none', fontSize: '1.05rem', transition: 'border-color 0.2s', fontWeight: 600 }}
                   onFocus={e => e.target.style.borderColor = '#2563EB'}
@@ -223,7 +236,7 @@ export default function MockPaymentGateway({ amount, onSuccess }) {
                 </div>
               </div>
             </div>
-            <p style={{ fontSize: '0.95rem', color: '#64748B', marginTop: '1.5rem', fontWeight: 500 }}>Scan with any UPI app (GPay, PhonePe, Paytm)</p>
+            <p style={{ fontSize: '0.95rem', color: '#64748B', marginTop: '1.5rem', fontWeight: 500 }}>Scan with any UPI app (BHIM, PhonePe, Paytm)</p>
           </div>
         </div>
       </div>

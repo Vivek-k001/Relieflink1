@@ -15,24 +15,10 @@ const seedAll = async () => {
     await connectDB();
     console.log('🌱 Seeding database with ReliefLink demo data...');
 
-    // 1. Seed Super Admin
-    let admin = await User.findOne({ email: 'admin@gmail.com' });
-    if (!admin) {
-      admin = new User({
-        name: 'Super Admin',
-        email: 'admin@gmail.com',
-        password: 'admin@123',
-        role: 'admin',
-        isVerified: true,
-        isActive: true,
-      });
-      await admin.save();
-    } else {
-      admin.password = 'admin@123';
-      await admin.save();
-    }
+    // Clean up any legacy admin accounts to ensure strict 3-role Scrum compliance
+    await User.deleteMany({ role: 'admin' });
 
-    // 2. Seed NGO User
+    // 1. Seed NGO User (Primary Administrative & Operations Hub)
     let ngo = await User.findOne({ email: 'ngo@gmail.com' });
     if (!ngo) {
       ngo = new User({
@@ -167,13 +153,12 @@ const seedAll = async () => {
 
     console.log('✅ ReliefLink Database Seeding Completed Successfully!');
     console.log(`
-  ═════════════════════════════════════════════════════
-   Credentials for Demo Accounts:
-   - 🛡️ Admin:     admin@gmail.com     / admin@123
-   - 🏢 NGO:       ngo@gmail.com       / ngo@123
-   - ⛑️ Volunteer: volunteer@gmail.com / volunteer@123
-   - 📱 Affected:  Phone: 9876543210   / OTP: 123456
-  ═════════════════════════════════════════════════════
+  ═════════════════════════════════════════════════════════════
+   Credentials for Demo Accounts (3 Official Scrum Modules):
+   - 🏢 NGO / Relief Center:  ngo@gmail.com       / ngo@123
+   - ⛑️ Volunteer:            volunteer@gmail.com / volunteer@123
+   - 📱 Affected Citizen:     Phone: 9876543210   / OTP: 123456
+  ═════════════════════════════════════════════════════════════
     `);
 
     process.exit(0);

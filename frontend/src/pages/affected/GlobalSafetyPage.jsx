@@ -11,7 +11,7 @@ import { ArrowLeft, CheckCircle, Navigation, Plus, Phone, RefreshCw, X, Clock, M
 export default function GlobalSafetyPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { lat, lng, getLocation } = useLocationStore();
+  const { lat, lng, source, getLocation } = useLocationStore();
   const [broadcasts, setBroadcasts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPerson, setSelectedPerson] = useState(null);
@@ -22,8 +22,8 @@ export default function GlobalSafetyPage() {
   const [showConfirmPinModal, setShowConfirmPinModal] = useState(false);
 
   // Form state
-  const [formName, setFormName] = useState('');
-  const [formPhone, setFormPhone] = useState('');
+  const [formName, setFormName] = useState(user?.name || '');
+  const [formPhone, setFormPhone] = useState(user?.phone ? user.phone.replace(/\D/g, '').slice(-10) : '');
   const [formUpdateText, setFormUpdateText] = useState('');
   const [posting, setPosting] = useState(false);
 
@@ -34,6 +34,13 @@ export default function GlobalSafetyPage() {
     getLocation();
     fetchBroadcasts();
   }, []);
+
+  useEffect(() => {
+    if (user?.name && !formName) setFormName(user.name);
+    if (user?.phone && !formPhone) {
+      setFormPhone(user.phone.replace(/\D/g, '').slice(-10));
+    }
+  }, [user]);
 
   const fetchBroadcasts = async () => {
     setLoading(true);
@@ -57,6 +64,10 @@ export default function GlobalSafetyPage() {
   };
 
   const handleConfirmPinLocation = () => {
+    if (user?.name && !formName) setFormName(user.name);
+    if (user?.phone && !formPhone) {
+      setFormPhone(user.phone.replace(/\D/g, '').slice(-10));
+    }
     setShowConfirmPinModal(false);
     setShowPostModal(true);
   };
@@ -96,6 +107,7 @@ export default function GlobalSafetyPage() {
 
       toast.success('🟢 Safety status & update posted globally!');
       setShowPostModal(false);
+      setDroppedPin(null);
       setFormUpdateText('');
       await fetchBroadcasts();
 
@@ -174,7 +186,13 @@ export default function GlobalSafetyPage() {
             </button>
             {user?.role === 'affected' && (
               <button 
-                onClick={() => setShowPostModal(true)}
+                onClick={() => {
+                  if (user?.name && !formName) setFormName(user.name);
+                  if (user?.phone && !formPhone) {
+                    setFormPhone(user.phone.replace(/\D/g, '').slice(-10));
+                  }
+                  setShowPostModal(true);
+                }}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#22C55E', color: 'white', padding: '0.55rem 1.1rem', borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(34,197,94,0.4)' }}>
                 <Plus size={16} /> Mark Myself Safe / Add Update
               </button>
@@ -200,6 +218,19 @@ export default function GlobalSafetyPage() {
                 height={560} 
                 onSelectBroadcast={setSelectedPerson} 
               />
+              {droppedPin && (
+                <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.35)', borderRadius: 12, padding: '0.55rem 1rem', fontSize: '0.8125rem', color: '#FCD34D' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+                    <MapPin size={15} /> Active Dropped Pin: {droppedPin.lat.toFixed(4)}°, {droppedPin.lng.toFixed(4)}°
+                  </span>
+                  <button 
+                    onClick={() => setDroppedPin(null)} 
+                    style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)', color: '#FCA5A5', borderRadius: 8, padding: '0.25rem 0.7rem', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                  >
+                    <X size={13} /> Remove Pin
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Right: Selected Person Details & Timeline Drawer */}
@@ -313,7 +344,13 @@ export default function GlobalSafetyPage() {
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
-                <button onClick={() => setShowConfirmPinModal(false)} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: 10, padding: '0.65rem 1.1rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}>
+                <button 
+                  onClick={() => {
+                    setDroppedPin(null);
+                    setShowConfirmPinModal(false);
+                  }} 
+                  style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: 10, padding: '0.65rem 1.1rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem' }}
+                >
                   ❌ Change Location
                 </button>
                 <button onClick={handleConfirmPinLocation} style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)', color: 'white', border: 'none', borderRadius: 10, padding: '0.65rem 1.25rem', fontWeight: 800, cursor: 'pointer', fontSize: '0.875rem', boxShadow: '0 4px 14px rgba(34,197,94,0.4)' }}>
@@ -328,7 +365,13 @@ export default function GlobalSafetyPage() {
         {showPostModal && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
             <div style={{ width: '100%', maxWidth: 480, background: '#0F172A', border: '1.5px solid #22C55E', borderRadius: 20, padding: '2rem', color: 'white', position: 'relative', boxShadow: '0 25px 60px rgba(34,197,94,0.25)' }}>
-              <button onClick={() => setShowPostModal(false)} style={{ position: 'absolute', right: '1.25rem', top: '1.25rem', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 32, height: 32, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <button 
+                onClick={() => {
+                  setShowPostModal(false);
+                  setDroppedPin(null);
+                }} 
+                style={{ position: 'absolute', right: '1.25rem', top: '1.25rem', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: 32, height: 32, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+              >
                 <X size={18} />
               </button>
               
@@ -344,7 +387,7 @@ export default function GlobalSafetyPage() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 700, color: '#CBD5E1', marginBottom: 4 }}>Phone Number (Optional)</label>
-                  <input type="tel" placeholder="9876543210" value={formPhone} onChange={e => setFormPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} onFocus={e => e.target.select()} style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(15,23,42,0.9)', color: 'white', fontSize: '0.875rem' }} />
+                  <input type="tel" placeholder="e.g. 9876543210" value={formPhone} onChange={e => setFormPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} onFocus={e => e.target.select()} style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(15,23,42,0.9)', color: 'white', fontSize: '0.875rem' }} />
                 </div>
 
                 <div>
@@ -353,7 +396,7 @@ export default function GlobalSafetyPage() {
                 </div>
 
                 <div style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 10, padding: '0.6rem 0.85rem', fontSize: '0.75rem', color: '#FCD34D', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <MapPin size={14} /> Location: {droppedPin ? `Lat ${droppedPin.lat.toFixed(4)}°, Lng ${droppedPin.lng.toFixed(4)}° (Dropped Pin)` : lat ? `Lat ${lat.toFixed(4)}°, Lng ${lng.toFixed(4)}° (GPS)` : 'Click on map to drop pin'}
+                  <MapPin size={14} /> Location: {droppedPin ? `Lat ${droppedPin.lat.toFixed(4)}°, Lng ${droppedPin.lng.toFixed(4)}° (Dropped Pin)` : lat ? `Lat ${lat.toFixed(4)}°, Lng ${lng.toFixed(4)}° (${source === 'gps' ? 'GPS' : 'Mobile Tower / Network'})` : 'Click on map to drop pin'}
                 </div>
 
                 <button type="submit" disabled={posting} style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)', color: 'white', padding: '0.8rem', borderRadius: 12, border: 'none', fontWeight: 800, fontSize: '0.9375rem', cursor: 'pointer', boxShadow: '0 4px 14px rgba(34,197,94,0.4)' }}>

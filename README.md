@@ -86,14 +86,13 @@ Haversine distance calculations, camp urgency ratios, payment gateway processing
 
 ---
 
-## 👥 Role-Based Capabilities
+## 👥 Role-Based Capabilities (3 Official Scrum Modules)
 
 | Role | Access Method | Core Capabilities |
 | :--- | :--- | :--- |
-| **Affected Citizens** | Phone OTP (Instant) | • 1-Click GPS SOS Emergency Broadcast<br>• Humanitarian Aid Request (Food, Meds, Water)<br>• Interactive Relief Camp Locator<br>• Real-time Safe Status Pin-Drop on Map<br>• Localized Weather & Disaster Radar |
+| **Affected Citizens (User)** | Phone OTP (Instant) | • 1-Click GPS SOS Emergency Broadcast<br>• Humanitarian Aid Request (Food, Meds, Water)<br>• Interactive Relief Camp Locator<br>• Real-time Safe Status Pin-Drop on Map<br>• Localized Weather & Disaster Radar |
 | **Volunteers** | Email & Password (JWT) | • Real-Time SOS Task Radar (Nearby Incidents)<br>• Turn-by-Turn GPS Rescue Navigation<br>• Aid Delivery Status Management<br>• Volunteer Skill Profile & Deployment History |
-| **NGO Relief Centers** | Email & Password (JWT) | • Relief Camp Capacity & Shelter Occupancy Tracking<br>• Centralized Inventory Control (Auto-deductions)<br>• Review & Approval of Citizen Aid Requests<br>• Directed Geo-Proximity Donation Receipts |
-| **District Admin** | Email & Password (JWT) | • High-Priority Disaster Broadcast System<br>• SOS Operations Triage & Resolution Logs<br>• User & Personnel Management<br>• Cross-District Relief Analytics & PDF Export |
+| **NGO Relief Centers** | Email & Password (JWT) | • Centralized Incident & SOS Operations Triage<br>• High-Priority Regional Disaster Broadcasts<br>• Relief Camp Capacity & Shelter Occupancy Tracking<br>• Centralized Inventory Control (Auto-deductions)<br>• Review & Approval of Citizen Aid Requests<br>• Volunteer Directory & Skill Registry<br>• Directed Geo-Proximity Donation Receipts |
 
 ---
 
