@@ -98,7 +98,7 @@ function HeatmapLayer({ points }) {
   const map = useMap();
   useEffect(() => {
     if (!points || points.length === 0) return;
-    
+
     // extract [lat, lng, intensity]
     const heatData = points.map(p => {
       const [lng, lat] = p.location?.coordinates || [0, 0];
@@ -120,17 +120,17 @@ function HeatmapLayer({ points }) {
   return null;
 }
 
-export default function MapView({ 
-  height = '400px', 
-  camps = [], 
-  sosRequests = [], 
-  userLat, 
-  userLng, 
+export default function MapView({
+  height = '400px',
+  camps = [],
+  sosRequests = [],
+  userLat,
+  userLng,
   focusLat,
   focusLng,
   highlightCampId = null,
   autoFit = false,
-  onCampClick, 
+  onCampClick,
   onSosClick,
   onMapClick,
   showRadius = false,
@@ -170,11 +170,11 @@ export default function MapView({
 
         {/* Auto fit bounds when requested (e.g. In donation modal to frame user & destination camp) */}
         {autoFit && (
-          <AutoFitBounds 
-            userLat={userLat} 
-            userLng={userLng} 
-            highlightCampId={highlightCampId} 
-            camps={camps} 
+          <AutoFitBounds
+            userLat={userLat}
+            userLng={userLng}
+            highlightCampId={highlightCampId}
+            camps={camps}
           />
         )}
 
@@ -258,7 +258,7 @@ export default function MapView({
             </Marker>
           );
         })}
-        
+
         {sosRequests && sosRequests.length > 0 && <HeatmapLayer points={sosRequests} />}
       </MapContainer>
     </div>
