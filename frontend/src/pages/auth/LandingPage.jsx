@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import './LandingPage.css';
 
-const EarthGlobe = React.lazy(() => import('../../components/globe/EarthGlobe'));
 const InteractiveMap = React.lazy(() => import('../../components/globe/InteractiveMap'));
 
 const HELP_DIRECTORIES = [
@@ -150,9 +149,6 @@ export default function LandingPage() {
   const [helplineSearch, setHelplineSearch] = useState('');
   const [activeGuide, setActiveGuide] = useState(SURVIVAL_GUIDES[0]);
   const [geoToast, setGeoToast] = useState(null);
-  const [mapView, setMapView] = useState(0); // 0 = Globe, 1 = Satellite Map
-  const [donateNavHovered, setDonateNavHovered] = useState(false);
-  const [donateHeroHovered, setDonateHeroHovered] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -360,15 +356,13 @@ export default function LandingPage() {
 
             <button 
               onClick={() => navigate('/donate')} 
-              onMouseEnter={() => setDonateNavHovered(true)}
-              onMouseLeave={() => setDonateNavHovered(false)}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(16,185,129,0.4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 2px 10px rgba(16,185,129,0.25)'; }}
               style={{ 
                 display: 'inline-flex', 
                 alignItems: 'center', 
                 gap: '0.4rem', 
-                background: donateNavHovered 
-                  ? 'linear-gradient(135deg, #059669, #047857)' 
-                  : 'linear-gradient(135deg, #10B981, #059669)', 
+                background: 'linear-gradient(135deg, #10B981, #059669)', 
                 border: 'none', 
                 borderRadius: 10, 
                 color: 'white', 
@@ -377,30 +371,14 @@ export default function LandingPage() {
                 fontSize: '0.82rem', 
                 fontWeight: 700, 
                 cursor: 'pointer', 
-                boxShadow: donateNavHovered 
-                  ? '0 4px 16px rgba(16,185,129,0.5)' 
-                  : '0 2px 10px rgba(16,185,129,0.25)', 
+                boxShadow: '0 2px 10px rgba(16,185,129,0.25)', 
                 whiteSpace: 'nowrap', 
-                flexShrink: 0, 
-                transform: donateNavHovered ? 'translateY(-1px)' : 'none', 
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)' 
+                flexShrink: 0,
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease'
               }}
             >
-              <Heart 
-                size={15} 
-                color="white" 
-                fill={donateNavHovered ? "white" : "none"} 
-                style={{ 
-                  transition: 'all 0.25s ease',
-                  transform: donateNavHovered ? 'scale(1.2)' : 'scale(1)' 
-                }} 
-              /> 
+              <Heart size={15} color="white" fill="white" /> 
               <span>Donate Now</span>
-              {donateNavHovered && (
-                <span style={{ display: 'inline-block', fontSize: '0.9rem', animation: 'popIn 0.25s ease-out, heartBeat 0.8s infinite alternate ease-in-out', lineHeight: 1 }}>
-                  💖
-                </span>
-              )}
             </button>
 
             <button 
@@ -607,46 +585,26 @@ export default function LandingPage() {
 
                 <button
                   onClick={() => navigate('/donate')}
-                  onMouseEnter={() => setDonateHeroHovered(true)}
-                  onMouseLeave={() => setDonateHeroHovered(false)}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 35px rgba(16,185,129,0.45)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 8px 30px rgba(16,185,129,0.3)'; }}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '0.65rem',
-                    background: donateHeroHovered 
-                      ? 'linear-gradient(135deg, #059669, #047857)' 
-                      : 'linear-gradient(135deg, #10B981, #059669)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.65rem',
+                    background: 'linear-gradient(135deg, #10B981, #059669)', 
                     color: 'white',
-                    padding: '0.9rem 1.8rem', borderRadius: 14,
-                    fontSize: '1rem', fontWeight: 800, cursor: 'pointer',
+                    padding: '0.9rem 1.8rem', 
+                    borderRadius: 14,
+                    fontSize: '1rem', 
+                    fontWeight: 800, 
+                    cursor: 'pointer',
                     border: 'none', 
-                    boxShadow: donateHeroHovered 
-                      ? '0 10px 35px rgba(16,185,129,0.5)' 
-                      : '0 8px 30px rgba(16,185,129,0.3)', 
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    transform: donateHeroHovered ? 'translateY(-2px)' : 'none'
+                    boxShadow: '0 8px 30px rgba(16,185,129,0.3)',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease'
                   }}
                 >
-                  <Heart 
-                    size={20} 
-                    color="white" 
-                    fill={donateHeroHovered ? "white" : "none"} 
-                    style={{ 
-                      transition: 'all 0.25s ease',
-                      transform: donateHeroHovered ? 'scale(1.2)' : 'scale(1)' 
-                    }} 
-                  /> 
+                  <Heart size={20} color="white" fill="white" /> 
                   <span>Donate Now</span>
-                  {donateHeroHovered && (
-                    <span 
-                      style={{ 
-                        display: 'inline-block', 
-                        fontSize: '1.2rem',
-                        animation: 'popIn 0.25s ease-out, heartBeat 0.8s infinite alternate ease-in-out',
-                        lineHeight: 1
-                      }}
-                    >
-                      💖
-                    </span>
-                  )}
                 </button>
               </div>
 
@@ -664,40 +622,25 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right: Clean Fixed 3D Earth Container without Floating Overflows */}
+            {/* Right: Clean Satellite Map Hero Container */}
             <div className="landing-map-wrapper">
               <div className="landing-map-card">
-                {/* Map Toggle Controls */}
-                <div style={{ position: 'absolute', top: '1.25rem', left: '1.25rem', zIndex: 1000, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <div style={{ background: 'rgba(15,23,42,0.85)', padding: '0.3rem 0.6rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 700, color: '#94A3B8', backdropFilter: 'blur(4px)' }}>
-                    {mapView === 0 ? '3D Globe' : 'Satellite Map'}
+                <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 1000, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <div style={{ background: 'rgba(15,23,42,0.85)', padding: '0.35rem 0.75rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 700, color: '#38BDF8', backdropFilter: 'blur(6px)', border: '1px solid rgba(56,189,248,0.3)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', display: 'inline-block', boxShadow: '0 0 8px #10B981' }}></span>
+                    Live Satellite Relief Radar
                   </div>
-                  <button
-                    onClick={() => setMapView(0)}
-                    style={{ background: mapView === 0 ? 'rgba(37,99,235,0.5)' : 'rgba(15,23,42,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '0.4rem', color: 'white', cursor: 'pointer', display: 'flex', backdropFilter: 'blur(4px)' }}>
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button
-                    onClick={() => setMapView(1)}
-                    style={{ background: mapView === 1 ? 'rgba(37,99,235,0.5)' : 'rgba(15,23,42,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '0.4rem', color: 'white', cursor: 'pointer', display: 'flex', backdropFilter: 'blur(4px)' }}>
-                    <ChevronRight size={16} />
-                  </button>
                 </div>
 
                 <Suspense fallback={
                   <div style={{ height: 360, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.5)', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div style={{ fontSize: '3rem', animation: 'float 2s ease-in-out infinite' }}>🌍</div>
-                    <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Loading Map...</span>
+                    <div style={{ fontSize: '2.5rem' }}>🛰️</div>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Loading Satellite Radar...</span>
                   </div>
                 }>
-                  {mapView === 0 ? (
-                    <EarthGlobe userLat={lat} userLng={lng} height={360} />
-                  ) : (
-                    <div style={{ position: 'relative' }}>
-
-                      <InteractiveMap lat={lat} lng={lng} height={360} camps={camps} onRefresh={handleTriggerGeo} />
-                    </div>
-                  )}
+                  <div style={{ position: 'relative' }}>
+                    <InteractiveMap lat={lat} lng={lng} height={360} camps={camps} onRefresh={handleTriggerGeo} />
+                  </div>
                 </Suspense>
               </div>
             </div>

@@ -123,6 +123,7 @@ export default function LoginPage() {
   const [isNewUser, setIsNewUser] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
+
   const [otpLoading, setOtpLoading] = useState(false);
 
   // Responder Email & Password State
@@ -167,7 +168,7 @@ export default function LoginPage() {
       } else {
         setName('');
       }
-      toast.success(`OTP sent to ${fullPhone}! Check terminal.`);
+      toast.success(`OTP sent to ${fullPhone}`);
     } catch (e) {
       toast.error(e.response?.data?.message || 'Failed to send OTP');
     } finally {
@@ -248,7 +249,7 @@ export default function LoginPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1.5rem 1rem' }}>
-      
+
       <div style={{ width: '100%', maxWidth: 1060, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <button
           onClick={() => navigate('/')}
@@ -284,7 +285,7 @@ export default function LoginPage() {
 
       <div className="login-2sided-grid" style={{ width: '100%', maxWidth: 1060, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.75rem', alignItems: 'stretch' }}>
 
-        <div 
+        <div
           className={`login-card citizen-side ${mobileTab === 'responder' ? 'hide-on-mobile' : ''}`}
           style={{ background: '#FFFFFF', borderRadius: 20, boxShadow: '0 25px 60px rgba(0,0,0,0.3)', overflow: 'hidden', display: 'flex', flexDirection: 'column', border: '2px solid rgba(239, 68, 68, 0.3)' }}
         >
@@ -409,6 +410,7 @@ export default function LoginPage() {
                     Enter 6-Digit OTP sent to {getFullPhoneNumber()}
                   </label>
                   <OtpPinInput value={otp} onChange={setOtp} onEnter={() => handleVerifyOTP()} />
+
                 </div>
 
                 <button
@@ -435,7 +437,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div 
+        <div
           className={`login-card responder-side ${mobileTab === 'citizen' ? 'hide-on-mobile' : ''}`}
           style={{ background: '#FFFFFF', borderRadius: 20, boxShadow: '0 25px 60px rgba(0,0,0,0.3)', overflow: 'hidden', display: 'flex', flexDirection: 'column', border: '2px solid rgba(37, 99, 235, 0.3)' }}
         >

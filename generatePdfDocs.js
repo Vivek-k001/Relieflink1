@@ -1,0 +1,485 @@
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ReliefLink - Academic Viva & Project Documentation</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    color: #1E293B;
+    line-height: 1.6;
+    font-size: 10.5pt;
+    margin: 0;
+    padding: 0;
+  }
+  .header-cover {
+    border-bottom: 3px solid #2563EB;
+    padding-bottom: 12px;
+    margin-bottom: 24px;
+  }
+  .header-cover h1 {
+    font-size: 24pt;
+    color: #0F172A;
+    margin: 0 0 4px 0;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .header-cover .subtitle {
+    font-size: 12pt;
+    color: #2563EB;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+  }
+  .meta-grid {
+    display: flex;
+    gap: 20px;
+    font-size: 9pt;
+    color: #64748B;
+  }
+  h2 {
+    font-size: 14pt;
+    color: #1E3A8A;
+    border-left: 4px solid #2563EB;
+    padding-left: 8px;
+    margin-top: 24px;
+    margin-bottom: 10px;
+    font-weight: 700;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11.5pt;
+    color: #0F172A;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    font-weight: 600;
+    page-break-after: avoid;
+  }
+  p {
+    margin: 0 0 10px 0;
+    text-align: justify;
+  }
+  ul, ol {
+    margin: 0 0 12px 0;
+    padding-left: 20px;
+  }
+  li {
+    margin-bottom: 4px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 18px 0;
+    font-size: 9pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #CBD5E1;
+    padding: 7px 10px;
+    text-align: left;
+  }
+  th {
+    background-color: #F1F5F9;
+    color: #0F172A;
+    font-weight: 700;
+  }
+  tr:nth-child(even) td {
+    background-color: #F8FAFC;
+  }
+  .code-box {
+    background-color: #0F172A;
+    color: #E2E8F0;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Courier New', Courier, monospace;
+    font-size: 8.5pt;
+    line-height: 1.45;
+    margin: 10px 0 14px 0;
+    page-break-inside: avoid;
+    overflow-x: auto;
+  }
+  .highlight-badge {
+    display: inline-block;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border: 1px solid #BFDBFE;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 8.5pt;
+  }
+  .flow-card {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    page-break-inside: avoid;
+  }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .step-num {
+    background: #2563EB;
+    color: white;
+    font-weight: 700;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8pt;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-cover">
+  <h1>ReliefLink</h1>
+  <div class="subtitle">Next-Gen Geospatial Disaster Management & Humanitarian Relief Ecosystem</div>
+  <div class="meta-grid">
+    <div><strong>Project Scope:</strong> Full-Stack Academic Defense & Viva Architecture</div>
+    <div><strong>Architecture:</strong> MERN + Leaflet GIS + WebSockets</div>
+    <div><strong>Date:</strong> 2026</div>
+  </div>
+</div>
+
+<!-- SECTION 1 -->
+<h2>1. Project Introduction & Motivation</h2>
+<p>
+  <strong>ReliefLink</strong> is an automated, real-time humanitarian coordination platform engineered to eliminate communication breakdown and logistical failures during climate crises and disaster emergencies (such as floods, cyclones, landslides, and earthquakes).
+</p>
+
+<h3>1.1 Main Motive & Core Objectives</h3>
+<ul>
+  <li><strong>Immediate Rescue Triage:</strong> Provide affected individuals with a zero-friction, passwordless SOS distress lifeline backed by precise GPS coordinates.</li>
+  <li><strong>Intelligent Supply Allocation:</strong> Eliminate blind donations by dynamically routing donor aid to the highest-urgency, overcrowded relief camps using geographical distance and capacity thresholds.</li>
+  <li><strong>Unified Emergency Synergy:</strong> Connect four critical stakeholders (Affected Citizens, Relief Camps/NGOs, Field Volunteers, and Government Relief Authorities) into a single synchronized operational map.</li>
+  <li><strong>Real-time Situational Transparency:</strong> Broadcast geo-targeted weather warnings, evacuation camps, and safety radars directly from authoritative meteorological feeds (IMD).</li>
+</ul>
+
+<h3>1.2 Why It Differs (Novelty & Competitive Edge)</h3>
+<p>
+  Unlike generic disaster portals or unstructured social media SOS posts (e.g., Twitter hashtags or WhatsApp broadcasts), ReliefLink introduces:
+</p>
+<ol>
+  <li><strong>Intelligent Haversine Camp Routing:</strong> Rather than dumping goods at popular centers, donor items are scored using a weighted algorithm: <code>Urgency = (Occupancy / Capacity) × 100 − (Distance × 0.15)</code>.</li>
+  <li><strong>Interactive Satellite GIS Radar:</strong> High-resolution Esri Satellite imagery displays true street layouts, relief camp markers, and live radius indicators, replacing confusing 3D abstractions with battle-tested mapping.</li>
+  <li><strong>Zero-Password Cellular Access:</strong> Evacuees in shock cannot remember complex credentials; one-tap OTP authentication ensures immediate SOS dispatch within 5 seconds.</li>
+  <li><strong>Real-Time WebSocket Distress Broadcasts:</strong> SOS beacons and emergency notices instantly trigger alert sirens across connected responder dashboards without manual page reloads.</li>
+</ol>
+
+<!-- SECTION 2 -->
+<h2>2. Existing System vs. Proposed System</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 25%;">Criteria</th>
+      <th style="width: 37%;">Existing System (Manual / Fragmented)</th>
+      <th style="width: 38%;">Proposed System (ReliefLink)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>SOS Reporting</strong></td>
+      <td>Unverified phone calls to clogged helplines; unorganized social media tweets without coordinates.</td>
+      <td>One-tap OTP login with automated high-accuracy GPS capture and instant distress beaconing.</td>
+    </tr>
+    <tr>
+      <td><strong>Camp Discovery</strong></td>
+      <td>Paper announcements, word-of-mouth, or visiting multiple camps only to find them completely full.</td>
+      <td>Live Satellite Map displaying active camps, real-time occupancy percentages, and driving distances.</td>
+    </tr>
+    <tr>
+      <td><strong>Donation Matching</strong></td>
+      <td>Bottlenecks: one camp receives 10,000 water bottles while another camp lacks basic medicine.</td>
+      <td>Smart algorithmic routing that assigns donations to the highest-urgency camp within proximity.</td>
+    </tr>
+    <tr>
+      <td><strong>Volunteer Dispatch</strong></td>
+      <td>Uncoordinated crowds arrive on-site; volunteers lack verified mission locations and task statuses.</td>
+      <td>Role-based task management dashboard with skill verification, live status toggles, and route maps.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- SECTION 3 -->
+<h2>3. Key Problems Solved</h2>
+<ul>
+  <li><strong>Helpline Congestion:</strong> Automates distress intake into structured, priority-ranked database records.</li>
+  <li><strong>Geographic Ambiguity:</strong> Replaces descriptive landmarks ("near the big banyan tree") with exact <code>[latitude, longitude]</code> coordinates.</li>
+  <li><strong>Aid Wastage & Imbalance:</strong> Directs public donations to verified NGO camps suffering inventory deficits.</li>
+  <li><strong>Identity & Safety in Evacuation:</strong> "Global Safety Radar" allows citizens to drop safe location pins so separated family members can verify their wellbeing.</li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- SECTION 4 -->
+<h2>4. Technology Stack & External Services</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Layer</th>
+      <th>Technologies / Libraries</th>
+      <th>Role & Responsibility</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Frontend Client</strong></td>
+      <td>React 18, Vite, React Router DOM, Zustand, Lucide React</td>
+      <td>High-speed single page application (SPA), responsive UI, role-based dashboards, audio sirens.</td>
+    </tr>
+    <tr>
+      <td><strong>Geospatial & Mapping</strong></td>
+      <td>Leaflet, React-Leaflet, Esri World Imagery Tiles</td>
+      <td>Satellite terrain rendering, interactive pin dropping, cluster radius visualization, camp markers.</td>
+    </tr>
+    <tr>
+      <td><strong>Backend API</strong></td>
+      <td>Node.js, Express.js</td>
+      <td>RESTful routing, JWT authentication, validation middleware, HTTP proxying for government bulletins.</td>
+    </tr>
+    <tr>
+      <td><strong>Real-Time Engine</strong></td>
+      <td>Socket.io (WebSockets)</td>
+      <td>Bidirectional event streaming for live SOS alerts, broadcasts, and automated dashboard refreshes.</td>
+    </tr>
+    <tr>
+      <td><strong>Database & Storage</strong></td>
+      <td>MongoDB Atlas, Mongoose ODM</td>
+      <td>Document store featuring <code>2dsphere</code> indexing for geospatial spherical distance queries.</td>
+    </tr>
+    <tr>
+      <td><strong>Security & Auth</strong></td>
+      <td>JSON Web Tokens (JWT), Bcrypt.js</td>
+      <td>Stateless authorization headers, salted one-way password hashing for responders, temporary OTP store.</td>
+    </tr>
+    <tr>
+      <td><strong>External Services</strong></td>
+      <td>HTML5 Geolocation API, IMD Weather Proxy, Mock Gateway</td>
+      <td>Real-time device GPS, official Indian Meteorological Dept bulletins, mock UPI payment confirmation.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- SECTION 5 -->
+<h2>5. Role-Wise Login & Signup Architecture</h2>
+
+<p>ReliefLink enforces a secure dual-authentication architecture: <strong>Passwordless OTP</strong> for affected victims in high-stress scenarios, and <strong>Credentialed JWT</strong> for operational responders.</p>
+
+<div class="flow-card">
+  <h3>Role 1: Citizen / Affected Evacuee (Phone + OTP Flow)</h3>
+  <div class="flow-step">
+    <div class="step-num">1</div>
+    <div><strong>Input:</strong> User inputs mobile number (e.g. <code>+91 9876543210</code>) on the login card.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">2</div>
+    <div><strong>Frontend Check:</strong> Validates presence of digits and country dial-code formatting.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">3</div>
+    <div><strong>API Dispatch:</strong> Calls <code>POST /api/auth/send-otp</code> with <code>{ phone }</code>.</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">4</div>
+    <div><strong>Backend Verification & Generation:</strong>
+      <ul>
+        <li>Database query checks if the phone exists: <code>User.findOne({ phone })</code>.</li>
+        <li>Generates a cryptographically random 6-digit OTP (e.g., <code>Math.floor(100000 + Math.random() * 900000)</code>).</li>
+        <li>Calculates expiration: <code>otpExpires = Date.now() + 10 * 60 * 1000</code> (10 minutes).</li>
+        <li>If new user: creates record with role <code>'affected'</code>. If existing: updates OTP & expiry.</li>
+        <li>Securely prints OTP to server console (terminal-only) preventing client-side inspection vulnerabilities.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">5</div>
+    <div><strong>User Enters OTP:</strong> User enters the 6-digit code received (+ Name if first-time user).</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">6</div>
+    <div><strong>Verification & Token Issuance (<code>POST /api/auth/verify-otp</code>):</strong>
+      <ul>
+        <li>Validates: User exists? Does <code>user.otp === otp</code> match? Has it expired (<code>otpExpires &lt; Date.now()</code>)?</li>
+        <li>On success: Wipes <code>user.otp = undefined</code> to prevent replay attacks, sets <code>isVerified: true</code>.</li>
+        <li>Generates signed JSON Web Token: <code>jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '7d' })</code>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">7</div>
+    <div><strong>Client Storage & Redirection:</strong> JWT token and user profile are saved in <code>localStorage</code>; user is redirected to the SOS Distress Center or Affected Dashboard.</div>
+  </div>
+</div>
+
+<div class="flow-card">
+  <h3>Role 2: Responders (NGO, Field Volunteer, Admin)</h3>
+  <div class="flow-step">
+    <div class="step-num">1</div>
+    <div><strong>Registration (<code>POST /api/auth/register</code>):</strong>
+      <ul>
+        <li>Payload: <code>{ name/orgName, email, password, role, phone, skills, vehicleType }</code>.</li>
+        <li>Backend validates role is within <code>['volunteer', 'ngo', 'admin']</code>.</li>
+        <li>Checks for duplicate account: <code>User.findOne({ email })</code> &rarr; rejects with <code>400 Email already registered</code> if duplicate.</li>
+        <li>Mongoose pre-save hook encrypts raw password using <code>bcrypt.hash(password, 10)</code>.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">2</div>
+    <div><strong>Login (<code>POST /api/auth/login</code>):</strong>
+      <ul>
+        <li>Payload: <code>{ email, password }</code>.</li>
+        <li>Query retrieves user with explicitly selected password hash: <code>User.findOne({ email }).select('+password')</code>.</li>
+        <li>Verifies hash using <code>await bcrypt.compare(password, user.password)</code>.</li>
+        <li>If password mismatch or deactivated account &rarr; returns <code>401 Unauthorized</code>.</li>
+        <li>If valid &rarr; returns signed JWT containing User ID and role payload.</li>
+        <li>Frontend routes the authenticated session directly to the designated dashboard (<code>/ngo/dashboard</code>, <code>/volunteer/dashboard</code>, or <code>/admin/dashboard</code>).</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- SECTION 6 -->
+<h2>6. Core Programming Concepts: Try / Catch / Throw</h2>
+
+<p>
+  Robust disaster applications must never crash when unexpected errors occur (such as database disconnection, network dropouts, or malformed user input). We implement defensive programming using JavaScript's <code>try...catch...throw</code> construct.
+</p>
+
+<h3>6.1 Theoretical Meaning</h3>
+<ul>
+  <li><strong><code>try { ... }</code>:</strong> Wraps a block of code where exceptions might happen (e.g., asynchronous database lookups, network requests, or JSON parsing).</li>
+  <li><strong><code>throw</code>:</strong> Programmatically triggers an intentional error or exception when business rules or safety conditions fail.</li>
+  <li><strong><code>catch (error) { ... }</code>:</strong> The rescue block that catches any thrown error, logs the stack trace, and handles the situation gracefully without terminating the server process.</li>
+</ul>
+
+<h3>6.2 Real Code Implementation in ReliefLink</h3>
+<p>
+  <strong>File Reference:</strong> <code>backend/controllers/authController.js</code> (Lines 16–54)
+</p>
+
+<div class="code-box">
+// In backend/controllers/authController.js
+const sendOTP = async (req, res) => {
+  try {
+    // 1. TRY BLOCK: Execute risky operational logic safely
+    const { phone } = req.body;
+
+    // Defensive check: manual error response if validation fails
+    if (!phone) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Phone number is required' 
+      });
+    }
+
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    // Asynchronous database lookup (can throw if MongoDB connection drops)
+    let user = await User.findOne({ phone });
+
+    if (!user) {
+      user = new User({ name: 'User', phone, role: 'affected', otp, otpExpires, isVerified: false });
+    } else {
+      user.otp = otp;
+      user.otpExpires = otpExpires;
+    }
+
+    // Database write operation (can throw if schema validation fails)
+    await user.save();
+
+    // Successful JSON response
+    res.json({
+      success: true,
+      message: 'OTP sent successfully. Please check your SMS.'
+    });
+
+  } catch (error) {
+    // 2. CATCH BLOCK: If ANY error happens above, execution jumps here instantly!
+    // The server does NOT crash; it logs and returns an HTTP 500 status to the client
+    console.error('sendOTP Error:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
+  }
+};
+</div>
+
+<h3>6.3 Example of <code>throw</code> in the Project</h3>
+<p>
+  <strong>File Reference:</strong> <code>frontend/src/context/LanguageContext.jsx</code> (Line 52)
+</p>
+<div class="code-box">
+// In frontend/src/context/LanguageContext.jsx
+export const useLanguage = () => {
+  const context = useContext(LanguageContext);
+
+  // If a developer tries to call this hook outside its Provider, THROW an error!
+  if (!context) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+
+  return context;
+};
+</div>
+
+<p>
+  <em>Viva Defense Explanation:</em> "If a component invokes <code>useLanguage()</code> without being wrapped by <code>LanguageProvider</code>, the <code>throw new Error(...)</code> intentionally halts the rogue execution and bubbles up a clear, readable message to the error boundary, pinpointing the exact architectural issue."
+</p>
+
+<div style="margin-top: 24px; padding-top: 12px; border-top: 1px solid #CBD5E1; font-size: 8.5pt; color: #64748B; text-align: center;">
+  ReliefLink System Architecture Document &bull; Prepared for Academic Project Defense &bull; All Rights Reserved
+</div>
+
+</body>
+</html>
+`;
+
+const htmlPath = path.join(__dirname, 'ReliefLink_Project_Guide_Documentation.html');
+const pdfPath = path.join(__dirname, 'ReliefLink_Project_Guide_Documentation.pdf');
+
+fs.writeFileSync(htmlPath, htmlContent, 'utf8');
+console.log('HTML written to:', htmlPath);
+
+// Convert HTML to PDF using headless Chrome or Edge
+const browserPath = 'C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe';
+const cmd = '"' + browserPath + '" --headless --disable-gpu --run-all-compositor-stages-before-draw --print-to-pdf="' + pdfPath + '" "' + htmlPath + '"';
+
+try {
+  execSync(cmd, { stdio: 'inherit' });
+  console.log('PDF successfully generated at:', pdfPath);
+} catch (e) {
+  console.error('Failed to generate PDF with Chrome, trying Edge...', e.message);
+  const edgePath = 'C:\\\\Program Files (x86)\\\\Microsoft\\\\Edge\\\\Application\\\\msedge.exe';
+  const edgeCmd = '"' + edgePath + '" --headless --disable-gpu --run-all-compositor-stages-before-draw --print-to-pdf="' + pdfPath + '" "' + htmlPath + '"';
+  execSync(edgeCmd, { stdio: 'inherit' });
+  console.log('PDF successfully generated with Edge at:', pdfPath);
+}
