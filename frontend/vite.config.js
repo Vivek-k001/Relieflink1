@@ -34,10 +34,22 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on('error', (err) => {
+            if (err.code === 'ECONNRESET' || err.code === 'ECONNREFUSED') return;
+            console.warn('[proxy] API error:', err.message);
+          });
+        },
       },
       '/socket.io': {
         target: 'http://localhost:5000',
         ws: true,
+        configure: (proxy) => {
+          proxy.on('error', (err) => {
+            if (err.code === 'ECONNRESET' || err.code === 'ECONNREFUSED') return;
+            console.warn('[proxy] WebSocket error:', err.message);
+          });
+        },
       },
     },
   },
