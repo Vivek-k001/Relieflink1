@@ -33,17 +33,20 @@ const sendOTP = async (req, res) => {
     }
     await user.save();
 
-    // TODO: In production, send OTP via Twilio/MSG91
-    // For dev: log OTP to console
-    console.log(`📱 OTP for ${phone}: ${otp}`);
+    // In production, integrate SMS provider (Twilio/AWS SNS/MSG91)
+    // In dev: print clearly to server terminal only
+    console.log(`\n========================================`);
+    console.log(`📩 [SMS GATEWAY MOCK] Verification Code`);
+    console.log(`📱 Phone: ${phone}`);
+    console.log(`🔑 OTP CODE: >> ${otp} <<`);
+    console.log(`⏱️  Expires in: 10 minutes`);
+    console.log(`========================================\n`);
 
     res.json({
       success: true,
-      message: 'OTP sent successfully',
+      message: 'OTP sent successfully. Please check your SMS.',
       isNewUser,
       existingName,
-      // Only expose OTP in development mode
-      ...(process.env.NODE_ENV === 'development' && { devOtp: otp }),
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

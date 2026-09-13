@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, LayersControl, LayerGroup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
@@ -154,18 +154,17 @@ export default function MapView({
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
       >
-        {/* Fixed Satellite View */}
-        <LayerGroup>
-          <TileLayer
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
-            maxZoom={19}
-          />
-          <TileLayer
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-            maxZoom={19}
-          />
-        </LayerGroup>
+        {/* High-Resolution Satellite Map (Esri) */}
+        <TileLayer
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+          maxZoom={19}
+        />
+        {/* City and Street labels on top of satellite */}
+        <TileLayer
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+          maxZoom={19}
+        />
 
         {onMapClick && <MapEvents onMapClick={onMapClick} />}
 

@@ -123,7 +123,6 @@ export default function LoginPage() {
   const [isNewUser, setIsNewUser] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [devOtp, setDevOtp] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
 
   // Responder Email & Password State
@@ -168,8 +167,7 @@ export default function LoginPage() {
       } else {
         setName('');
       }
-      if (res.data.devOtp) setDevOtp(res.data.devOtp);
-      toast.success(`OTP sent to ${fullPhone}`);
+      toast.success(`OTP sent to ${fullPhone}! Check terminal.`);
     } catch (e) {
       toast.error(e.response?.data?.message || 'Failed to send OTP');
     } finally {
@@ -411,11 +409,6 @@ export default function LoginPage() {
                     Enter 6-Digit OTP sent to {getFullPhoneNumber()}
                   </label>
                   <OtpPinInput value={otp} onChange={setOtp} onEnter={() => handleVerifyOTP()} />
-                  {devOtp && (
-                    <div style={{ display: 'inline-block', background: '#FEF3C7', color: '#B45309', padding: '2px 8px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-                      Dev OTP: {devOtp}
-                    </div>
-                  )}
                 </div>
 
                 <button
