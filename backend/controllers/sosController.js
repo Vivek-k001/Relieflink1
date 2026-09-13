@@ -69,7 +69,7 @@ const getAllSOS = async (req, res) => {
 
     const sosList = await SosRequest.find(query)
       .populate('userId', 'name phone')
-      .populate('assignedVolunteer', 'name phone')
+      .populate('assignedVolunteer', 'name phone skills vehicleType')
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit));
@@ -87,7 +87,7 @@ const getSOSById = async (req, res) => {
   try {
     const sos = await SosRequest.findById(req.params.id)
       .populate('userId', 'name phone location')
-      .populate('assignedVolunteer', 'name phone location');
+      .populate('assignedVolunteer', 'name phone location skills vehicleType');
     if (!sos) return res.status(404).json({ success: false, message: 'SOS request not found' });
     res.json({ success: true, sos });
   } catch (error) {
@@ -110,13 +110,18 @@ const acceptSOS = async (req, res) => {
     sos.assignedAt = new Date();
     await sos.save();
 
-    // Create a task for the volunteer
+    // Create a task for the volunteer (only include startLocation if coordinates are present)
+    const volunteer = await User.findById(req.user._id);
+    const hasCoords = volunteer?.location?.coordinates?.length === 2 &&
+      (volunteer.location.coordinates[0] !== 0 || volunteer.location.coordinates[1] !== 0);
+
     await Task.create({
       volunteerId: req.user._id,
       type: 'rescue',
       relatedSos: sos._id,
       status: 'assigned',
       priority: sos.priority,
+      ...(hasCoords && { startLocation: volunteer.location }),
       destination: sos.location,
       destinationAddress: sos.address,
       description: `Rescue: ${sos.disasterType} - ${sos.description}`,
@@ -126,17 +131,25 @@ const acceptSOS = async (req, res) => {
     await Notification.create({
       userId: sos.userId,
       title: 'Help is on the way!',
-      message: `A volunteer has accepted your SOS request and is on their way.`,
+      message: `${volunteer?.name || 'A volunteer'} has accepted your SOS request and is on their way. Phone: ${volunteer?.phone || 'Available'}`,
       type: 'sos',
       relatedId: sos._id,
     });
 
     const io = req.app.get('io');
     if (io) {
-      io.to(sos.userId.toString()).emit('sos_accepted', { sosId: sos._id });
+      io.to(sos.userId.toString()).emit('sos_accepted', {
+        sosId: sos._id,
+        volunteerName: volunteer?.name,
+        volunteerPhone: volunteer?.phone,
+      });
     }
 
-    res.json({ success: true, message: 'SOS accepted', sos });
+    const populatedSos = await SosRequest.findById(sos._id)
+      .populate('userId', 'name phone')
+      .populate('assignedVolunteer', 'name phone skills vehicleType');
+
+    res.json({ success: true, message: 'SOS accepted', sos: populatedSos });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

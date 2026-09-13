@@ -45,7 +45,7 @@ const getReliefRequests = async (req, res) => {
     const list = await ReliefRequest.find(query)
       .populate('userId', 'name phone')
       .populate('approvedByNGO', 'name organizationName')
-      .populate('assignedVolunteer', 'name phone')
+      .populate('assignedVolunteer', 'name phone skills vehicleType')
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit));
@@ -64,7 +64,7 @@ const getReliefById = async (req, res) => {
     const relief = await ReliefRequest.findById(req.params.id)
       .populate('userId', 'name phone location')
       .populate('approvedByNGO', 'name organizationName')
-      .populate('assignedVolunteer', 'name phone');
+      .populate('assignedVolunteer', 'name phone skills vehicleType');
     if (!relief) return res.status(404).json({ success: false, message: 'Relief request not found' });
     res.json({ success: true, relief });
   } catch (error) {

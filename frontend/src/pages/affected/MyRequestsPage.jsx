@@ -6,6 +6,9 @@ import { ClipboardList, Package, AlertTriangle, RefreshCw, ArrowLeft } from 'luc
 
 const STATUS_COLORS = { pending: 'yellow', assigned: 'blue', in_progress: 'blue', resolved: 'green', delivered: 'green', cancelled: 'gray' };
 
+import VolunteerDetailsBox from '../../components/common/VolunteerDetailsBox';
+
+
 export default function MyRequestsPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('sos');
@@ -82,12 +85,15 @@ export default function MyRequestsPage() {
                           <span className={`badge badge-${s.priority === 'critical' ? 'red' : s.priority === 'high' ? 'yellow' : 'gray'}`}>{s.priority}</span>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                         <span style={{ fontSize: '0.8125rem', color: '#64748B' }}>👥 {s.numberOfPeople} people</span>
                         {s.medicalEmergency && <span style={{ fontSize: '0.8125rem', color: '#DC2626', fontWeight: 600 }}>🏥 Medical Emergency</span>}
-                        {s.assignedVolunteer && <span style={{ fontSize: '0.8125rem', color: '#2563EB', fontWeight: 600 }}>🦺 Volunteer assigned</span>}
                         <span style={{ fontSize: '0.8125rem', color: '#94A3B8' }}>{new Date(s.createdAt).toLocaleString()}</span>
                       </div>
+
+                      {s.assignedVolunteer && (
+                        <VolunteerDetailsBox volunteer={s.assignedVolunteer} title="Assigned Rescuer" />
+                      )}
                     </div>
                   </div>
                 ))}
@@ -113,11 +119,15 @@ export default function MyRequestsPage() {
                           <span className={`badge badge-${STATUS_COLORS[r.status] || 'gray'}`}>{r.status?.replace('_', ' ')}</span>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                         <span style={{ fontSize: '0.8125rem', color: '#64748B' }}>📍 {r.address || 'Address not set'}</span>
                         <span style={{ fontSize: '0.8125rem', color: '#64748B' }}>👥 {r.numberOfPeople} people</span>
                         <span style={{ fontSize: '0.8125rem', color: '#94A3B8' }}>{new Date(r.createdAt).toLocaleString()}</span>
                       </div>
+
+                      {r.assignedVolunteer && (
+                        <VolunteerDetailsBox volunteer={r.assignedVolunteer} title="Assigned Delivery Volunteer" />
+                      )}
                     </div>
                   </div>
                 ))}

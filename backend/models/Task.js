@@ -14,11 +14,11 @@ const taskSchema = new mongoose.Schema(
     priority: { type: String, enum: ['low', 'medium', 'high', 'critical'], default: 'medium' },
     description: { type: String },
     startLocation: {
-      type: { type: String, enum: ['Point'], default: 'Point' },
+      type: { type: String, enum: ['Point'] },
       coordinates: { type: [Number] },
     },
     destination: {
-      type: { type: String, enum: ['Point'], default: 'Point' },
+      type: { type: String, enum: ['Point'] },
       coordinates: { type: [Number] },
     },
     destinationAddress: { type: String },
@@ -31,7 +31,7 @@ const taskSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-taskSchema.index({ startLocation: '2dsphere' });
-taskSchema.index({ destination: '2dsphere' });
+taskSchema.index({ startLocation: '2dsphere' }, { sparse: true });
+taskSchema.index({ destination: '2dsphere' }, { sparse: true });
 
 module.exports = mongoose.model('Task', taskSchema);

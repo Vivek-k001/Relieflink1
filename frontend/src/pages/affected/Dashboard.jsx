@@ -5,6 +5,8 @@ import { useAuthStore } from '../../store/authStore';
 import { authAPI, sosAPI, reliefAPI, weatherAPI, alertAPI } from '../../api';
 import toast from 'react-hot-toast';
 import { AlertTriangle, Package, MapPin, ClipboardList, CheckCircle, Radio, Thermometer, Droplets } from 'lucide-react';
+import VolunteerDetailsBox from '../../components/common/VolunteerDetailsBox';
+
 
 export default function AffectedDashboard() {
   const { user, updateUser } = useAuthStore();
@@ -117,12 +119,17 @@ export default function AffectedDashboard() {
                     <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>No SOS requests</p>
                   </div>
                 ) : myRequests.sos.slice(0, 3).map(s => (
-                  <div key={s._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.625rem 0', borderBottom: '1px solid #F1F5F9' }}>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#1E293B' }}>{s.disasterType}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{new Date(s.createdAt).toLocaleString()}</div>
+                  <div key={s._id} style={{ padding: '0.75rem 0', borderBottom: '1px solid #F1F5F9' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#1E293B' }}>{s.disasterType?.toUpperCase()} Emergency</div>
+                        <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{new Date(s.createdAt).toLocaleString()}</div>
+                      </div>
+                      <span className={`badge badge-${s.status === 'resolved' ? 'green' : s.status === 'pending' ? 'yellow' : 'blue'}`}>{s.status}</span>
                     </div>
-                    <span className={`badge badge-${s.status === 'resolved' ? 'green' : s.status === 'pending' ? 'yellow' : 'blue'}`}>{s.status}</span>
+                    {s.assignedVolunteer && (
+                      <VolunteerDetailsBox volunteer={s.assignedVolunteer} title="Assigned Rescuer" />
+                    )}
                   </div>
                 ))}
               </div>
@@ -140,12 +147,17 @@ export default function AffectedDashboard() {
                     <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>No relief requests</p>
                   </div>
                 ) : myRequests.relief.slice(0, 3).map(r => (
-                  <div key={r._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.625rem 0', borderBottom: '1px solid #F1F5F9' }}>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#1E293B' }}>{r.items?.length} items requested</div>
-                      <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{new Date(r.createdAt).toLocaleString()}</div>
+                  <div key={r._id} style={{ padding: '0.75rem 0', borderBottom: '1px solid #F1F5F9' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#1E293B' }}>{r.items?.length} items requested</div>
+                        <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{new Date(r.createdAt).toLocaleString()}</div>
+                      </div>
+                      <span className={`badge badge-${r.status === 'delivered' ? 'green' : r.status === 'pending' ? 'yellow' : 'blue'}`}>{r.status}</span>
                     </div>
-                    <span className={`badge badge-${r.status === 'delivered' ? 'green' : r.status === 'pending' ? 'yellow' : 'blue'}`}>{r.status}</span>
+                    {r.assignedVolunteer && (
+                      <VolunteerDetailsBox volunteer={r.assignedVolunteer} title="Assigned Delivery Volunteer" />
+                    )}
                   </div>
                 ))}
               </div>
