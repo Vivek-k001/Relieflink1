@@ -60,7 +60,7 @@ const seedMapData = async () => {
         state: 'Maharashtra',
         capacity: 200,
         currentOccupancy: 198,
-        status: 'full',
+        status: 'active',
         facilities: ['medical', 'shelter'],
         contactPhone: '1800-111-333',
       },

@@ -235,8 +235,8 @@ export default function LandingPage() {
         </div>
       )}
 
-      {/* ── Dynamic Top Warning Banner ── */}
-      {activeAlerts.length > 0 && (
+      {/* ── Dynamic Top Warning Banner (Commented out for clean demo) ── */}
+      {/* activeAlerts.length > 0 && (
         <div className="landing-alert-banner" style={{ background: activeAlerts[0].severity === 'info' ? 'linear-gradient(90deg, #2563EB, #1D4ED8)' : 'linear-gradient(90deg, #DC2626, #B91C1C)' }}>
           <span style={{ fontSize: '1rem', animation: 'pulse 1.5s infinite' }}>{activeAlerts[0].severity === 'info' ? '📰' : '🚨'}</span>
           <span className="landing-alert-text">
@@ -246,7 +246,7 @@ export default function LandingPage() {
             {activeAlerts[0].severity === 'info' ? 'Read More →' : 'View Alert →'}
           </button>
         </div>
-      )}
+      ) */}
 
       {/* ── Navigation Header ── */}
       <header className="landing-header">
@@ -308,51 +308,56 @@ export default function LandingPage() {
               </div>
             )}
 
-            <button 
-              className="btn btn-sos" 
-              onClick={() => setSosModalOpen(true)} 
-              style={{ 
-                display: 'inline-flex', 
-                alignItems: 'center', 
-                gap: '0.4rem', 
-                padding: '0 0.95rem', 
-                height: 38, 
-                fontSize: '0.82rem', 
-                fontWeight: 700, 
-                borderRadius: 10, 
-                whiteSpace: 'nowrap', 
-                flexShrink: 0 
-              }}
-            >
-              <LifeBuoy size={15} /> 
-              <span>{t('landing.btnSos', 'Emergency SOS').replace(/^🆘\s*/, '')}</span>
-            </button>
+            {/* TURNED OFF: Emergency SOS & Safety Map nav buttons */}
+            {false && (
+              <>
+                <button 
+                  className="btn btn-sos" 
+                  onClick={() => setSosModalOpen(true)} 
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '0.4rem', 
+                    padding: '0 0.95rem', 
+                    height: 38, 
+                    fontSize: '0.82rem', 
+                    fontWeight: 700, 
+                    borderRadius: 10, 
+                    whiteSpace: 'nowrap', 
+                    flexShrink: 0 
+                  }}
+                >
+                  <LifeBuoy size={15} /> 
+                  <span>{t('landing.btnSos', 'Emergency SOS').replace(/^🆘\s*/, '')}</span>
+                </button>
 
-            <button 
-              onClick={() => navigate('/safety')} 
-              style={{ 
-                background: 'rgba(34,197,94,0.12)', 
-                border: '1.5px solid rgba(34,197,94,0.35)', 
-                borderRadius: 10, 
-                color: '#4ADE80', 
-                padding: '0 0.95rem', 
-                height: 38, 
-                fontSize: '0.82rem', 
-                fontWeight: 700, 
-                cursor: 'pointer', 
-                display: 'inline-flex', 
-                alignItems: 'center', 
-                gap: '0.45rem', 
-                whiteSpace: 'nowrap', 
-                flexShrink: 0, 
-                transition: 'all 0.2s' 
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.2)'; e.currentTarget.style.borderColor = 'rgba(34,197,94,0.6)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.12)'; e.currentTarget.style.borderColor = 'rgba(34,197,94,0.35)'; }}
-            >
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 6px #22C55E', display: 'inline-block' }} />
-              <span>{t('nav.safetyMap', 'Safety Map').replace(/^🟢\s*/, '')}</span>
-            </button>
+                <button 
+                  onClick={() => navigate('/safety')} 
+                  style={{ 
+                    background: 'rgba(34,197,94,0.12)', 
+                    border: '1.5px solid rgba(34,197,94,0.35)', 
+                    borderRadius: 10, 
+                    color: '#4ADE80', 
+                    padding: '0 0.95rem', 
+                    height: 38, 
+                    fontSize: '0.82rem', 
+                    fontWeight: 700, 
+                    cursor: 'pointer', 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '0.45rem', 
+                    whiteSpace: 'nowrap', 
+                    flexShrink: 0, 
+                    transition: 'all 0.2s' 
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.2)'; e.currentTarget.style.borderColor = 'rgba(34,197,94,0.6)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.12)'; e.currentTarget.style.borderColor = 'rgba(34,197,94,0.35)'; }}
+                >
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 6px #22C55E', display: 'inline-block' }} />
+                  <span>{t('nav.safetyMap', 'Safety Map').replace(/^🟢\s*/, '')}</span>
+                </button>
+              </>
+            )}
 
             <button 
               onClick={() => navigate('/donate')} 
@@ -462,6 +467,7 @@ export default function LandingPage() {
         {/* Mobile Slide-Down Menu */}
         {mobileMenuOpen && (
           <div className="landing-mobile-menu open">
+            {/* TURNED OFF: Emergency SOS drawer button
             <button
               onClick={() => { setMobileMenuOpen(false); setSosModalOpen(true); }}
               className="landing-mobile-menu-item"
@@ -473,6 +479,7 @@ export default function LandingPage() {
               </span>
               <span style={{ fontSize: '0.75rem', background: '#DC2626', color: 'white', padding: '0.2rem 0.5rem', borderRadius: 6, fontWeight: 800 }}>1-Tap SOS</span>
             </button>
+            */}
 
             <button
               onClick={() => { setMobileMenuOpen(false); navigate('/donate'); }}
@@ -486,6 +493,7 @@ export default function LandingPage() {
               <span>💖</span>
             </button>
 
+            {/* TURNED OFF: Safety Map drawer link
             <button
               onClick={() => { setMobileMenuOpen(false); navigate('/safety'); }}
               className="landing-mobile-menu-item"
@@ -496,6 +504,7 @@ export default function LandingPage() {
               </span>
               <span>→</span>
             </button>
+            */}
 
             <button
               onClick={() => { setMobileMenuOpen(false); navigate('/register'); }}
@@ -552,6 +561,7 @@ export default function LandingPage() {
 
               {/* Action Buttons */}
               <div className="landing-hero-actions">
+                {/* TURNED OFF: Emergency SOS landing button
                 <button
                   onClick={() => setSosModalOpen(true)}
                   style={{
@@ -565,6 +575,22 @@ export default function LandingPage() {
                   onMouseLeave={e => e.currentTarget.style.transform = ''}
                 >
                   <LifeBuoy size={20} /> Send Emergency SOS
+                </button>
+                */}
+
+                <button
+                  onClick={() => navigate('/login')}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.75rem',
+                    background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
+                    color: 'white', padding: '0.9rem 1.8rem', borderRadius: 14,
+                    fontSize: '1rem', fontWeight: 800, cursor: 'pointer', border: 'none',
+                    boxShadow: '0 8px 30px rgba(37,99,235,0.4)', transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = ''}
+                >
+                  <span>Enter Portal / Login →</span>
                 </button>
 
                 <button
@@ -608,7 +634,7 @@ export default function LandingPage() {
                 </button>
               </div>
 
-              {/* Quick Role Badges */}
+              {/* TURNED OFF: Quick Role Badges (User: OTP SOS Access, Volunteer: Task Dashboard, NGO Center: Admin Control)
               <div className="landing-role-badges">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#94A3B8' }}>
                   <LifeBuoy size={18} color="#EF4444" /> <strong>User:</strong> OTP SOS Access
@@ -620,6 +646,7 @@ export default function LandingPage() {
                   <span style={{ fontSize: '1.1rem' }}>🏥</span> <strong>NGO Center:</strong> Admin Control
                 </div>
               </div>
+              */}
             </div>
 
             {/* Right: Clean Satellite Map Hero Container */}

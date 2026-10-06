@@ -33,7 +33,7 @@ export default function NGODashboard() {
 
   const QUICK_LINKS = [
     { icon: <AlertTriangle size={20} />, label: 'SOS Triage', to: '/ngo/sos', color: '#DC2626', bg: '#FEF2F2', badge: stats.pendingSOS },
-    { icon: <ShieldAlert size={20} />, label: 'Broadcast Alert', to: '/ngo/alerts', color: '#7C3AED', bg: '#EDE9FE' },
+    // /* COMMENTED OUT FOR SPRINT 3 DEMO */ { icon: <ShieldAlert size={20} />, label: 'Broadcast Alert', to: '/ngo/alerts', color: '#7C3AED', bg: '#EDE9FE' },
     { icon: <MapPin size={20} />, label: 'My Camps', to: '/ngo/camps', color: '#2563EB', bg: '#EFF6FF' },
     { icon: <Package size={20} />, label: 'Inventory', to: '/ngo/inventory', color: '#0284C7', bg: '#F0F9FF' },
     { icon: <ClipboardList size={20} />, label: 'Relief Approvals', to: '/ngo/approvals', color: '#D97706', bg: '#FFFBEB', badge: stats.pendingRelief },

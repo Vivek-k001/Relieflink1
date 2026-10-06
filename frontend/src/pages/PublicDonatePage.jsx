@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Heart, Package, ChevronRight, Loader2, ArrowLeft, ShieldCheck, CheckCircle, MapPin, Phone, Users, ExternalLink, X, Navigation, Building2, Target, Radio, RefreshCw } from 'lucide-react';
+import { Heart, Package, ChevronRight, Loader2, ArrowLeft, ShieldCheck, CheckCircle, MapPin, Phone, Users, ExternalLink, X, Navigation, Building2, Target, Radio, RefreshCw, FileText, Printer } from 'lucide-react';
 import { campAPI, donationAPI } from '../api';
 import { useLocationStore } from '../store/locationStore';
 import MockPaymentGateway from '../components/MockPaymentGateway';
@@ -124,6 +124,8 @@ export default function PublicDonatePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [finalCamp, setFinalCamp] = useState(null);
   const [showCampModal, setShowCampModal] = useState(false);
+  const [submittedDonation, setSubmittedDonation] = useState(null);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
   
   // Quote rotation state
   const [quoteIndex, setQuoteIndex] = useState(0);
@@ -299,7 +301,8 @@ export default function PublicDonatePage() {
         ...(type === 'monetary' ? { amount: Number(amount) } : { items: formattedItems })
       };
       
-      await donationAPI.make(payload);
+      const res = await donationAPI.make(payload);
+      setSubmittedDonation(res.data?.donation || null);
       setStep(4);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to submit donation');
@@ -834,19 +837,50 @@ export default function PublicDonatePage() {
               <CheckCircle className="success-icon" size={48} color="#10B981" />
             </div>
             
-            <h3 className="success-title" style={{ fontSize: '2.5rem', marginBottom: '0.25rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#0F172A', letterSpacing: '-0.5px' }}>
-              {type === 'monetary' ? 'Payment Successful!' : 'Donation Pledged!'}
-            </h3>
-            
-            {type === 'monetary' ? (
-              <div className="success-amount" style={{ fontSize: '2rem', fontWeight: 800, color: '#10B981', marginBottom: '1rem' }}>
-                ₹{amount}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+              <div style={{ textAlign: type === 'monetary' ? 'left' : 'center' }}>
+                <h3 className="success-title" style={{ fontSize: '2.3rem', margin: 0, fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#0F172A', letterSpacing: '-0.5px' }}>
+                  {type === 'monetary' ? 'Payment Successful!' : 'Donation Pledged!'}
+                </h3>
+                
+                {type === 'monetary' ? (
+                  <div className="success-amount" style={{ fontSize: '1.9rem', fontWeight: 800, color: '#10B981', marginTop: '0.2rem' }}>
+                    ₹{amount}
+                  </div>
+                ) : (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: '#FEF3C7', color: '#B45309', border: '1px solid #FCD34D', padding: '0.35rem 0.95rem', borderRadius: 20, fontSize: '0.825rem', fontWeight: 700, marginTop: '0.5rem' }}>
+                    📦 Supply Pledge Registered • Awaiting Camp Drop-Off
+                  </div>
+                )}
               </div>
-            ) : (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: '#FEF3C7', color: '#B45309', border: '1px solid #FCD34D', padding: '0.35rem 0.95rem', borderRadius: 20, fontSize: '0.825rem', fontWeight: 700, margin: '0.5rem auto 1rem' }}>
-                📦 Supply Pledge Registered • Awaiting Camp Drop-Off
-              </div>
-            )}
+
+              {type === 'monetary' && (
+                <button
+                  type="button"
+                  onClick={() => setShowReceiptModal(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    background: '#10B981',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: 12,
+                    padding: '0.75rem 1.35rem',
+                    fontSize: '0.925rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(16,185,129,0.3)',
+                    transition: 'all 0.2s',
+                    alignSelf: 'center'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(16,185,129,0.4)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)'; }}
+                >
+                  <FileText size={18} /> Download Receipt
+                </button>
+              )}
+            </div>
 
             <p className="success-text" style={{ color: '#475569', fontSize: '1.025rem', marginBottom: '1.75rem', maxWidth: 540, margin: '0 auto 1.75rem', lineHeight: 1.6 }}>
               {type === 'monetary' 
@@ -1108,6 +1142,139 @@ export default function PublicDonatePage() {
           </div>
         )}
 
+        {/* Official Donation Receipt Modal */}
+        {showReceiptModal && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex',
+            alignItems: 'center', justifyContent: 'center', padding: '1rem'
+          }}>
+            <div style={{ position: 'absolute', inset: 0 }} onClick={() => setShowReceiptModal(false)} />
+
+            <div id="receipt-modal-content" style={{
+              position: 'relative', width: '100%', maxWidth: 580, background: '#FFFFFF',
+              borderRadius: 20, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.3)',
+              overflow: 'hidden', zIndex: 10, animation: 'scaleUp 0.2s ease-out'
+            }}>
+              {/* Modal Top Bar */}
+              <div className="no-print" style={{
+                padding: '1rem 1.5rem', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+              }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#334155', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={18} color="#10B981" /> Official Donation Receipt
+                </span>
+                <button
+                  onClick={() => setShowReceiptModal(false)}
+                  style={{ background: '#E2E8F0', border: 'none', borderRadius: '50%', width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#475569' }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Printable Receipt Body */}
+              <div id="receipt-print-area" style={{ padding: '2rem 2.25rem', fontFamily: 'Inter, sans-serif', color: '#0F172A', background: '#FFFFFF' }}>
+                {/* Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #E2E8F0', paddingBottom: '1.25rem', marginBottom: '1.25rem' }}>
+                  <div>
+                    <div style={{ fontSize: '1.45rem', fontWeight: 800, fontFamily: 'Outfit, sans-serif', color: '#DC2626', letterSpacing: '-0.5px' }}>
+                      ReliefLink
+                    </div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Disaster Relief Coordination Network
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, marginTop: '0.25rem' }}>
+                      Section 80G Tax Exemption Eligible
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Receipt Number</div>
+                    <div style={{ fontSize: '0.95rem', fontWeight: 800, fontFamily: 'monospace', color: '#0F172A' }}>
+                      {submittedDonation?.receiptNumber || `RL-${Date.now()}`}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '0.2rem' }}>
+                      {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Amount Highlight Box */}
+                <div style={{ background: '#ECFDF5', border: '1.5px solid #A7F3D0', borderRadius: 12, padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.72rem', color: '#047857', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Contribution Amount</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#065F46', fontFamily: 'Outfit, sans-serif' }}>
+                      ₹{amount}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{ background: '#10B981', color: 'white', padding: '0.25rem 0.65rem', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, display: 'inline-block' }}>
+                      PAID & SETTLED
+                    </span>
+                    <div style={{ fontSize: '0.75rem', color: '#047857', marginTop: '0.35rem', fontWeight: 600 }}>
+                      Channel: {(submittedDonation?.paymentMethod || 'UPI / Gateway').toUpperCase()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Structured Breakdown Table */}
+                <div style={{ border: '1px solid #E2E8F0', borderRadius: 10, overflow: 'hidden', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', padding: '0.65rem 1rem', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', fontSize: '0.825rem' }}>
+                    <span style={{ color: '#64748B', fontWeight: 600 }}>Donor Name</span>
+                    <span style={{ fontWeight: 700, color: '#0F172A' }}>{donorName || 'Anonymous Donor'}</span>
+                  </div>
+                  {donorPhone && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', padding: '0.65rem 1rem', borderBottom: '1px solid #E2E8F0', fontSize: '0.825rem' }}>
+                      <span style={{ color: '#64748B', fontWeight: 600 }}>Contact Phone</span>
+                      <span style={{ fontWeight: 600, color: '#0F172A' }}>{donorPhone}</span>
+                    </div>
+                  )}
+                  <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', padding: '0.65rem 1rem', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', fontSize: '0.825rem' }}>
+                    <span style={{ color: '#64748B', fontWeight: 600 }}>Beneficiary Shelter</span>
+                    <span style={{ fontWeight: 700, color: '#0F172A' }}>{finalCamp?.name || 'Designated Relief Camp'}</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', padding: '0.65rem 1rem', borderBottom: '1px solid #E2E8F0', fontSize: '0.825rem' }}>
+                    <span style={{ color: '#64748B', fontWeight: 600 }}>Shelter Location</span>
+                    <span style={{ color: '#334155' }}>{finalCamp?.address || `${finalCamp?.district || ''}, ${finalCamp?.state || 'India'}`}</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', padding: '0.65rem 1rem', background: '#F8FAFC', fontSize: '0.825rem' }}>
+                    <span style={{ color: '#64748B', fontWeight: 600 }}>Purpose</span>
+                    <span style={{ color: '#334155' }}>Emergency Disaster Relief & Essential Shelter Operations</span>
+                  </div>
+                </div>
+
+                {/* Official Verification Seal */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.85rem', borderTop: '1px dashed #CBD5E1', fontSize: '0.725rem', color: '#64748B' }}>
+                  <div>
+                    <div>Official electronic receipt.</div>
+                    <div>Valid without physical signature under IT Act 2000.</div>
+                  </div>
+                  <div style={{ border: '1.5px solid #10B981', color: '#047857', padding: '0.3rem 0.75rem', borderRadius: 8, fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    ✓ RELIEFLINK VERIFIED
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="no-print" style={{ padding: '0.9rem 1.5rem', background: '#F8FAFC', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowReceiptModal(false)}
+                  style={{ padding: '0.6rem 1.2rem', borderRadius: 10, background: '#FFFFFF', border: '1px solid #CBD5E1', color: '#475569', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.6rem 1.35rem', borderRadius: 10, background: '#10B981', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}
+                >
+                  <Printer size={16} /> Print / Save as PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
       
       <style>{`
@@ -1130,6 +1297,28 @@ export default function PublicDonatePage() {
         @keyframes popIn { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
         @keyframes beat { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
         @keyframes slideUpFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media print {
+          body * {
+            visibility: hidden !important;
+          }
+          #receipt-print-area, #receipt-print-area * {
+            visibility: visible !important;
+          }
+          #receipt-print-area {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            padding: 30px !important;
+            margin: 0 !important;
+            background: #FFFFFF !important;
+            color: #000000 !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+        }
       `}</style>
     </div>
   );

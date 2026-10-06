@@ -40,7 +40,7 @@ export default function AffectedDashboard() {
     { icon: '📦', label: 'Request Relief', desc: 'Food, water, medicine', to: '/relief-request', bg: '#EFF6FF', border: '#93C5FD', color: '#2563EB' },
     { icon: '🏕️', label: 'Find Camps', desc: 'Nearby safe shelters', to: '/camp-finder', bg: '#F0FDF4', border: '#86EFAC', color: '#16A34A' },
     { icon: '📋', label: 'My Requests', desc: 'Track all your requests', to: '/my-requests', bg: '#FFF7ED', border: '#FCD34D', color: '#D97706' },
-    { icon: '📡', label: 'Live Alerts', desc: 'Disaster notifications', to: '/alerts', bg: '#F0F9FF', border: '#7DD3FC', color: '#0284C7' },
+    // /* COMMENTED OUT FOR SPRINT 3 DEMO */ { icon: '📡', label: 'Live Alerts', desc: 'Disaster notifications', to: '/alerts', bg: '#F0F9FF', border: '#7DD3FC', color: '#0284C7' },
   ];
 
   return (
@@ -56,12 +56,6 @@ export default function AffectedDashboard() {
               </h1>
               <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem' }}>Stay safe and connected during this emergency</p>
             </div>
-
-            {/* I'm Safe Button */}
-            <button onClick={handleSafeToggle} disabled={safeLoading} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', borderRadius: 12, background: user?.isSafe ? '#10B981' : 'rgba(255,255,255,0.2)', color: 'white', border: user?.isSafe ? 'none' : '2px solid rgba(255,255,255,0.5)', fontWeight: 700, cursor: 'pointer', fontSize: '0.9375rem', transition: 'all 0.2s', backdropFilter: 'blur(10px)' }}>
-              <CheckCircle size={18} />
-              {safeLoading ? 'Updating...' : user?.isSafe ? "✅ I'm Safe" : "Mark I'm Safe"}
-            </button>
           </div>
 
           {/* Weather Strip */}
@@ -74,8 +68,8 @@ export default function AffectedDashboard() {
         </div>
 
         <div className="dashboard-main">
-          {/* Active Alerts */}
-          {alerts.length > 0 && (
+          {/* Active Alerts (Commented out for clean demo) */}
+          {/* alerts.length > 0 && (
             <div style={{ marginBottom: '1.5rem' }}>
               {alerts.map(a => (
                 <div key={a._id} style={{ background: a.severity === 'emergency' ? '#FEF2F2' : '#FFFBEB', border: `1px solid ${a.severity === 'emergency' ? '#FCA5A5' : '#FCD34D'}`, borderRadius: 12, padding: '0.875rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.625rem' }}>
@@ -88,7 +82,7 @@ export default function AffectedDashboard() {
                 </div>
               ))}
             </div>
-          )}
+          ) */}
 
           {/* Quick Actions */}
           <h3 style={{ marginBottom: '1rem', color: '#1E293B', fontSize: '1.125rem' }}>Quick Actions</h3>
