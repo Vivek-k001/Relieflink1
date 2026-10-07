@@ -506,19 +506,13 @@ export default function LoginPage() {
 
             <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '1.25rem', marginTop: '1.5rem', textAlign: 'center' }}>
               <div style={{ fontSize: '0.78rem', color: '#64748B', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.65rem' }}>
-                New Responder or Organization?
+                New Volunteer? Register here
               </div>
 
               <div className="login-reg-capsule-bar">
-                <Link to="/register?role=volunteer" className="login-reg-capsule-item">
+                <Link to="/register" className="login-reg-capsule-item">
                   <span className="capsule-icon">🦺</span>
                   <span>Volunteer</span>
-                  <span className="capsule-arrow">→</span>
-                </Link>
-
-                <Link to="/register?role=ngo" className="login-reg-capsule-item">
-                  <span className="capsule-icon">🏢</span>
-                  <span>NGO / Relief Org</span>
                   <span className="capsule-arrow">→</span>
                 </Link>
               </div>

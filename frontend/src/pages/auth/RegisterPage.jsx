@@ -1,28 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../../api';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
-import { ArrowLeft, User, Mail, Lock, Phone, Briefcase, Building } from 'lucide-react';
+import { ArrowLeft, User, Mail, Lock, Phone, Briefcase } from 'lucide-react';
 
 const VOLUNTEER_SKILLS = ['First Aid', 'Swimming', 'Driving', 'Medical', 'Cooking', 'Construction', 'Communication', 'Logistics', 'Search & Rescue', 'Counseling'];
 
 export default function RegisterPage() {
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const queryRole = searchParams.get('role');
-  const [step, setStep] = useState(1);
-  const [role, setRole] = useState(queryRole === 'ngo' ? 'ngo' : 'volunteer');
+  const [role] = useState('volunteer');
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '', phone: '', skills: [], vehicleType: '', organizationName: '' });
-
-  useEffect(() => {
-    const r = searchParams.get('role');
-    if (r === 'ngo' || r === 'volunteer') {
-      setRole(r);
-    }
-  }, [searchParams]);
+  const [form, setForm] = useState({ name: '', email: '', password: '', phone: '', skills: [], vehicleType: '' });
 
   const set = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
   const toggleSkill = (s) => set('skills', form.skills.includes(s) ? form.skills.filter(x => x !== s) : [...form.skills, s]);
@@ -36,7 +26,7 @@ export default function RegisterPage() {
   };
 
   const handleRegister = async () => {
-    if (role === 'volunteer' && (!form.name || form.name.trim().length < 2 || !/^[A-Za-z\s]+$/.test(form.name))) { 
+    if (!form.name || form.name.trim().length < 2 || !/^[A-Za-z\s]+$/.test(form.name)) { 
       toast.error('Please enter a valid full name (letters and spaces only)'); 
       return; 
     }
@@ -51,12 +41,6 @@ export default function RegisterPage() {
     if (form.phone && (form.phone.replace(/\D/g, '').length !== 10)) {
       toast.error('If provided, phone number must be exactly 10 digits');
       return;
-    }
-    if (role === 'ngo') {
-      if (!form.organizationName || form.organizationName.trim().length < 2) {
-        toast.error('Please enter a valid Organization Name');
-        return;
-      }
     }
 
     setLoading(true);
@@ -75,9 +59,9 @@ export default function RegisterPage() {
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
       <div style={{ width: '100%', maxWidth: 500, background: 'white', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
         <div style={{ background: 'linear-gradient(135deg, #1D4ED8, #2563EB)', padding: '2rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌟</div>
-          <h2 style={{ color: 'white', fontFamily: 'Outfit,sans-serif', marginBottom: '0.25rem' }}>Join ReliefLink</h2>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem' }}>Register as a Volunteer or NGO</p>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🦺</div>
+          <h2 style={{ color: 'white', fontFamily: 'Outfit,sans-serif', marginBottom: '0.25rem' }}>Join as a Volunteer</h2>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.875rem' }}>Register to help communities in disaster zones</p>
         </div>
 
         <div style={{ padding: '2rem' }}>
@@ -126,16 +110,12 @@ export default function RegisterPage() {
             </button>
           </div>
 
-          {/* Role Selection */}
-          <div className="form-group">
-            <label className="form-label">Register as</label>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              {[{ v: 'volunteer', e: '🦺', l: 'Volunteer' }, { v: 'ngo', e: '🏥', l: 'NGO Relief Center (Admin)' }].map(r => (
-                <button key={r.v} onClick={() => setRole(r.v)} style={{ flex: 1, padding: '0.75rem', borderRadius: 10, border: role === r.v ? '2px solid #2563EB' : '2px solid #E2E8F0', background: role === r.v ? '#EFF6FF' : 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' }}>
-                  <div style={{ fontSize: '1.25rem' }}>{r.e}</div>
-                  <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: role === r.v ? '#2563EB' : '#64748B', marginTop: '0.25rem' }}>{r.l}</div>
-                </button>
-              ))}
+          {/* Volunteer badge - role is fixed, no selector needed */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: '#EFF6FF', border: '2px solid #2563EB', borderRadius: 10, padding: '0.65rem 1rem', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '1.25rem' }}>🦺</span>
+            <div>
+              <div style={{ fontWeight: 700, color: '#2563EB', fontSize: '0.9rem' }}>Volunteer Field Responder</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Help affected citizens during disaster events</div>
             </div>
           </div>
 
@@ -158,15 +138,10 @@ export default function RegisterPage() {
 
           <div className="form-group">
             <label className="form-label"><Phone size={14} style={{ display: 'inline', marginRight: 4 }} /> Phone Number</label>
-            <input id="reg-phone" type="tel" maxLength={10} className="form-control" placeholder="9876543210" value={form.phone} onChange={e => set('phone', e.target.value.replace(/\D/g, '').slice(0, 10))} onKeyDown={e => handleKeyDown(e, role === 'ngo' ? 'reg-org' : 'submit')} />
+            <input id="reg-phone" type="tel" maxLength={10} className="form-control" placeholder="9876543210" value={form.phone} onChange={e => set('phone', e.target.value.replace(/\D/g, '').slice(0, 10))} onKeyDown={e => handleKeyDown(e, 'submit')} />
           </div>
 
-          {role === 'ngo' && (
-            <div className="form-group">
-              <label className="form-label"><Building size={14} style={{ display: 'inline', marginRight: 4 }} /> Organization Name *</label>
-              <input id="reg-org" className="form-control" placeholder="Organization name" value={form.organizationName} onChange={e => set('organizationName', e.target.value)} onKeyDown={e => handleKeyDown(e, 'submit')} />
-            </div>
-          )}
+
 
           {role === 'volunteer' && (
             <>
