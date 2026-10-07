@@ -1,11 +1,12 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
+const connectDB = require('./config/db');
 const User = require('./models/User');
 const ReliefCamp = require('./models/ReliefCamp');
 
 async function seedKochiCamps() {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await connectDB();
     console.log('MongoDB Connected');
 
     let ngoUser = await User.findOne({ role: 'ngo' });

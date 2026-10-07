@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const connectDB = require('./config/db');
 const User = require('./models/User');
 const ReliefCamp = require('./models/ReliefCamp');
 const SosRequest = require('./models/SosRequest');
@@ -8,7 +9,7 @@ dotenv.config();
 
 const seedMapData = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await connectDB();
     console.log('MongoDB Connected');
 
     // Create a dummy NGO user to own the camps

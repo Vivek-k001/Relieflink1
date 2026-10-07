@@ -1,4 +1,13 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+// Configure reliable public DNS servers (Google & Cloudflare) to prevent
+// querySrv ENOTFOUND / ETIMEOUT errors on networks with strict/ISP DNS that fail SRV lookups
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch (dnsErr) {
+  // Graceful fallback if environment restricts setting DNS
+}
 
 const connectDB = async (retries = 3, delay = 2500) => {
   const primaryUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/relieflink';
