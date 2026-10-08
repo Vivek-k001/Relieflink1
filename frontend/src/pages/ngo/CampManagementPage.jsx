@@ -5,7 +5,7 @@ import { campAPI } from '../../api';
 import { useLocationStore } from '../../store/locationStore';
 import MapView from '../../components/maps/MapView';
 import toast from 'react-hot-toast';
-import { Plus, Edit2, Trash2, Users, MapPin, ArrowLeft, ClipboardList, LogIn, LogOut, Tent } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, MapPin, ArrowLeft, ClipboardList, LogIn, LogOut, Tent, Phone, Mail, Award, Car, Info, X } from 'lucide-react';
 import { INDIA_STATES_AND_DISTRICTS } from '../../utils/indiaStates';
 
 const FACILITIES = ['medical', 'food', 'water', 'shelter', 'sanitation', 'power', 'communication'];
@@ -21,6 +21,7 @@ export default function CampManagementPage() {
   const [showOccupancyModal, setShowOccupancyModal] = useState(false);
   const [selectedCampForOccupancy, setSelectedCampForOccupancy] = useState(null);
   const [newOccupancyValue, setNewOccupancyValue] = useState('');
+  const [selectedVolunteerModal, setSelectedVolunteerModal] = useState(null);
   const [form, setForm] = useState({ name: '', description: '', address: '', district: '', state: '', capacity: 100, contactPhone: '', contactEmail: '', facilities: [], disasterTypes: [], location: { coordinates: [0, 0] } });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const toggleFac = (f) => setForm(p => ({ ...p, facilities: p.facilities.includes(f) ? p.facilities.filter(x => x !== f) : [...p.facilities, f] }));
@@ -158,15 +159,45 @@ export default function CampManagementPage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                         <span style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.95rem' }}>👤 {a.userName || a.userId?.name || 'Unknown User'}</span>
                         {a.userPhone && <span style={{ fontSize: '0.78rem', color: '#64748B' }}>📞 {a.userPhone}</span>}
+                        <span style={{ padding: '0.15rem 0.5rem', borderRadius: 99, fontSize: '0.7rem', fontWeight: 700, background: '#FEF3C7', color: '#B45309' }}>
+                          👥 {a.numberOfPeople || a.relatedSos?.numberOfPeople || 1} {((a.numberOfPeople || a.relatedSos?.numberOfPeople || 1) === 1) ? 'person' : 'people'}
+                        </span>
                         <span style={{ padding: '0.15rem 0.5rem', borderRadius: 99, fontSize: '0.7rem', fontWeight: 700,
                           background: a.status === 'arrived' ? '#DCFCE7' : a.status === 'checked_out' ? '#F1F5F9' : '#EFF6FF',
                           color: a.status === 'arrived' ? '#15803D' : a.status === 'checked_out' ? '#94A3B8' : '#1D4ED8',
                         }}>{a.status?.replace('_', ' ').toUpperCase()}</span>
                       </div>
                       {/* Row 2: Assigned by */}
-                      <div style={{ fontSize: '0.82rem', color: '#64748B' }}>
-                        🙋 Assigned by <strong style={{ color: '#1E293B' }}>{a.assignedByName || a.assignedBy?.name}</strong>
-                        {' '}→ <strong style={{ color: '#2563EB' }}><Tent size={12} style={{ display: 'inline', marginRight: 2 }} />{a.campName || a.campId?.name}</strong>
+                      <div style={{ fontSize: '0.82rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <span>🙋 Assigned by:</span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedVolunteerModal(a.assignedBy || { name: a.assignedByName || 'Volunteer', phone: 'Contact via Coordinator' })}
+                          title="Click to view volunteer contact, vehicle & skills"
+                          style={{
+                            background: '#EFF6FF',
+                            border: '1px solid #BFDBFE',
+                            borderRadius: 6,
+                            padding: '0.15rem 0.5rem',
+                            color: '#1D4ED8',
+                            fontWeight: 700,
+                            fontSize: '0.82rem',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            transition: 'all 0.15s',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#DBEAFE'; e.currentTarget.style.borderColor = '#93C5FD'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = '#EFF6FF'; e.currentTarget.style.borderColor = '#BFDBFE'; }}
+                        >
+                          👤 {a.assignedByName || a.assignedBy?.name || 'Volunteer'}
+                          <Info size={12} color="#2563EB" />
+                        </button>
+                        <span>→</span>
+                        <strong style={{ color: '#2563EB' }}>
+                          <Tent size={12} style={{ display: 'inline', marginRight: 2 }} />{a.campName || a.campId?.name}
+                        </strong>
                       </div>
                       {/* Row 3: Camp address */}
                       {a.campId?.address && <div style={{ fontSize: '0.78rem', color: '#94A3B8' }}><MapPin size={11} style={{ display: 'inline', marginRight: 3 }} />{a.campId.address}</div>}
@@ -316,31 +347,191 @@ export default function CampManagementPage() {
         )}
 
         {/* Occupancy Modal */}
-        {showOccupancyModal && selectedCampForOccupancy && (
-          <div className="modal-overlay" onClick={() => setShowOccupancyModal(false)} style={{ zIndex: 9999 }}>
-            <div className="modal" style={{ maxWidth: 400, zIndex: 10000 }} onClick={e => e.stopPropagation()}>
-              <div className="modal-header">
-                <h4>👥 Update Occupancy</h4>
-                <button onClick={() => setShowOccupancyModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748B' }}>×</button>
-              </div>
-              <div className="modal-body">
-                <p style={{ marginBottom: '1rem', color: '#475569', fontSize: '0.875rem' }}>
-                  Update the number of people currently at <strong>{selectedCampForOccupancy.name}</strong>.
-                </p>
-                <div className="form-group">
-                  <label className="form-label">Current Occupancy (Max: {selectedCampForOccupancy.capacity})</label>
-                  <input 
-                    type="number" 
-                    className="form-control" 
-                    value={newOccupancyValue} 
-                    onChange={e => setNewOccupancyValue(e.target.value)} 
-                    autoFocus
-                  />
+        {showOccupancyModal && selectedCampForOccupancy && (() => {
+          const parsedVal = parseInt(newOccupancyValue);
+          const isOverCapacity = !isNaN(parsedVal) && parsedVal > selectedCampForOccupancy.capacity;
+          const isNegative = !isNaN(parsedVal) && parsedVal < 0;
+
+          return (
+            <div className="modal-overlay" onClick={() => setShowOccupancyModal(false)} style={{ zIndex: 1000 }}>
+              <div className="modal" style={{ maxWidth: 420, zIndex: 1001 }} onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h4>👥 Update Occupancy</h4>
+                  <button onClick={() => setShowOccupancyModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748B' }}>×</button>
+                </div>
+                <div className="modal-body">
+                  <p style={{ marginBottom: '1rem', color: '#475569', fontSize: '0.875rem' }}>
+                    Update the number of people currently at <strong>{selectedCampForOccupancy.name}</strong>.
+                  </p>
+                  <div className="form-group">
+                    <label className="form-label">
+                      Current Occupancy (Max Capacity: <strong>{selectedCampForOccupancy.capacity}</strong>)
+                    </label>
+                    <input 
+                      type="number" 
+                      min={0}
+                      max={selectedCampForOccupancy.capacity}
+                      className="form-control" 
+                      style={{
+                        borderColor: isOverCapacity || isNegative ? '#EF4444' : undefined,
+                        boxShadow: isOverCapacity || isNegative ? '0 0 0 1px #EF4444' : undefined,
+                      }}
+                      value={newOccupancyValue} 
+                      onChange={e => setNewOccupancyValue(e.target.value)} 
+                      autoFocus
+                    />
+                    {isOverCapacity && (
+                      <div style={{ color: '#DC2626', fontSize: '0.8rem', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
+                        ⚠️ Cannot exceed maximum camp capacity of {selectedCampForOccupancy.capacity}!
+                      </div>
+                    )}
+                    {isNegative && (
+                      <div style={{ color: '#DC2626', fontSize: '0.8rem', marginTop: 6, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
+                        ⚠️ Occupancy cannot be negative!
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-ghost" onClick={() => setShowOccupancyModal(false)}>Cancel</button>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handleOccupancySubmit}
+                    disabled={isOverCapacity || isNegative || newOccupancyValue === ''}
+                    style={{
+                      opacity: (isOverCapacity || isNegative || newOccupancyValue === '') ? 0.6 : 1,
+                      cursor: (isOverCapacity || isNegative || newOccupancyValue === '') ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    Update Occupancy
+                  </button>
                 </div>
               </div>
-              <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={() => setShowOccupancyModal(false)}>Cancel</button>
-                <button className="btn btn-primary" onClick={handleOccupancySubmit}>Update Occupancy</button>
+            </div>
+          );
+        })()}
+
+        {/* ── Volunteer Details Dialog ── */}
+        {selectedVolunteerModal && (
+          <div className="modal-overlay" onClick={() => setSelectedVolunteerModal(null)} style={{ zIndex: 1000 }}>
+            <div className="modal" style={{ maxWidth: 440, zIndex: 1001, borderRadius: 16, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+              <div style={{ background: 'linear-gradient(135deg, #1D4ED8, #2563EB)', padding: '1.25rem 1.5rem', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>
+                    🙋
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, color: 'white', fontSize: '1.1rem', fontWeight: 800 }}>
+                      {selectedVolunteerModal.name || 'Volunteer Details'}
+                    </h3>
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.85)' }}>
+                      Active ReliefLink Field Volunteer
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedVolunteerModal(null)}
+                  style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, padding: '0.35rem', cursor: 'pointer', color: 'white', display: 'flex' }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="modal-body" style={{ padding: '1.25rem', display: 'grid', gap: '0.85rem' }}>
+                {/* Phone */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0.65rem 0.85rem', background: '#F8FAFC', borderRadius: 10, border: '1px solid #E2E8F0' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Phone size={16} color="#2563EB" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Phone / Contact</div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1E293B' }}>
+                      {selectedVolunteerModal.phone ? (
+                        <a href={`tel:${selectedVolunteerModal.phone}`} style={{ color: '#2563EB', textDecoration: 'none' }}>
+                          {selectedVolunteerModal.phone}
+                        </a>
+                      ) : (
+                        <span style={{ color: '#94A3B8' }}>Not provided</span>
+                      )}
+                    </div>
+                  </div>
+                  {selectedVolunteerModal.phone && (
+                    <a href={`tel:${selectedVolunteerModal.phone}`} className="btn btn-sm" style={{ background: '#2563EB', color: 'white', padding: '0.25rem 0.6rem', fontSize: '0.75rem', borderRadius: 6, textDecoration: 'none' }}>
+                      Call
+                    </a>
+                  )}
+                </div>
+
+                {/* Email */}
+                {selectedVolunteerModal.email && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0.65rem 0.85rem', background: '#F8FAFC', borderRadius: 10, border: '1px solid #E2E8F0' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Mail size={16} color="#16A34A" />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Email Address</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1E293B' }}>
+                        {selectedVolunteerModal.email}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* District / Base */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0.65rem 0.85rem', background: '#F8FAFC', borderRadius: 10, border: '1px solid #E2E8F0' }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <MapPin size={16} color="#D97706" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>Assigned Region / District</div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1E293B' }}>
+                      {selectedVolunteerModal.district || 'General Operation Area'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vehicle & Tasks Stats */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+                  <div style={{ padding: '0.65rem 0.85rem', background: '#F8FAFC', borderRadius: 10, border: '1px solid #E2E8F0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>
+                      <Car size={14} color="#64748B" /> Vehicle
+                    </div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1E293B', marginTop: 2, textTransform: 'capitalize' }}>
+                      {selectedVolunteerModal.vehicleType || 'Standard'}
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '0.65rem 0.85rem', background: '#F8FAFC', borderRadius: 10, border: '1px solid #E2E8F0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: '#64748B', fontWeight: 600 }}>
+                      <Award size={14} color="#64748B" /> Completed Rescues
+                    </div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1E293B', marginTop: 2 }}>
+                      {selectedVolunteerModal.tasksCompleted || 0} tasks
+                    </div>
+                  </div>
+                </div>
+
+                {/* Skills */}
+                {selectedVolunteerModal.skills?.length > 0 && (
+                  <div style={{ padding: '0.65rem 0.85rem', background: '#F8FAFC', borderRadius: 10, border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600, marginBottom: 6 }}>
+                      Specialized Skills
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                      {selectedVolunteerModal.skills.map(s => (
+                        <span key={s} style={{ background: '#EFF6FF', color: '#1D4ED8', fontSize: '0.72rem', padding: '0.2rem 0.5rem', borderRadius: 6, fontWeight: 700 }}>
+                          ✓ {s}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer" style={{ padding: '0.85rem 1.25rem', background: '#F8FAFC', borderTop: '1px solid #E2E8F0' }}>
+                <button className="btn btn-secondary btn-full" onClick={() => setSelectedVolunteerModal(null)}>
+                  Close
+                </button>
               </div>
             </div>
           </div>

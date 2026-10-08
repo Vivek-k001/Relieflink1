@@ -127,8 +127,14 @@ function App() {
   return (
     <LanguageProvider>
       <BrowserRouter>
-        <OfflineBanner />
-        <Toaster position="top-right" toastOptions={{ duration: 4000, style: { fontFamily: 'Inter, sans-serif' } }} />
+        <Toaster
+          position="top-right"
+          containerStyle={{ zIndex: 999999 }}
+          toastOptions={{
+            duration: 4000,
+            style: { fontFamily: 'Inter, sans-serif', zIndex: 999999 }
+          }}
+        />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* Public Routes */}

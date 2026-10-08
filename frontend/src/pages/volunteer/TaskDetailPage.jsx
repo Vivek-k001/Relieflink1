@@ -40,8 +40,10 @@ function AssignCampModal({ sos, onClose, onAssigned }) {
     try {
       const resolvedSosId = sos?._id || sos;
       const resolvedUserId = sos?.userId?._id || (typeof sos?.userId === 'string' ? sos?.userId : null);
+      const peopleCount = Math.max(1, parseInt(sos?.numberOfPeople) || 1);
       const res = await campAPI.assignUser(camp._id, {
         sosId: resolvedSosId,
+        numberOfPeople: peopleCount,
         ...(resolvedUserId && { userId: resolvedUserId }),
       });
       toast.success(`✅ ${res.data.message}`);
@@ -72,8 +74,8 @@ function AssignCampModal({ sos, onClose, onAssigned }) {
         <div style={{ background: 'linear-gradient(135deg, #0F4C75, #1565C0)', padding: '1.25rem 1.5rem', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 800, fontSize: '1.125rem' }}>🏕️ Assign to Relief Camp</div>
-            <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.8)', marginTop: 2 }}>
-              Select a nearby available camp for <strong>{sos?.userName || 'the affected person'}</strong>
+            <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>
+              Assigning <strong>{sos?.userName || 'Affected Person'}</strong> &bull; Party Size: <strong style={{ color: '#FDE047' }}>👥 {Math.max(1, parseInt(sos?.numberOfPeople) || 1)} people</strong>
             </div>
           </div>
           <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, padding: '0.4rem', cursor: 'pointer', color: 'white', display: 'flex' }}>
@@ -100,14 +102,13 @@ function AssignCampModal({ sos, onClose, onAssigned }) {
                 const pct = camp.occupancyPercent || 0;
                 const color = occupancyColor(pct);
                 const isAssigning = assigning === camp._id;
+                const peopleNeeded = Math.max(1, parseInt(sos?.numberOfPeople) || 1);
+                const hasEnoughSpace = (camp.availableSlots || 0) >= peopleNeeded;
                 return (
                   <div key={camp._id} style={{
                     border: '1.5px solid #E2E8F0', borderRadius: 14, padding: '1rem',
-                    transition: 'all 0.2s', cursor: 'pointer',
-                  }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = '#2563EB'}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = '#E2E8F0'}
-                  >
+                    transition: 'all 0.2s',
+                  }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.625rem' }}>
                       <div>
                         <div style={{ fontWeight: 700, color: '#1E293B', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -119,8 +120,8 @@ function AssignCampModal({ sos, onClose, onAssigned }) {
                         </div>
                       </div>
                       <span style={{
-                        background: pct >= 90 ? '#FEE2E2' : pct >= 70 ? '#FEF3C7' : '#DCFCE7',
-                        color: color, fontSize: '0.72rem', fontWeight: 700,
+                        background: !hasEnoughSpace ? '#FEE2E2' : pct >= 90 ? '#FEF3C7' : '#DCFCE7',
+                        color: !hasEnoughSpace ? '#DC2626' : color, fontSize: '0.72rem', fontWeight: 700,
                         padding: '0.2rem 0.5rem', borderRadius: 20, whiteSpace: 'nowrap',
                       }}>
                         {camp.availableSlots} slots left
@@ -137,6 +138,13 @@ function AssignCampModal({ sos, onClose, onAssigned }) {
                         <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 99, transition: 'width 0.5s' }} />
                       </div>
                     </div>
+
+                    {/* Warning if not enough slots for whole party */}
+                    {!hasEnoughSpace && (
+                      <div style={{ fontSize: '0.75rem', color: '#DC2626', background: '#FEF2F2', padding: '0.35rem 0.6rem', borderRadius: 6, marginBottom: '0.65rem' }}>
+                        ⚠️ Needs {peopleNeeded} slots, but camp only has {camp.availableSlots}.
+                      </div>
+                    )}
 
                     {/* Facilities */}
                     {camp.facilities?.length > 0 && (
@@ -157,14 +165,15 @@ function AssignCampModal({ sos, onClose, onAssigned }) {
 
                     <button
                       onClick={() => handleAssign(camp)}
-                      disabled={!!assigning}
+                      disabled={!!assigning || !hasEnoughSpace}
                       style={{
-                        width: '100%', padding: '0.625rem', background: isAssigning ? '#93C5FD' : '#2563EB',
-                        color: 'white', border: 'none', borderRadius: 10, fontWeight: 700,
-                        fontSize: '0.875rem', cursor: assigning ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
+                        width: '100%', padding: '0.625rem',
+                        background: !hasEnoughSpace ? '#CBD5E1' : isAssigning ? '#93C5FD' : '#2563EB',
+                        color: !hasEnoughSpace ? '#64748B' : 'white', border: 'none', borderRadius: 10, fontWeight: 700,
+                        fontSize: '0.875rem', cursor: !hasEnoughSpace || assigning ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
                       }}
                     >
-                      {isAssigning ? '⏳ Assigning...' : `Assign to ${camp.name}`}
+                      {isAssigning ? '⏳ Assigning...' : !hasEnoughSpace ? `Insufficient space for ${peopleNeeded} people` : `Assign ${peopleNeeded} People to ${camp.name}`}
                     </button>
                   </div>
                 );

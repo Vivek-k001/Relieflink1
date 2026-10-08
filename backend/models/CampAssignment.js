@@ -20,6 +20,9 @@ const campAssignmentSchema = new mongoose.Schema(
     campId: { type: mongoose.Schema.Types.ObjectId, ref: 'ReliefCamp', required: true },
     campName: { type: String },
 
+    // Number of people assigned in this group/SOS
+    numberOfPeople: { type: Number, default: 1 },
+
     // The SOS request that led to this assignment (optional but useful for tracing)
     relatedSos: { type: mongoose.Schema.Types.ObjectId, ref: 'SosRequest' },
 

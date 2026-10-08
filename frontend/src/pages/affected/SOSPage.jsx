@@ -40,7 +40,8 @@ export default function SOSPage() {
   const handleSOS = async () => {
     if (!form.address || form.address.trim().length < 5) { toast.error('Please provide a valid address/landmark (min 5 chars)'); return; }
     if (!form.description || form.description.trim().length < 5) { toast.error('Please provide a valid description (min 5 chars)'); return; }
-    if (!form.numberOfPeople || form.numberOfPeople < 1) { toast.error('Number of people must be at least 1'); return; }
+    const numPeople = parseInt(form.numberOfPeople);
+    if (!numPeople || numPeople < 1) { toast.error('Total number of people must be at least 1'); return; }
     
     let targetLat = lat;
     let targetLng = lng;
@@ -53,7 +54,11 @@ export default function SOSPage() {
 
     setSubmitting(true);
     try {
-      await sosAPI.create({ ...form, location: { coordinates: [targetLng, targetLat] } });
+      await sosAPI.create({
+        ...form,
+        numberOfPeople: numPeople,
+        location: { coordinates: [targetLng, targetLat] }
+      });
       setSubmitted(true);
       toast.success('🆘 SOS sent! Help is on the way!', { duration: 5000 });
     } catch (e) {
@@ -157,8 +162,34 @@ export default function SOSPage() {
               </div>
 
               <div className="form-group">
-                <label className="form-label"><Users size={14} style={{ display: 'inline', marginRight: 4 }} /> Number of People</label>
-                <input type="number" className="form-control" min={1} max={1000} value={form.numberOfPeople} onChange={e => set('numberOfPeople', parseInt(e.target.value) || 1)} />
+                <label className="form-label">
+                  <Users size={14} style={{ display: 'inline', marginRight: 4 }} /> Total Number of People (Including You)
+                </label>
+                <input
+                  type="number"
+                  className="form-control"
+                  min={1}
+                  max={1000}
+                  placeholder="e.g., 1 (You) or 5 (You + 4 family members)"
+                  value={form.numberOfPeople}
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val === '') {
+                      set('numberOfPeople', '');
+                    } else {
+                      const parsed = parseInt(val, 10);
+                      set('numberOfPeople', isNaN(parsed) ? '' : Math.max(1, parsed));
+                    }
+                  }}
+                  onBlur={() => {
+                    if (!form.numberOfPeople || form.numberOfPeople < 1) {
+                      set('numberOfPeople', 1);
+                    }
+                  }}
+                />
+                <small style={{ color: '#64748B', fontSize: '0.75rem', marginTop: 3, display: 'block' }}>
+                  Enter total count needing rescue/shelter (1 = just yourself, 5 = yourself + 4 others).
+                </small>
               </div>
 
               <div className="form-group">

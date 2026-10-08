@@ -97,6 +97,17 @@ const assignUserToCamp = async (req, res) => {
       return res.status(400).json({ success: false, message: `${camp.name} is full or not accepting refugees. Please choose another camp.` });
     }
 
+    // Determine how many people are being assigned (from SOS request or explicit count)
+    const peopleCount = Math.max(1, parseInt(req.body.numberOfPeople) || parseInt(sos.numberOfPeople) || 1);
+    const availableSlots = Math.max(0, camp.capacity - camp.currentOccupancy);
+
+    if (peopleCount > availableSlots) {
+      return res.status(400).json({
+        success: false,
+        message: `${camp.name} only has ${availableSlots} slot${availableSlots === 1 ? '' : 's'} available, but this SOS requires space for ${peopleCount} people.`
+      });
+    }
+
     // 2. Get affected user info (or fallback to SOS userName/phone)
     let affectedUser = await User.findById(userId).select('name phone');
     const affectedUserName = affectedUser?.name || sos.userName || 'Affected Person';
@@ -105,8 +116,8 @@ const assignUserToCamp = async (req, res) => {
     // 3. Get volunteer (the one making the request)
     const volunteer = await User.findById(req.user._id).select('name phone');
 
-    // 4. Increment occupancy
-    camp.currentOccupancy += 1;
+    // 4. Increment occupancy by total people in this party
+    camp.currentOccupancy += peopleCount;
     if (camp.currentOccupancy >= camp.capacity) {
       camp.status = 'full';
       camp.acceptingRefugees = false;
@@ -122,6 +133,7 @@ const assignUserToCamp = async (req, res) => {
       assignedByName: volunteer?.name,
       campId: camp._id,
       campName: camp.name,
+      numberOfPeople: peopleCount,
       relatedSos: sosId,
     });
 
@@ -190,7 +202,7 @@ const getCampAssignments = async (req, res) => {
 
     const assignments = await CampAssignment.find(query)
       .populate('userId', 'name phone district')
-      .populate('assignedBy', 'name phone')
+      .populate('assignedBy', 'name phone email skills vehicleType district tasksCompleted rating')
       .populate('campId', 'name address')
       .populate('relatedSos', 'disasterType priority description')
       .sort({ assignedAt: -1 })
@@ -224,7 +236,7 @@ const getAllMyAssignments = async (req, res) => {
 
     const assignments = await CampAssignment.find(query)
       .populate('userId', 'name phone district')
-      .populate('assignedBy', 'name phone')
+      .populate('assignedBy', 'name phone email skills vehicleType district tasksCompleted rating')
       .populate('campId', 'name address district')
       .populate('relatedSos', 'disasterType priority description')
       .sort({ assignedAt: -1 })
@@ -256,12 +268,15 @@ const updateAssignmentStatus = async (req, res) => {
     if (status === 'arrived') assignment.arrivedAt = new Date();
     if (status === 'checked_out') {
       assignment.checkedOutAt = new Date();
-      // Decrement occupancy when user leaves camp
-      await ReliefCamp.findByIdAndUpdate(assignment.campId, {
-        $inc: { currentOccupancy: -1 },
-        status: 'active',
-        acceptingRefugees: true,
-      });
+      // Decrement occupancy by the group size when party leaves camp
+      const peopleLeaving = Math.max(1, assignment.numberOfPeople || 1);
+      const updatedCamp = await ReliefCamp.findById(assignment.campId);
+      if (updatedCamp) {
+        updatedCamp.currentOccupancy = Math.max(0, updatedCamp.currentOccupancy - peopleLeaving);
+        updatedCamp.status = 'active';
+        updatedCamp.acceptingRefugees = true;
+        await updatedCamp.save();
+      }
     }
     await assignment.save();
 
