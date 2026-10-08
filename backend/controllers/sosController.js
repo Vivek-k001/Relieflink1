@@ -48,16 +48,22 @@ const createSOS = async (req, res) => {
 // @route GET /api/sos
 const getAllSOS = async (req, res) => {
   try {
-    const { status, lat, lng, radius = 50, page = 1, limit = 20 } = req.query;
+    const { status, lat, lng, radius = 50, page = 1, limit = 20, mine } = req.query;
     let query = {};
 
     if (req.user.role === 'affected') {
       query.userId = req.user._id;
     }
-    if (status) query.status = status;
 
-    // Geospatial filter for volunteers
-    if (lat && lng && req.user.role === 'volunteer') {
+    // Volunteer: ?mine=true returns only their own accepted SOS (for history page)
+    if (req.user.role === 'volunteer' && mine === 'true') {
+      query.assignedVolunteer = req.user._id;
+    }
+
+    if (status && status !== 'all') query.status = status;
+
+    // Geospatial filter for volunteers browsing nearby (no mine flag)
+    if (lat && lng && req.user.role === 'volunteer' && mine !== 'true') {
       const radiusInMeters = parseFloat(radius) * 1000;
       query.location = {
         $near: {
@@ -70,6 +76,7 @@ const getAllSOS = async (req, res) => {
     const sosList = await SosRequest.find(query)
       .populate('userId', 'name phone')
       .populate('assignedVolunteer', 'name phone skills vehicleType')
+      .populate('assignedCamp', 'name address')
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit));
@@ -115,7 +122,7 @@ const acceptSOS = async (req, res) => {
     const hasCoords = volunteer?.location?.coordinates?.length === 2 &&
       (volunteer.location.coordinates[0] !== 0 || volunteer.location.coordinates[1] !== 0);
 
-    await Task.create({
+    const task = await Task.create({
       volunteerId: req.user._id,
       type: 'rescue',
       relatedSos: sos._id,
@@ -149,7 +156,8 @@ const acceptSOS = async (req, res) => {
       .populate('userId', 'name phone')
       .populate('assignedVolunteer', 'name phone skills vehicleType');
 
-    res.json({ success: true, message: 'SOS accepted', sos: populatedSos });
+    // Return task ID so frontend can navigate directly to the task
+    res.json({ success: true, message: 'SOS accepted', sos: populatedSos, taskId: task._id });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -180,6 +188,11 @@ const updateSOSStatus = async (req, res) => {
 // @route DELETE /api/sos/:id
 const cancelSOS = async (req, res) => {
   try {
+    if (req.query.permanent === 'true' || req.user.role === 'ngo' || req.user.role === 'admin') {
+      await SosRequest.findByIdAndDelete(req.params.id);
+      await Task.deleteMany({ relatedSos: req.params.id });
+      return res.json({ success: true, message: 'SOS deleted' });
+    }
     await SosRequest.findByIdAndUpdate(req.params.id, { status: 'cancelled' });
     res.json({ success: true, message: 'SOS cancelled' });
   } catch (error) {

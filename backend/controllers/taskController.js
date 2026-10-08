@@ -95,7 +95,10 @@ const updateTaskStatus = async (req, res) => {
 const getTaskById = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id)
-      .populate('relatedSos')
+      .populate({
+        path: 'relatedSos',
+        populate: { path: 'userId', select: 'name phone email' }
+      })
       .populate('relatedRelief')
       .populate('volunteerId', 'name phone');
     if (!task) return res.status(404).json({ success: false, message: 'Task not found' });

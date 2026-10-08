@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
 import MapView from '../../components/maps/MapView';
 import { sosAPI, campAPI } from '../../api';
-import { RefreshCw, AlertTriangle, ArrowLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { RefreshCw, AlertTriangle, ArrowLeft, Trash2 } from 'lucide-react';
 
 export default function SOSManagementPage() {
   const navigate = useNavigate();
@@ -22,6 +23,17 @@ export default function SOSManagementPage() {
   };
 
   useEffect(() => { fetch(); }, [statusFilter]);
+
+  const handleDeleteSos = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this SOS request?')) return;
+    try {
+      await sosAPI.cancel(id);
+      toast.success('SOS request removed');
+      setSosList(prev => prev.filter(s => s._id !== id));
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Failed to delete SOS');
+    }
+  };
 
   return (
     <div className="page-layout">
@@ -54,12 +66,12 @@ export default function SOSManagementPage() {
 
           <div className="table-container">
             <table>
-              <thead><tr><th>Person</th><th>Disaster</th><th>Priority</th><th>People</th><th>Status</th><th>Volunteer</th><th>Time</th></tr></thead>
+              <thead><tr><th>Person</th><th>Disaster</th><th>Priority</th><th>People</th><th>Status</th><th>Volunteer</th><th>Time</th><th style={{ textAlign: 'right' }}>Action</th></tr></thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}><div className="spinner" style={{ margin: '0 auto' }} /></td></tr>
+                  <tr><td colSpan={8} style={{ textAlign: 'center', padding: '2rem' }}><div className="spinner" style={{ margin: '0 auto' }} /></td></tr>
                 ) : sosList.length === 0 ? (
-                  <tr><td colSpan={7}><div className="empty-state"><AlertTriangle size={40} color="#BFDBFE" /><h3>No {statusFilter} SOS requests</h3></div></td></tr>
+                  <tr><td colSpan={8}><div className="empty-state"><AlertTriangle size={40} color="#BFDBFE" /><h3>No {statusFilter} SOS requests</h3></div></td></tr>
                 ) : sosList.map(s => (
                   <tr key={s._id}>
                     <td><div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{s.userName}</div><div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{s.userPhone}</div></td>
@@ -69,6 +81,27 @@ export default function SOSManagementPage() {
                     <td><span className={`badge badge-${s.status === 'resolved' ? 'green' : s.status === 'pending' ? 'yellow' : 'blue'}`}>{s.status?.replace('_', ' ')}</span></td>
                     <td style={{ fontSize: '0.875rem', color: '#64748B' }}>{s.assignedVolunteer?.name || '—'}</td>
                     <td style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{new Date(s.createdAt).toLocaleString()}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      <button
+                        onClick={() => handleDeleteSos(s._id)}
+                        title="Delete SOS request"
+                        style={{
+                          background: '#FEE2E2',
+                          color: '#DC2626',
+                          border: 'none',
+                          borderRadius: 8,
+                          padding: '0.4rem 0.6rem',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4
+                        }}
+                      >
+                        <Trash2 size={13} /> Delete
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

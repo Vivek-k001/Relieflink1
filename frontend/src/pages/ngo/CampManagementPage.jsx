@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/common/Sidebar';
 import { campAPI } from '../../api';
 import { useLocationStore } from '../../store/locationStore';
 import MapView from '../../components/maps/MapView';
 import toast from 'react-hot-toast';
-import { Plus, Edit2, Trash2, Users, MapPin, ArrowLeft } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, MapPin, ArrowLeft, ClipboardList, LogIn, LogOut, Tent } from 'lucide-react';
 import { INDIA_STATES_AND_DISTRICTS } from '../../utils/indiaStates';
 
 const FACILITIES = ['medical', 'food', 'water', 'shelter', 'sanitation', 'power', 'communication'];
@@ -25,7 +25,33 @@ export default function CampManagementPage() {
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const toggleFac = (f) => setForm(p => ({ ...p, facilities: p.facilities.includes(f) ? p.facilities.filter(x => x !== f) : [...p.facilities, f] }));
 
+  // ── Assignments tab ──
+  const [activeTab, setActiveTab] = useState('camps'); // 'camps' | 'assignments'
+  const [assignments, setAssignments] = useState([]);
+  const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+  const [updatingAssignment, setUpdatingAssignment] = useState(null);
+
+  const fetchAssignments = useCallback(async () => {
+    setAssignmentsLoading(true);
+    try {
+      const r = await campAPI.getMyAssignments();
+      setAssignments(r.data.assignments || []);
+    } catch { toast.error('Could not load assignments'); }
+    finally { setAssignmentsLoading(false); }
+  }, []);
+
+  const handleAssignmentStatus = async (assignmentId, newStatus) => {
+    setUpdatingAssignment(assignmentId);
+    try {
+      await campAPI.updateAssignmentStatus(assignmentId, newStatus);
+      toast.success(`Marked as ${newStatus}`);
+      fetchAssignments();
+    } catch (e) { toast.error(e.response?.data?.message || 'Update failed'); }
+    finally { setUpdatingAssignment(null); }
+  };
+
   useEffect(() => { getLocation(); fetchCamps(); }, []);
+  useEffect(() => { if (activeTab === 'assignments') fetchAssignments(); }, [activeTab, fetchAssignments]);
   useEffect(() => { if (lat && lng) setForm(p => ({ ...p, location: { coordinates: [lng, lat] } })); }, [lat, lng]);
 
   const fetchCamps = async () => {
@@ -82,10 +108,114 @@ export default function CampManagementPage() {
               style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.5rem 0.9rem', borderRadius: 8, background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem' }}>
               <ArrowLeft size={16} /> Back
             </button>
-            <button className="btn" onClick={() => setShowCreate(true)} style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '2px solid rgba(255,255,255,0.3)' }}><Plus size={16} /> New Camp</button>
+            {activeTab === 'camps' && <button className="btn" onClick={() => setShowCreate(true)} style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '2px solid rgba(255,255,255,0.3)' }}><Plus size={16} /> New Camp</button>}
           </div>
         </div>
 
+        {/* Tab switcher */}
+        <div style={{ display: 'flex', borderBottom: '2px solid #E2E8F0', padding: '0 2rem', background: 'white' }}>
+          {[
+            { key: 'camps', icon: <Tent size={16} />, label: 'My Camps' },
+            { key: 'assignments', icon: <ClipboardList size={16} />, label: 'Camp Assignments' },
+          ].map(tab => (
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '0.875rem 1.25rem',
+              background: 'none', border: 'none', cursor: 'pointer', fontWeight: activeTab === tab.key ? 700 : 400,
+              color: activeTab === tab.key ? '#2563EB' : '#64748B', fontSize: '0.9rem',
+              borderBottom: activeTab === tab.key ? '3px solid #2563EB' : '3px solid transparent',
+              transition: 'all 0.2s', marginBottom: -2,
+            }}>
+              {tab.icon} {tab.label}
+              {tab.key === 'assignments' && assignments.length > 0 && (
+                <span style={{ background: '#2563EB', color: 'white', fontSize: '0.7rem', fontWeight: 700, padding: '0.1rem 0.45rem', borderRadius: 99, marginLeft: 4 }}>{assignments.length}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* ════════════ ASSIGNMENTS TAB ════════════ */}
+        {activeTab === 'assignments' && (
+          <div style={{ padding: '1.5rem 2rem' }}>
+            <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontFamily: 'Outfit,sans-serif', color: '#1E293B' }}>Who was assigned to which camp</h3>
+              <button onClick={fetchAssignments} style={{ padding: '0.5rem 1rem', background: '#F1F5F9', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, color: '#475569', fontSize: '0.85rem' }}>🔄 Refresh</button>
+            </div>
+
+            {assignmentsLoading ? (
+              <div className="spinner-center"><div className="spinner" /></div>
+            ) : assignments.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#94A3B8' }}>
+                <ClipboardList size={40} style={{ marginBottom: 12 }} />
+                <div style={{ fontWeight: 700, fontSize: '1rem', color: '#64748B' }}>No assignments yet</div>
+                <div style={{ fontSize: '0.875rem', marginTop: 4 }}>When volunteers assign affected users to your camps, they'll appear here.</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {assignments.map(a => (
+                  <div key={a._id} style={{ background: 'white', border: '1.5px solid #E2E8F0', borderRadius: 14, padding: '1rem 1.25rem', display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.75rem', alignItems: 'start', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+                    <div style={{ display: 'grid', gap: '0.375rem' }}>
+                      {/* Row 1: User info */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 800, color: '#1E293B', fontSize: '0.95rem' }}>👤 {a.userName || a.userId?.name || 'Unknown User'}</span>
+                        {a.userPhone && <span style={{ fontSize: '0.78rem', color: '#64748B' }}>📞 {a.userPhone}</span>}
+                        <span style={{ padding: '0.15rem 0.5rem', borderRadius: 99, fontSize: '0.7rem', fontWeight: 700,
+                          background: a.status === 'arrived' ? '#DCFCE7' : a.status === 'checked_out' ? '#F1F5F9' : '#EFF6FF',
+                          color: a.status === 'arrived' ? '#15803D' : a.status === 'checked_out' ? '#94A3B8' : '#1D4ED8',
+                        }}>{a.status?.replace('_', ' ').toUpperCase()}</span>
+                      </div>
+                      {/* Row 2: Assigned by */}
+                      <div style={{ fontSize: '0.82rem', color: '#64748B' }}>
+                        🙋 Assigned by <strong style={{ color: '#1E293B' }}>{a.assignedByName || a.assignedBy?.name}</strong>
+                        {' '}→ <strong style={{ color: '#2563EB' }}><Tent size={12} style={{ display: 'inline', marginRight: 2 }} />{a.campName || a.campId?.name}</strong>
+                      </div>
+                      {/* Row 3: Camp address */}
+                      {a.campId?.address && <div style={{ fontSize: '0.78rem', color: '#94A3B8' }}><MapPin size={11} style={{ display: 'inline', marginRight: 3 }} />{a.campId.address}</div>}
+                      {/* Row 4: SOS context */}
+                      {a.relatedSos && (
+                        <div style={{ fontSize: '0.78rem', background: '#FEF2F2', color: '#DC2626', padding: '0.2rem 0.5rem', borderRadius: 6, display: 'inline-flex', alignItems: 'center', gap: 4, width: 'fit-content' }}>
+                          🆘 SOS: {a.relatedSos.disasterType} — {a.relatedSos.priority} priority
+                        </div>
+                      )}
+                      {/* Row 5: Timestamps */}
+                      <div style={{ fontSize: '0.75rem', color: '#CBD5E1', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                        <span>Assigned: {new Date(a.assignedAt).toLocaleString()}</span>
+                        {a.arrivedAt && <span>Arrived: {new Date(a.arrivedAt).toLocaleString()}</span>}
+                        {a.checkedOutAt && <span>Checked out: {new Date(a.checkedOutAt).toLocaleString()}</span>}
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    {a.status !== 'checked_out' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', minWidth: 120 }}>
+                        {a.status === 'assigned' && (
+                          <button
+                            onClick={() => handleAssignmentStatus(a._id, 'arrived')}
+                            disabled={updatingAssignment === a._id}
+                            style={{ padding: '0.45rem 0.75rem', background: '#DCFCE7', color: '#15803D', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                          >
+                            <LogIn size={13} /> Mark Arrived
+                          </button>
+                        )}
+                        {(a.status === 'assigned' || a.status === 'arrived') && (
+                          <button
+                            onClick={() => handleAssignmentStatus(a._id, 'checked_out')}
+                            disabled={updatingAssignment === a._id}
+                            style={{ padding: '0.45rem 0.75rem', background: '#FEF2F2', color: '#DC2626', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                          >
+                            <LogOut size={13} /> Check Out
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ════════════ CAMPS TAB ════════════ */}
+        {activeTab === 'camps' && <>
         <div style={{ padding: '1.5rem 2rem' }}>
           <div style={{ marginBottom: '1.5rem' }}>
             <MapView 
@@ -215,6 +345,7 @@ export default function CampManagementPage() {
             </div>
           </div>
         )}
+        </>}
       </main>
     </div>
   );

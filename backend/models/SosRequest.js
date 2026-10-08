@@ -28,6 +28,9 @@ const sosSchema = new mongoose.Schema(
     assignedAt: { type: Date },
     resolvedAt: { type: Date },
     notes: { type: String },
+    // Relief camp the affected user has been assigned to by the volunteer
+    assignedCamp: { type: mongoose.Schema.Types.ObjectId, ref: 'ReliefCamp' },
+    campAssignedAt: { type: Date },
   },
   { timestamps: true }
 );

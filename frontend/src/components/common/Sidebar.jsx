@@ -23,12 +23,11 @@ const getNavConfig = (t) => ({
   ],
   volunteer: [
     { to: '/volunteer', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard') },
-    // /* TURNED OFF */ { to: '/safety', icon: Radio, label: t('nav.safetyMap', '🟢 Safety Map') },
-    // /* COMMENTED OUT FOR SPRINT 3 DEMO */ { to: '/missing-persons', icon: UserCheck, label: t('nav.missingPersons', '👨‍👩‍👧 Missing Persons') },
     { to: '/volunteer/nearby', icon: MapPin, label: t('nav.nearbyRequests', 'Nearby Requests') },
-    { to: '/volunteer/skills', icon: Award, label: t('nav.mySkills', 'My Skills') },
     { to: '/volunteer/history', icon: ClipboardList, label: t('nav.taskHistory', 'Task History') },
-    // /* COMMENTED OUT FOR SPRINT 3 DEMO */ { to: '/alerts', icon: Radio, label: t('nav.liveAlerts', 'Live Alerts') },
+    { to: '/volunteer/skills', icon: Award, label: t('nav.mySkills', 'My Skills') },
+    // /* DISABLED */ { to: '/alerts', icon: Radio, label: t('nav.liveAlerts', 'Live Alerts') },
+    { to: '/camp-finder', icon: MapPin, label: t('nav.findCamps', 'Find Camps') },
   ],
   ngo: [
     { to: '/ngo', icon: LayoutDashboard, label: t('nav.dashboard', 'Dashboard') },

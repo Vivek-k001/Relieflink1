@@ -161,7 +161,7 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/camp-finder" element={
-              <ProtectedRoute allowedRoles={['affected', 'volunteer', 'admin']}>
+              <ProtectedRoute allowedRoles={['affected', 'volunteer', 'ngo', 'admin']}>
                 <CampFinderPage />
               </ProtectedRoute>
             } />

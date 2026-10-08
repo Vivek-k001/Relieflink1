@@ -72,6 +72,13 @@ export const campAPI = {
   update: (id, data) => api.put(`/camps/${id}`, data),
   delete: (id) => api.delete(`/camps/${id}`),
   updateOccupancy: (id, currentOccupancy) => api.put(`/camps/${id}/occupancy`, { currentOccupancy }),
+
+  // Camp assignments
+  getAvailable: (params) => api.get('/camps/available', { params }),       // volunteer: get nearby open camps
+  assignUser: (campId, data) => api.post(`/camps/${campId}/assign`, data),  // volunteer: assign user to camp
+  getCampAssignments: (campId, params) => api.get(`/camps/${campId}/assignments`, { params }),
+  getMyAssignments: (params) => api.get('/camps/assignments/my', { params }), // NGO: all assignments across my camps
+  updateAssignmentStatus: (assignmentId, status, notes) => api.put(`/camps/assignments/${assignmentId}/status`, { status, notes }),
 };
 
 // ---- Inventory ----

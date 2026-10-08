@@ -55,9 +55,15 @@ export default function NearbyRequestsPage() {
   const handleAcceptSOS = async (sos) => {
     setAccepting(sos._id);
     try {
-      await sosAPI.accept(sos._id);
-      toast.success('SOS accepted! Navigate to help them.');
-      fetchNearby();
+      const res = await sosAPI.accept(sos._id);
+      const taskId = res.data.taskId;
+      toast.success('🆘 SOS Accepted! Opening your task...');
+      if (taskId) {
+        // Navigate directly to the task so volunteer knows what to do next
+        setTimeout(() => navigate(`/volunteer/tasks/${taskId}`), 800);
+      } else {
+        fetchNearby();
+      }
     } catch (e) { toast.error(e.response?.data?.message || 'Failed to accept SOS'); }
     finally { setAccepting(null); }
   };
