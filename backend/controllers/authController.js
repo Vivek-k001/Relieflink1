@@ -128,7 +128,17 @@ const register = async (req, res) => {
       success: true,
       message: 'Registration successful',
       token,
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role },
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        skills: user.skills || [],
+        languages: user.languages || [],
+        experience: user.experience || '',
+        vehicleType: user.vehicleType || '',
+        isAvailable: user.isAvailable,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -153,7 +163,17 @@ const login = async (req, res) => {
       success: true,
       message: 'Login successful',
       token,
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role },
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        skills: user.skills || [],
+        languages: user.languages || [],
+        experience: user.experience || '',
+        vehicleType: user.vehicleType || '',
+        isAvailable: user.isAvailable,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

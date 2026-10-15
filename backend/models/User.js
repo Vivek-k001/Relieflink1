@@ -27,6 +27,8 @@ const userSchema = new mongoose.Schema(
 
     // Volunteer specific
     skills: [{ type: String }],
+    languages: [{ type: String }],
+    experience: { type: String },
     vehicleType: { type: String },
     isAvailable: { type: Boolean, default: true },
     tasksCompleted: { type: Number, default: 0 },
